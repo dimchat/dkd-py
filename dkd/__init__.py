@@ -11,8 +11,9 @@
 from mkm import SymmetricKey, PrivateKey, PublicKey
 from mkm import NetworkID, Address, ID, Meta, Entity
 
-from dkd.content import Content, TextContent, CommandContent
-from dkd.message import Envelope, Message, InstantMessage, SecureMessage, ReliableMessage
+from dkd.content import MessageType, Content, TextContent, CommandContent
+from dkd.message import Envelope, Message
+from dkd.transform import InstantMessage, SecureMessage, ReliableMessage
 
 name = "DaoKeDao"
 
@@ -25,7 +26,7 @@ __all__ = [
     'NetworkID', 'Address', 'ID', 'Meta',
     'Entity',
 
-    'Content', 'TextContent', 'CommandContent',
+    'MessageType', 'Content', 'TextContent', 'CommandContent',
     'Envelope', 'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 ]

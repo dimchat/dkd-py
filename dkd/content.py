@@ -110,22 +110,27 @@ class Content(dict):
         :return: message content
         """
         if cls is not Content:
+            # subclass
             if issubclass(cls, Content):
-                return super(Content, cls).__new__(cls, content)
+                return super().__new__(cls, content)
             else:
                 raise TypeError('Not subclass of Content')
         elif isinstance(content, Content):
+            # return Content object directly
             return content
         elif isinstance(content, dict):
-            # create message content by type
+            # get class by message content type
             msg_type: MessageType = int(content['type'])
-            clazz = content_class_switch[msg_type]
-            return clazz(content)
+            clazz = message_content_classes[msg_type]
+            if issubclass(clazz, Content):
+                return clazz(content)
+            else:
+                raise ModuleNotFoundError('Invalid message type')
         else:
             raise AssertionError('Invalid message content')
 
     def __init__(self, content: dict):
-        super(Content, self).__init__(content)
+        super().__init__(content)
         self.type = int(content['type'])
         self.sn = int(content['sn'])
         # group message?
@@ -138,7 +143,7 @@ class TextContent(Content):
     text: str = ''
 
     def __init__(self, content: dict):
-        super(TextContent, self).__init__(content)
+        super().__init__(content)
         self.text = content['text']
 
     @classmethod
@@ -156,20 +161,24 @@ class CommandContent(Content):
     command: str = ''
 
     def __init__(self, content: dict):
-        super(CommandContent, self).__init__(content)
+        super().__init__(content)
         self.command = content['command']
 
     @classmethod
     def new(cls, command: str='') -> Content:
         content = {
-            'type': MessageType.Text,
+            'type': MessageType.Command,
             'sn': serial_number(),
             'command': command,
         }
         return CommandContent(content)
 
 
-content_class_switch = {
+"""
+    Message Content Classes Map
+"""
+
+message_content_classes = {
 
     MessageType.Text: TextContent,
 
