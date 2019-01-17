@@ -1,5 +1,27 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
+# ==============================================================================
+# MIT License
+#
+# Copyright (c) 2019 Albert Moky
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ==============================================================================
 
 """
     Message Content
@@ -18,7 +40,6 @@
 """
 
 from enum import IntEnum
-import random
 
 from mkm import ID
 
@@ -86,13 +107,6 @@ class MessageType(IntEnum):
     Forward = 0xFF  # 1111 1111
 
 
-def serial_number():
-    """
-    :return: random integer equals or greater than 1
-    """
-    return random.randint(1, 2**32)
-
-
 class Content(dict):
     """
         This class is used to create message content
@@ -138,49 +152,9 @@ class Content(dict):
             self.group = ID(content['group'])
 
 
-class TextContent(Content):
-
-    text: str = ''
-
-    def __init__(self, content: dict):
-        super().__init__(content)
-        self.text = content['text']
-
-    @classmethod
-    def new(cls, text: str='') -> Content:
-        content = {
-            'type': MessageType.Text,
-            'sn': serial_number(),
-            'text': text,
-        }
-        return TextContent(content)
-
-
-class CommandContent(Content):
-
-    command: str = ''
-
-    def __init__(self, content: dict):
-        super().__init__(content)
-        self.command = content['command']
-
-    @classmethod
-    def new(cls, command: str='') -> Content:
-        content = {
-            'type': MessageType.Command,
-            'sn': serial_number(),
-            'command': command,
-        }
-        return CommandContent(content)
-
-
 """
     Message Content Classes Map
 """
 
 message_content_classes = {
-
-    MessageType.Text: TextContent,
-
-    MessageType.Command: CommandContent,
 }
