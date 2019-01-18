@@ -30,6 +30,7 @@
 
 from mkm import SymmetricKey, PrivateKey, PublicKey
 from mkm import NetworkID, Address, ID, Meta, Entity
+from mkm import Account, User, Group
 
 from dkd.content import MessageType, Content
 from dkd.contents import TextContent, CommandContent, ForwardContent
@@ -46,6 +47,8 @@ __all__ = [
 
     'NetworkID', 'Address', 'ID', 'Meta',
     'Entity',
+    'Account', 'User',
+    'Group',
 
     'MessageType', 'Content',
     'TextContent', 'CommandContent', 'ForwardContent',

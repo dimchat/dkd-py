@@ -12,9 +12,7 @@ import unittest
 
 import dkd
 
-from tests.hulk import *
-from tests.moki import *
-
+from mkm.immortals import *
 
 __author__ = 'Albert Moky'
 
@@ -38,8 +36,8 @@ class MessageTestCase(unittest.TestCase):
     def test_transform(self):
         print('---------------- test Transform begin')
 
-        sender = dkd.ID('moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk')
-        receiver = dkd.ID('hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj')
+        sender = moki.identifier
+        receiver = hulk.identifier
         text = 'Hey boy!'
 
         content = dkd.TextContent.new(text)
@@ -55,22 +53,25 @@ class MessageTestCase(unittest.TestCase):
         }
         password = dkd.SymmetricKey.generate(pw_info)
 
-        receiver_pk = dkd.PublicKey(pk_hulk)
-        receiver_sk = dkd.PrivateKey(sk_hulk)
+        # receiver_pk = dkd.PublicKey(hulk_pk)
+        # receiver_sk = dkd.PrivateKey(hulk_sk)
+        #
+        # sender_pk = dkd.PublicKey(moki_pk)
+        # sender_sk = dkd.PrivateKey(moki_sk)
 
-        sender_pk = dkd.PublicKey(pk_moki)
-        sender_sk = dkd.PrivateKey(sk_moki)
-
-        s_msg = i_msg.encrypt(password, receiver_pk)
+        s_msg = i_msg.encrypt(password, hulk.publicKey)
         print('secure message: ', s_msg)
 
-        r_msg = s_msg.sign(sender_sk)
+        r_msg = s_msg.sign(moki.privateKey)
         print('reliable message: ', r_msg)
 
-        s2 = r_msg.verify(sender_pk)
+        s2 = r_msg.verify(moki.publicKey)
         print('secure 2: ', s2)
 
-        i2 = s2.decrypt(private_key=receiver_sk)
+        s2 = s2.trim(receiver)
+        print('trim for: ', receiver)
+
+        i2 = s2.decrypt(private_key=hulk.privateKey)
         print('instant 2: ', i2)
 
         self.assertEqual(i2, i_msg)

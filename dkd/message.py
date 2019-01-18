@@ -39,10 +39,6 @@ class Envelope(dict):
         which contains 'sender', 'receiver' and 'time'
     """
 
-    sender: ID = None
-    receiver: ID = None
-    time: int = 0
-
     def __new__(cls, envelope: dict=None,
                 sender: ID=None, receiver: ID=None, time: int=0):
         """
@@ -86,8 +82,6 @@ class Message(dict):
         This class is used to create a message
         with the envelope fields, such as 'sender', 'receiver', and 'time'
     """
-
-    envelope: Envelope = None
 
     def __new__(cls, msg: dict):
         self = super().__new__(cls, msg)

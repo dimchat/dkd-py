@@ -45,8 +45,6 @@ def serial_number():
 
 class TextContent(Content):
 
-    text: str = ''
-
     def __init__(self, content: dict):
         super().__init__(content)
         self.text = content['text']
@@ -62,8 +60,6 @@ class TextContent(Content):
 
 
 class CommandContent(Content):
-
-    command: str = ''
 
     def __init__(self, content: dict):
         super().__init__(content)
@@ -81,8 +77,6 @@ class CommandContent(Content):
 
 class ForwardContent(Content):
 
-    forward: ReliableMessage = None
-
     def __init__(self, content: dict):
         super().__init__(content)
         if 'forward' in content:
@@ -93,7 +87,7 @@ class ForwardContent(Content):
             msg = content['message']
         else:
             raise ValueError('Forward message not found')
-        self.forward = msg
+        self.forward = ReliableMessage(msg)
 
     @classmethod
     def __new__(cls, message: ReliableMessage):

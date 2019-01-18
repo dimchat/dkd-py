@@ -112,11 +112,6 @@ class Content(dict):
         This class is used to create message content
     """
 
-    type: MessageType = 0x00
-    sn: int = 0
-
-    group: ID = None
-
     def __new__(cls, content: dict):
         """
 
@@ -150,6 +145,8 @@ class Content(dict):
         # group message?
         if 'group' in content:
             self.group = ID(content['group'])
+        else:
+            self.group = None
 
 
 """

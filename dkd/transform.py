@@ -69,8 +69,6 @@ class InstantMessage(Message):
         which extends 'content' field from Message
     """
 
-    content: Content = None
-
     def __new__(cls, msg: dict):
         self = super().__new__(cls, msg)
         # message content
@@ -108,16 +106,11 @@ class InstantMessage(Message):
         data = password.encrypt(data)
         key = json_str(password)
         # build secure message info
-        sender = self.envelope.sender
-        receiver = self.envelope.receiver
-        time = self.envelope.time
-        msg = {
-            'sender': sender,
-            'receiver': receiver,
-            'time': time,
-            'data': base64_encode(data),
-        }
+        msg = self.copy()
+        msg.pop('content')
+        msg['data'] = base64_encode(data)
         # check receiver
+        receiver = self.envelope.receiver
         if receiver.address.network.is_communicator():
             # personal message
             if public_key is None and receiver in public_keys:
@@ -128,7 +121,7 @@ class InstantMessage(Message):
             # encrypt the symmetric key with the receiver's public key
             # and save in msg.key
             msg['key'] = base64_encode(public_key.encrypt(key))
-        elif receiver.address.network.is_group():
+        elif receiver.address.network.is_group() and receiver == self.content.group:
             # group message
             keys = []
             group = Group(receiver)
@@ -159,16 +152,6 @@ class SecureMessage(Message):
         for decrypting the 'data'
     """
 
-    data: bytes = None
-    key: bytes = None
-    keys: dict = None
-
-    # Group ID
-    #   when a group message was split/trimmed to a single message
-    #   the 'receiver' will be changed to a member ID, and
-    #   the group ID will be saved as 'group'.
-    group: ID = None
-
     def __new__(cls, msg: dict):
         self = super().__new__(cls, msg)
         # secure data
@@ -176,8 +159,26 @@ class SecureMessage(Message):
         # decrypt key/keys
         if 'key' in msg:
             self.key = base64_decode(msg['key'])
+            self.keys = None
         elif 'keys' in msg:
+            self.key = None
             self.keys = msg['keys']
+        else:
+            # reuse key/keys
+            self.key = None
+            self.keys = None
+        # Group ID
+        #   when a group message was split/trimmed to a single message
+        #   the 'receiver' will be changed to a member ID, and
+        #   the group ID will be saved as 'group'.
+        if 'group' in msg:
+            grp = ID(msg['group'])
+            if grp.address.network.is_group():
+                self.group = grp
+            else:
+                raise ValueError('Group ID error')
+        else:
+            self.group = None
         return self
 
     def decrypt(self, password: SymmetricKey=None,
@@ -188,29 +189,35 @@ class SecureMessage(Message):
         :param private_key: User's private key for decrypting password
         :return: InstantMessage object
         """
-        sender = self.envelope.sender
         receiver = self.envelope.receiver
-        time = self.envelope.time
-        msg = {
-            'sender': sender,
-            'receiver': receiver,
-            'time': time,
-        }
-        # get password from key/keys
-        if password is None:
-            if self.key:
-                key = self.key
-            elif receiver in self.keys:
-                key = self.keys[receiver]
-                key = base64_decode(key)
+        if receiver.address.network.is_communicator():
+            if private_key:
+                # get password from key/keys
+                if self.key:
+                    key = self.key
+                elif self.keys and receiver in self.keys:
+                    key = base64_decode(self.keys[receiver])
+                else:
+                    key = None
+                if key:
+                    key = json_dict(private_key.decrypt(key))
+                    password = SymmetricKey(key)
+            if password:
+                # decrypt data with password
+                msg = self.copy()
+                msg.pop('data')
+                if 'key' in msg:
+                    msg.pop('key')
+                if 'keys' in msg:
+                    msg.pop('keys')
+                msg['content'] = json_dict(password.decrypt(self.data))
+                return InstantMessage(msg)
             else:
-                raise KeyError('Key not found')
-            key = private_key.decrypt(key)
-            key = json_dict(key)
-            password = SymmetricKey(key)
-        data = password.decrypt(self.data)
-        msg['content'] = Content(json_dict(data))
-        return InstantMessage(msg)
+                raise AssertionError('No password to decrypt message content')
+        elif receiver.address.network.is_group():
+            raise AssertionError('Trim group message for a member first')
+        else:
+            raise ValueError('Receiver type not supported')
 
     def sign(self, private_key: PrivateKey):
         """
@@ -220,86 +227,62 @@ class SecureMessage(Message):
         :return: ReliableMessage object
         """
         signature = private_key.sign(self.data)
-        msg = {
-            'sender': self.envelope.sender,
-            'receiver': self.envelope.receiver,
-            'time': self.envelope.time,
-            'data': base64_encode(self.data),
-            'key': base64_encode(self.key),
-            'keys': self.keys,
-            'signature': base64_encode(signature),
-        }
+        msg = self.copy()
+        msg['signature'] = base64_encode(signature)
         return ReliableMessage(msg)
 
     def split(self, group: Group):
         """ Split the group message to single person messages """
-        sender = self.envelope.sender
         receiver = self.envelope.receiver
-        time = self.envelope.time
-        data = self.data
-        keys = self.keys
-
         if receiver.address.network.is_group():
             if group.identifier != receiver:
                 raise AssertionError('Group not match')
+            msg = self.copy()
+            msg['group'] = receiver
+            if 'keys' in msg:
+                msg.pop('keys')
             messages = []
-            msg_info = {
-                'sender': sender,
-                'receiver': receiver,
-                'time': time,
-                'data': data,
-            }
             for member in group.members:
-                if member in keys:
-                    msg_info['key'] = keys[member]  # base64_encode
-                else:
-                    msg_info['key'] = None  # reused key
-                msg = SecureMessage(msg_info)
-                msg.group = receiver
-                messages.append(msg)
+                msg['receiver'] = member
+                if self.keys and member in self.keys:
+                    msg['key'] = self.keys[member]  # base64_encode
+                elif 'key' in msg:
+                    msg.pop('key')  # reused key
+                messages.append(SecureMessage(msg))
             return messages
         else:
             raise AssertionError('Only group message can be split')
 
-    def trim(self, member: ID, group: Group):
+    def trim(self, member: ID, group: Group=None):
         """ Trim the group message for a member """
-        sender = self.envelope.sender
         receiver = self.envelope.receiver
-        time = self.envelope.time
-        data = self.data
-        keys = self.keys
-
         if receiver.address.network.is_communicator():
             if not member or member == receiver:
                 return self
             else:
                 raise AssertionError('Receiver not match')
         elif receiver.address.network.is_group():
-            if group.identifier != receiver:
+            if group is None or group.identifier != receiver:
                 raise AssertionError('Group not match')
             if member:
                 # make sure it's the group's member
                 if not group.hasMember(member):
                     raise AssertionError('Member not found')
-            elif len(keys) == 1:
+            elif self.keys and len(self.keys) == 1:
                 # the only key is for you, maybe
-                member = keys.keys()[0]
+                member = self.keys.keys()[0]
             elif len(group.members) == 1:
                 # you are the only member of this group
                 member = group.members[0]
             else:
                 raise AssertionError('Who are you?')
             # build Message info
-            msg_info = {
-                'sender': sender,
-                'receiver': member,
-                'time': time,
-                'data': data,
-                'key': keys[member]  # base64_encode
-            }
-            msg = SecureMessage(msg_info)
-            msg.group = receiver
-            return msg
+            msg = self.copy()
+            msg['group'] = receiver
+            msg['receiver'] = member
+            if self.keys and member in self.keys:
+                msg['key'] = self.keys[member]  # base64_encode
+            return SecureMessage(msg)
         else:
             raise AssertionError('Receiver type not supported')
 
@@ -310,8 +293,6 @@ class ReliableMessage(SecureMessage):
         It contains a 'signature' field which signed with sender's private key
     """
 
-    signature: bytes = None
-
     def __new__(cls, msg: dict):
         self = super().__new__(cls, msg)
         # signature
@@ -320,14 +301,8 @@ class ReliableMessage(SecureMessage):
 
     def verify(self, public_key: PublicKey) -> SecureMessage:
         if public_key.verify(self.data, self.signature):
-            msg = {
-                'sender': self.envelope.sender,
-                'receiver': self.envelope.receiver,
-                'time': self.envelope.time,
-                'data': base64_encode(self.data),
-                'key': base64_encode(self.key),
-                'keys': self.keys,
-            }
+            msg = self.copy()
+            msg.pop('signature')  # remove 'signature'
             return SecureMessage(msg)
         else:
             raise ValueError('Signature error')
