@@ -81,16 +81,12 @@ class ForwardContent(Content):
         super().__init__(content)
         if 'forward' in content:
             msg = content['forward']
-        elif 'secret' in content:
-            msg = content['secret']
-        elif 'message' in content:
-            msg = content['message']
         else:
             raise ValueError('Forward message not found')
         self.forward = ReliableMessage(msg)
 
     @classmethod
-    def __new__(cls, message: ReliableMessage):
+    def new(cls, message: ReliableMessage):
         content = {
             'type': MessageType.Forward,
             'sn': serial_number(),

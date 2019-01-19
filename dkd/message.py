@@ -85,5 +85,11 @@ class Message(dict):
 
     def __new__(cls, msg: dict):
         self = super().__new__(cls, msg)
-        self.envelope = Envelope(msg)
+        env = {
+            'sender': msg['sender'],
+            'receiver': msg['receiver'],
+        }
+        if 'time' in msg:
+            env['time'] = msg['time']
+        self.envelope = Envelope(env)
         return self

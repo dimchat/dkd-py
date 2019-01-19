@@ -140,7 +140,7 @@ class Content(dict):
 
     def __init__(self, content: dict):
         super().__init__(content)
-        self.type = int(content['type'])
+        self.type = MessageType(int(content['type']))
         self.sn = int(content['sn'])
         # group message?
         if 'group' in content:

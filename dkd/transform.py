@@ -47,7 +47,7 @@ import json
 
 from mkm.utils import base64_encode, base64_decode
 from mkm import SymmetricKey, PublicKey, PrivateKey
-from mkm import ID, Group
+from mkm import ID, Meta, Group
 
 from dkd.content import Content
 from dkd.message import Envelope, Message
@@ -61,6 +61,35 @@ def json_str(dictionary):
 def json_dict(string):
     """ convert a json str to dict """
     return json.loads(string)
+
+
+class KeyMap(dict):
+    """
+        Encrypted Key Map for Secure Group Message
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            "ID1": "{key1}", // base64_encode(asymmetric)
+        }
+    """
+
+    def __new__(cls, keys: dict={}):
+        self = super().__new__(cls, keys)
+        return self
+
+    def __getitem__(self, identifier: ID) -> bytes:
+        if identifier in self:
+            item = super().__getitem__(identifier)
+            return base64_decode(item)
+        else:
+            return None
+
+    def __setitem__(self, identifier: ID, data: bytes):
+        if data:
+            item = base64_encode(data)
+            super().__setitem__(identifier, item)
+        elif identifier in self:
+            self.pop(identifier)  # remove it
 
 
 class InstantMessage(Message):
@@ -99,7 +128,7 @@ class InstantMessage(Message):
 
         :param password:    A symmetric key for encrypting message content
         :param public_key:  A asymmetric key for encrypting the password
-        :param public_keys: PublicKeys for group message, with member ID as its SymmetricKeys
+        :param public_keys: PublicKeys for group message
         :return: SecureMessage object
         """
         data = json_str(self.content)
@@ -116,24 +145,22 @@ class InstantMessage(Message):
             if public_key is None and receiver in public_keys:
                 # get public key data from the map
                 # and convert to a PublicKey object
-                public_key = base64_decode(public_keys[receiver])
-                public_key = PublicKey(json_dict(public_key))
+                public_key = PublicKey(public_keys[receiver])
             # encrypt the symmetric key with the receiver's public key
             # and save in msg.key
             msg['key'] = base64_encode(public_key.encrypt(key))
         elif receiver.address.network.is_group() and receiver == self.content.group:
             # group message
-            keys = []
+            keys = KeyMap()
             group = Group(receiver)
             for member in group.members:
                 if member in public_keys:
                     # get public key data from the map
                     # and convert to a PublicKey object
-                    public_key = base64_decode(public_keys[receiver])
-                    public_key = PublicKey(json_dict(public_key))
+                    public_key = PublicKey(public_keys[receiver])
                     # encrypt the symmetric key with the member's public key
                     # and save in msg.keys
-                    keys[member] = base64_encode(public_key.encrypt(key))
+                    keys[member] = public_key.encrypt(key)
                 else:
                     raise LookupError('Public key not found for member: ' + member)
             msg['keys'] = keys
@@ -154,7 +181,7 @@ class SecureMessage(Message):
 
     def __new__(cls, msg: dict):
         self = super().__new__(cls, msg)
-        # secure data
+        # secure(encrypted) data
         self.data = base64_decode(msg['data'])
         # decrypt key/keys
         if 'key' in msg:
@@ -162,19 +189,19 @@ class SecureMessage(Message):
             self.keys = None
         elif 'keys' in msg:
             self.key = None
-            self.keys = msg['keys']
+            self.keys = KeyMap(msg['keys'])
         else:
             # reuse key/keys
             self.key = None
             self.keys = None
         # Group ID
-        #   when a group message was split/trimmed to a single message
+        #   when a group message was split/trimmed to a single message,
         #   the 'receiver' will be changed to a member ID, and
-        #   the group ID will be saved as 'group'.
+        #   the 'group' will be set with the group ID.
         if 'group' in msg:
-            grp = ID(msg['group'])
-            if grp.address.network.is_group():
-                self.group = grp
+            group = ID(msg['group'])
+            if group.address.network.is_group():
+                self.group = group
             else:
                 raise ValueError('Group ID error')
         else:
@@ -195,10 +222,11 @@ class SecureMessage(Message):
                 # get password from key/keys
                 if self.key:
                     key = self.key
-                elif self.keys and receiver in self.keys:
-                    key = base64_decode(self.keys[receiver])
+                elif self.keys:
+                    key = self.keys[receiver]
                 else:
                     key = None
+                # decrypt key data with receiver's private key
                 if key:
                     key = json_dict(private_key.decrypt(key))
                     password = SymmetricKey(key)
@@ -245,7 +273,7 @@ class SecureMessage(Message):
             for member in group.members:
                 msg['receiver'] = member
                 if self.keys and member in self.keys:
-                    msg['key'] = self.keys[member]  # base64_encode
+                    msg['key'] = base64_encode(self.keys[member])
                 elif 'key' in msg:
                     msg.pop('key')  # reused key
                 messages.append(SecureMessage(msg))
@@ -280,8 +308,10 @@ class SecureMessage(Message):
             msg = self.copy()
             msg['group'] = receiver
             msg['receiver'] = member
-            if self.keys and member in self.keys:
-                msg['key'] = self.keys[member]  # base64_encode
+            if self.keys:
+                msg.pop('keys')
+                if member in self.keys:
+                    msg['key'] = base64_encode(self.keys[member])
             return SecureMessage(msg)
         else:
             raise AssertionError('Receiver type not supported')
@@ -297,9 +327,19 @@ class ReliableMessage(SecureMessage):
         self = super().__new__(cls, msg)
         # signature
         self.signature = base64_decode(msg['signature'])
+        # meta info of sender, just for the first contact with the station
+        if 'meta' in msg:
+            self.meta = Meta(msg['meta'])
         return self
 
-    def verify(self, public_key: PublicKey) -> SecureMessage:
+    def verify(self, public_key: PublicKey=None) -> SecureMessage:
+        if public_key is None:
+            # try to get public key from meta
+            if self.meta and self.meta.match_identifier(self.envelope.sender):
+                public_key = self.meta.key
+            else:
+                raise AssertionError('Cannot get public key from message.meta')
+        # verify and build a SecureMessage object
         if public_key.verify(self.data, self.signature):
             msg = self.copy()
             msg.pop('signature')  # remove 'signature'
