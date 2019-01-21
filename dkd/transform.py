@@ -55,7 +55,7 @@ from dkd.message import Envelope, Message
 
 def json_str(dictionary):
     """ convert a dict to json str """
-    return json.dumps(dictionary).encode('utf-8')
+    return json.dumps(dictionary)
 
 
 def json_dict(string):
@@ -131,9 +131,9 @@ class InstantMessage(Message):
         :param public_keys: PublicKeys for group message
         :return: SecureMessage object
         """
-        data = json_str(self.content)
+        data = json_str(self.content).encode('utf-8')
         data = password.encrypt(data)
-        key = json_str(password)
+        key = json_str(password).encode('utf-8')
         # build secure message info
         msg = self.copy()
         msg.pop('content')
@@ -259,7 +259,7 @@ class SecureMessage(Message):
         msg['signature'] = base64_encode(signature)
         return ReliableMessage(msg)
 
-    def split(self, group: Group):
+    def split(self, group: Group) -> list:
         """ Split the group message to single person messages """
         receiver = self.envelope.receiver
         if receiver.address.network.is_group():
