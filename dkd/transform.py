@@ -327,9 +327,6 @@ class ReliableMessage(SecureMessage):
         self = super().__new__(cls, msg)
         # signature
         self.signature = base64_decode(msg['signature'])
-        # meta info of sender, just for the first contact with the station
-        if 'meta' in msg:
-            self.meta = Meta(msg['meta'])
         return self
 
     def verify(self, public_key: PublicKey=None) -> SecureMessage:
@@ -346,3 +343,13 @@ class ReliableMessage(SecureMessage):
             return SecureMessage(msg)
         else:
             raise ValueError('Signature error')
+
+    @property
+    def meta(self) -> Meta:
+        """
+        Meta info of sender, just for the first contact
+
+        :return: Meta object
+        """
+        if 'meta' in self:
+            return Meta(self['meta'])
