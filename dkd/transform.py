@@ -46,11 +46,12 @@
 import json
 
 from mkm.utils import base64_encode, base64_decode
+
 from mkm import SymmetricKey, PublicKey, PrivateKey
 from mkm import ID, Meta, Group
 
-from dkd.content import Content
-from dkd.message import Envelope, Message
+from .content import Content
+from .message import Envelope, Message
 
 
 def json_str(dictionary):
@@ -152,17 +153,16 @@ class InstantMessage(Message):
         elif receiver.address.network.is_group() and receiver == self.content.group:
             # group message
             keys = KeyMap()
-            group = Group(receiver)
-            for member in group.members:
-                if member in public_keys:
-                    # get public key data from the map
-                    # and convert to a PublicKey object
-                    public_key = PublicKey(public_keys[receiver])
-                    # encrypt the symmetric key with the member's public key
-                    # and save in msg.keys
-                    keys[member] = public_key.encrypt(key)
-                else:
-                    raise LookupError('Public key not found for member: ' + member)
+            # group = Group(receiver)
+            # members = group.members
+            members = list(public_keys.keys())
+            for member in members:
+                # get public key data from the map
+                # and convert to a PublicKey object
+                public_key = PublicKey(public_keys[member])
+                # encrypt the symmetric key with the member's public key
+                # and save in msg.keys
+                keys[member] = public_key.encrypt(key)
             msg['keys'] = keys
 
         else:
@@ -268,11 +268,14 @@ class SecureMessage(Message):
             msg = self.copy()
             msg['group'] = receiver
             if 'keys' in msg:
+                keys = self.keys
                 msg.pop('keys')
+            else:
+                keys = {}
             messages = []
             for member in group.members:
                 msg['receiver'] = member
-                if self.keys and member in self.keys:
+                if member in keys:
                     msg['key'] = base64_encode(self.keys[member])
                 elif 'key' in msg:
                     msg.pop('key')  # reused key

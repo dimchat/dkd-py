@@ -32,8 +32,8 @@
 
 import random
 
-from dkd.content import MessageType, Content, message_content_classes
-from dkd.transform import ReliableMessage
+from .content import MessageType, Content, message_content_classes
+from .transform import ReliableMessage
 
 
 def serial_number():
@@ -86,7 +86,7 @@ class ForwardContent(Content):
         self.forward = ReliableMessage(msg)
 
     @classmethod
-    def new(cls, message: ReliableMessage):
+    def new(cls, message: ReliableMessage) -> Content:
         content = {
             'type': MessageType.Forward,
             'sn': serial_number(),

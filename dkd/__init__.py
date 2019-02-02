@@ -29,13 +29,14 @@
 # ==============================================================================
 
 from mkm import SymmetricKey, PrivateKey, PublicKey
+
 from mkm import NetworkID, Address, ID, Meta, Entity
 from mkm import Account, User, Group
 
-from dkd.content import MessageType, Content
-from dkd.contents import TextContent, CommandContent, ForwardContent
-from dkd.message import Envelope, Message
-from dkd.transform import InstantMessage, SecureMessage, ReliableMessage
+from .content import MessageType, Content
+from .contents import TextContent, CommandContent, ForwardContent
+from .message import Envelope, Message
+from .transform import InstantMessage, SecureMessage, ReliableMessage
 
 name = "DaoKeDao"
 
