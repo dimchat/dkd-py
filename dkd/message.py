@@ -57,10 +57,7 @@ class Envelope(dict):
             # get fields from dictionary
             sender = ID(envelope['sender'])
             receiver = ID(envelope['receiver'])
-            if 'time' in envelope:
-                time = int(envelope['time'])
-            else:
-                time = 0
+            time = int(envelope['time'])
         elif sender and receiver:
             envelope = {
                 'sender': sender,
@@ -84,12 +81,11 @@ class Message(dict):
     """
 
     def __new__(cls, msg: dict):
-        self = super().__new__(cls, msg)
         env = {
             'sender': msg['sender'],
             'receiver': msg['receiver'],
+            'time': msg['time'],
         }
-        if 'time' in msg:
-            env['time'] = msg['time']
+        self = super().__new__(cls, msg)
         self.envelope = Envelope(env)
         return self

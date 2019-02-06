@@ -102,6 +102,7 @@ class MessageType(IntEnum):
     Page = 0x20     # 0010 0000
 
     Command = 0x88  # 1000 1000
+    History = 0x89  # 1000 1001 (Entity history command)
 
     # top-secret message forward by proxy (Service Provider)
     Forward = 0xFF  # 1111 1111

@@ -34,7 +34,7 @@ from mkm import NetworkID, Address, ID, Meta, Entity
 from mkm import Account, User, Group
 
 from .content import MessageType, Content
-from .contents import TextContent, CommandContent, ForwardContent
+from .contents import TextContent, CommandContent, HistoryContent, ForwardContent
 from .message import Envelope, Message
 from .transform import InstantMessage, SecureMessage, ReliableMessage
 
@@ -55,7 +55,7 @@ __all__ = [
 
     # DaoKeDao
     'MessageType', 'Content',
-    'TextContent', 'CommandContent', 'ForwardContent',
+    'TextContent', 'CommandContent', 'HistoryContent', 'ForwardContent',
     'Envelope', 'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 ]

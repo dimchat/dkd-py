@@ -40,7 +40,7 @@ def serial_number():
     """
     :return: random integer equals or greater than 1
     """
-    return random.randint(1, 2**32)
+    return random.randint(1, 2**32-1)
 
 
 class TextContent(Content):
@@ -50,7 +50,7 @@ class TextContent(Content):
         self.text = content['text']
 
     @classmethod
-    def new(cls, text: str='') -> Content:
+    def new(cls, text: str) -> Content:
         content = {
             'type': MessageType.Text,
             'sn': serial_number(),
@@ -66,10 +66,28 @@ class CommandContent(Content):
         self.command = content['command']
 
     @classmethod
-    def new(cls, command: str='') -> Content:
+    def new(cls, command: str) -> Content:
         content = {
             'type': MessageType.Command,
             'sn': serial_number(),
+            'command': command,
+        }
+        return CommandContent(content)
+
+
+class HistoryContent(Content):
+
+    def __init__(self, content: dict):
+        super().__init__(content)
+        self.command = content['command']
+        self.time = int(content['time'])
+
+    @classmethod
+    def new(cls, command: str, time: int=0) -> Content:
+        content = {
+            'type': MessageType.History,
+            'sn': serial_number(),
+            'time': time,
             'command': command,
         }
         return CommandContent(content)
@@ -79,10 +97,7 @@ class ForwardContent(Content):
 
     def __init__(self, content: dict):
         super().__init__(content)
-        if 'forward' in content:
-            msg = content['forward']
-        else:
-            raise ValueError('Forward message not found')
+        msg = content['forward']
         self.forward = ReliableMessage(msg)
 
     @classmethod
@@ -101,4 +116,5 @@ class ForwardContent(Content):
 
 message_content_classes[MessageType.Text] = TextContent
 message_content_classes[MessageType.Command] = CommandContent
+message_content_classes[MessageType.History] = HistoryContent
 message_content_classes[MessageType.Forward] = ForwardContent
