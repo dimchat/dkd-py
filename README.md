@@ -2,6 +2,8 @@
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/dimchat/dkd-py/blob/master/LICENSE)
 [![Version](https://img.shields.io/badge/alpha-0.1.0-red.svg)](https://github.com/dimchat/dkd-py/wiki)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/dkd-py/pulls)
+[![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/dkd-py/wiki)
 
 This document introduces a common **Message Module** for decentralized instant messaging.
 
