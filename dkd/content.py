@@ -28,8 +28,8 @@
     ~~~~~~~~~~~~~~~
 
     data format: {
-        'type'    : 0x00,
-        'sn'      : 0,
+        'type'    : 0x00,            // message type
+        'sn'      : 0,               // serial number
 
         'group'   : 'Group ID',      // for group message
 
@@ -40,8 +40,6 @@
 """
 
 from enum import IntEnum
-
-from mkm import ID
 
 
 class MessageType(IntEnum):
@@ -114,11 +112,6 @@ class Content(dict):
     """
 
     def __new__(cls, content: dict):
-        """
-
-        :param content: content with type and serial number
-        :return: message content
-        """
         if cls is not Content:
             # subclass
             if issubclass(cls, Content):
@@ -143,11 +136,23 @@ class Content(dict):
         super().__init__(content)
         self.type = MessageType(int(content['type']))
         self.sn = int(content['sn'])
-        # group message?
-        if 'group' in content:
-            self.group = ID(content['group'])
+
+    # Group ID
+    #    if field 'group' exists, it means this is a group message
+    @property
+    def group(self) -> str:
+        return self.get('group')
+
+    @group.setter
+    def group(self, value):
+        if value:
+            self['group'] = value
         else:
-            self.group = None
+            self.pop('group')
+
+    @group.deleter
+    def group(self):
+        self.pop('group')
 
 
 """

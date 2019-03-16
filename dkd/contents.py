@@ -25,7 +25,7 @@
 
 """
     Message Contents
-    ~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~
 
     Extents from Content
 """
@@ -38,7 +38,7 @@ from .transform import ReliableMessage
 
 def serial_number():
     """
-    :return: random integer equals or greater than 1
+    :return: random integer greater than 0
     """
     return random.randint(1, 2**32-1)
 

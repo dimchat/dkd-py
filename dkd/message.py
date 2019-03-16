@@ -30,7 +30,7 @@
     Base classes for messages
 """
 
-from mkm import ID
+from abc import ABCMeta
 
 
 class Envelope(dict):
@@ -40,7 +40,7 @@ class Envelope(dict):
     """
 
     def __new__(cls, envelope: dict=None,
-                sender: ID=None, receiver: ID=None, time: int=0):
+                sender: str=None, receiver: str=None, time: int=0):
         """
         Create message envelope object with env info
 
@@ -55,8 +55,8 @@ class Envelope(dict):
             if isinstance(envelope, Envelope):
                 return envelope
             # get fields from dictionary
-            sender = ID(envelope['sender'])
-            receiver = ID(envelope['receiver'])
+            sender = envelope['sender']
+            receiver = envelope['receiver']
             time = int(envelope['time'])
         elif sender and receiver:
             envelope = {
@@ -84,8 +84,20 @@ class Message(dict):
         env = {
             'sender': msg['sender'],
             'receiver': msg['receiver'],
-            'time': msg['time'],
         }
+        if 'time' in msg:
+            env['time'] = msg['time']
+        # create it
         self = super().__new__(cls, msg)
         self.envelope = Envelope(env)
+        self.delegate = None  # IMessageDelegate
         return self
+
+
+#
+#  Delegate
+#
+
+
+class IMessageDelegate(metaclass=ABCMeta):
+    pass

@@ -10,13 +10,7 @@
 
 import unittest
 
-import dkd
-
-from mkm.utils import *
-from mkm.immortals import *
-from dkd.transform import KeyMap, json_str
-
-from tests.data import *
+from tests.transceiver import *
 
 
 __author__ = 'Albert Moky'
@@ -41,152 +35,87 @@ def print_msg(msg: dkd.Message):
     print('</%s>' % clazz)
 
 
-class Common:
+class MessageTestCase(unittest.TestCase):
 
-    text_content: dkd.TextContent = None
-    command_content: dkd.CommandContent = None
-
-    sender: ID = moki.identifier
-    receiver: ID = hulk.identifier
-    env: dkd.Envelope = dkd.Envelope(sender=sender, receiver=receiver)
-
-    password: dkd.SymmetricKey = None
+    envelope = None
+    content = None
+    command = None
 
     i_msg: dkd.InstantMessage = None
     s_msg: dkd.SecureMessage = None
     r_msg: dkd.ReliableMessage = None
 
+    @classmethod
+    def setUpClass(cls):
+        sender = moki_id
+        receiver = hulk_id
+        cls.envelope = dkd.Envelope(sender=sender, receiver=receiver)
+        cls.content = None
+        cls.command = None
 
-class ContentTestCase(unittest.TestCase):
-
-    def test_content(self):
+    def test_1_content(self):
         print('\n---------------- %s' % self)
 
-        Common.text_content = dkd.TextContent.new('Hello')
-        print('text content: ', Common.text_content)
-        self.assertEqual(Common.text_content.type, dkd.MessageType.Text)
+        content = dkd.TextContent.new('Hello')
+        print('text content: ', content)
+        self.assertEqual(content.type, dkd.MessageType.Text)
+        MessageTestCase.content = content
 
-        Common.command_content = dkd.CommandContent.new('handshake')
-        print('command content: ', Common.command_content)
-        self.assertEqual(Common.command_content.type, dkd.MessageType.Command)
+        command = dkd.CommandContent.new('handshake')
+        print('command content: ', command)
+        self.assertEqual(command.type, dkd.MessageType.Command)
+        MessageTestCase.command = command
 
-    def test_encrypt(self):
+    def test_2_instant(self):
         print('\n---------------- %s' % self)
 
-        Common.password = dkd.SymmetricKey.generate({'algorithm': 'AES'})
-        print('password: ', Common.password)
+        content = MessageTestCase.content
+        envelope = MessageTestCase.envelope
+        print('content: ', content)
+        print('envelope: ', envelope)
 
-        key = json_str(Common.password).encode('utf-8')
-        encrypted_key = hulk.publicKey.encrypt(key)
-        print('encrypted key: ', base64_encode(encrypted_key))
+        i_msg = dkd.InstantMessage.new(content=content, envelope=envelope)
+        print_msg(i_msg)
+        MessageTestCase.i_msg = i_msg
 
-        keys = KeyMap()
-        keys[hulk.identifier] = encrypted_key
-        print('keys: ', keys)
-
-        data2 = keys[hulk.identifier]
-        print('data2: ', base64_encode(data2))
-        self.assertEqual(data2, encrypted_key)
-
-        key2 = hulk.privateKey.decrypt(data2)
-        print('key2: ', key2)
-        # key2 = json_dict(key2)
-        self.assertEqual(key2, key)
-
-    def test_forward(self):
+    def test_3_send(self):
         print('\n---------------- %s' % self)
 
-        i_msg = dkd.InstantMessage.new(content=Common.text_content,
-                                       envelope=Common.env)
-        r_msg = i_msg.encrypt(Common.password, hulk.publicKey).sign(moki.privateKey)
+        pwd = mkm.SymmetricKey.generate({'algorithm': 'AES'})
+        print('password: %s' % pwd)
+
+        i_msg = MessageTestCase.i_msg
+        i_msg.delegate = trans
+        s_msg = i_msg.encrypt(password=pwd)
+        print_msg(s_msg)
+        MessageTestCase.s_msg = s_msg
+
+        s_msg.delegate = trans
+        r_msg = s_msg.sign()
         print_msg(r_msg)
+        MessageTestCase.r_msg = r_msg
 
-        forward = dkd.ForwardContent.new(r_msg)
-        print('forward: ', forward)
-        self.assertEqual(forward.type, dkd.MessageType.Forward)
-
-        print_msg(forward.forward)
-        self.assertEqual(forward.forward, r_msg)
-
-
-class MessageTestCase(unittest.TestCase):
-
-    def test1_instant(self):
+    def test_4_receive(self):
         print('\n---------------- %s' % self)
 
-        print('content: ', Common.text_content)
-        print('envelope: ', Common.env)
-
-        Common.i_msg = dkd.InstantMessage.new(content=Common.text_content,
-                                              envelope=Common.env)
-        print_msg(Common.i_msg)
-
-    def test2_pack(self):
-        print('\n---------------- %s' % self)
-
-        print('packing... ')
-
-        Common.s_msg = Common.i_msg.encrypt(Common.password, hulk.publicKey)
-        print_msg(Common.s_msg)
-
-        Common.r_msg = Common.s_msg.sign(moki.privateKey)
-        print_msg(Common.r_msg)
-
-        self.assertEqual(Common.r_msg.envelope, Common.i_msg.envelope)
-
-    def test3_split(self):
-        print('\n---------------- %s' % self)
-
-        receiver = Common.s_msg.envelope.receiver
-        if receiver.address.network.is_group():
-            group = dkd.Group(receiver)
-            messages = Common.s_msg.split(group)
-            print('group message(s) count: ', len(messages))
-            for msg in messages:
-                print_msg(msg)
-        else:
-            print('Only group message can be split')
-
-    def test4_receive(self):
-        print('\n---------------- %s' % self)
-
-        r2 = Common.r_msg
-        print_msg(r2)
-
-        s2 = r2.verify(moki.publicKey)
-        print_msg(s2)
-
-        s2 = s2.trim(Common.receiver)
-        print('trim for: ', Common.receiver)
-
-        i2 = s2.decrypt(private_key=hulk.privateKey)
-        print_msg(i2)
-
-        self.assertEqual(i2, Common.i_msg)
-
-    def test_sample(self):
-        print('\n---------------- %s' % self)
-
-        pk1 = dkd.PublicKey(moki_pk)
-        sk2 = dkd.PrivateKey(hulk_sk)
-
-        r_msg = dkd.ReliableMessage(reliable_message)
-        print_msg(r_msg)
-        print(r_msg.meta)
-
-        s_msg = r_msg.verify(public_key=pk1)
+        r_msg = MessageTestCase.r_msg
+        r_msg.delegate = trans
+        s_msg = r_msg.verify()
         print_msg(s_msg)
 
-        i_msg = s_msg.decrypt(private_key=sk2)
+        s_msg.delegate = trans
+        i_msg = s_msg.decrypt()
         print_msg(i_msg)
-        print('content: ', i_msg.content)
 
-        info = {
-            'type': 1,
-            'sn': 412968873,
-            'text': 'Hey guy!'
-        }
-        self.assertEqual(i_msg.content, info)
+        content = i_msg.content
+        print('receive message content: %s' % content)
+        self.assertEqual(content, MessageTestCase.content)
+
+    def test_reliable(self):
+        print('\n---------------- %s' % self)
+
+        msg = dkd.ReliableMessage(reliable_message)
+        print_msg(msg)
 
 
 if __name__ == '__main__':
