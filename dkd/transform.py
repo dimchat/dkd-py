@@ -165,12 +165,14 @@ class SecureMessage(Message):
         # secure(encrypted) data
         self.data = base64_decode(msg['data'])
         # decrypt key/keys
-        if 'key' in msg:
-            self.key = base64_decode(msg['key'])
+        key = msg.get('key')
+        keys = msg.get('keys')
+        if key is not None:
+            self.key = base64_decode(key)
             self.keys = None
-        elif 'keys' in msg:
+        elif keys is not None:
             self.key = None
-            self.keys = msg['keys']
+            self.keys = keys
         else:
             # reuse key/keys
             self.key = None
@@ -183,8 +185,7 @@ class SecureMessage(Message):
     #    the 'group' will be set with the group ID.
     @property
     def group(self) -> str:
-        if 'group' in self:
-            return self['group']
+        return self.get('group')
 
     @group.setter
     def group(self, value):
@@ -305,10 +306,13 @@ class SecureMessage(Message):
         :return:       A SecureMessage object drop all irrelevant keys to the member
         """
         msg = self.copy()
-        if 'keys' in msg:
-            keys = msg['keys']
-            if member in keys:
-                msg['key'] = keys[member]
+
+        # trim keys
+        keys = msg.get('keys')
+        if keys is not None:
+            key = keys.get(member)
+            if key is not None:
+                msg['key'] = key
             msg.pop('keys')
 
         # msg['group'] = self.envelope.receiver
@@ -332,8 +336,7 @@ class ReliableMessage(SecureMessage):
     #    just for the first contact
     @property
     def meta(self) -> dict:
-        if 'meta' in self:
-            return self['meta']
+        return self.get('meta')
 
     @meta.setter
     def meta(self, value):

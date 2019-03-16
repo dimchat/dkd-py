@@ -44,6 +44,17 @@ def serial_number():
 
 
 class TextContent(Content):
+    """
+        Text Message Content
+        ~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0x01,
+            sn   : 123,
+
+            text : "..."
+        }
+    """
 
     def __init__(self, content: dict):
         super().__init__(content)
@@ -60,6 +71,18 @@ class TextContent(Content):
 
 
 class CommandContent(Content):
+    """
+        Command Message Content
+        ~~~~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0x88,
+            sn   : 123,
+
+            command : "...", // command name
+            extra   : info   // command parameters
+        }
+    """
 
     def __init__(self, content: dict):
         super().__init__(content)
@@ -76,11 +99,24 @@ class CommandContent(Content):
 
 
 class HistoryContent(Content):
+    """
+        Group History Command
+        ~~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0x89,
+            sn   : 123,
+
+            command : "...", // command name
+            time    : 0,     // command timestamp
+            extra   : info   // command parameters
+        }
+    """
 
     def __init__(self, content: dict):
         super().__init__(content)
         self.command = content['command']
-        self.time = int(content['time'])
+        self.time = int(content.get('time'))
 
     @classmethod
     def new(cls, command: str, time: int=0) -> Content:
@@ -94,6 +130,17 @@ class HistoryContent(Content):
 
 
 class ForwardContent(Content):
+    """
+        Top-Secret Message Content
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            type : 0xFF,
+            sn   : 456,
+
+            forward : {...}  // reliable (secure + certified) message
+        }
+    """
 
     def __init__(self, content: dict):
         super().__init__(content)
