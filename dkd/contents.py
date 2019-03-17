@@ -134,7 +134,11 @@ class HistoryContent(Content):
         super().__init__(content)
         # value of 'command' & 'time' cannot be changed again
         self.command = content['command']
-        self.time = int(content.get('time'))
+        time = content.get('time')
+        if time is None:
+            self.time = 0
+        else:
+            self.time = int(time)
 
     #
     #   Factory
