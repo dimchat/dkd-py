@@ -134,6 +134,7 @@ class Content(dict):
 
     def __init__(self, content: dict):
         super().__init__(content)
+        # value of 'type' & 'sn' cannot be changed again
         self.type = MessageType(int(content['type']))
         self.sn = int(content['sn'])
 
@@ -144,7 +145,7 @@ class Content(dict):
         return self.get('group')
 
     @group.setter
-    def group(self, value):
+    def group(self, value: str):
         if value:
             self['group'] = value
         else:

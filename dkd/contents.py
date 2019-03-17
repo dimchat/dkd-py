@@ -56,10 +56,23 @@ class TextContent(Content):
         }
     """
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        self.text = content['text']
+    #
+    #   text
+    #
+    @property
+    def text(self) -> str:
+        return self.get('text')
 
+    @text.setter
+    def text(self, value: str):
+        if value:
+            self['text'] = value
+        else:
+            self.pop('text')
+
+    #
+    #   Factory
+    #
     @classmethod
     def new(cls, text: str) -> Content:
         content = {
@@ -86,8 +99,12 @@ class CommandContent(Content):
 
     def __init__(self, content: dict):
         super().__init__(content)
+        # value of 'command' cannot be changed again
         self.command = content['command']
 
+    #
+    #   Factory
+    #
     @classmethod
     def new(cls, command: str) -> Content:
         content = {
@@ -115,9 +132,13 @@ class HistoryContent(Content):
 
     def __init__(self, content: dict):
         super().__init__(content)
+        # value of 'command' & 'time' cannot be changed again
         self.command = content['command']
         self.time = int(content.get('time'))
 
+    #
+    #   Factory
+    #
     @classmethod
     def new(cls, command: str, time: int=0) -> Content:
         content = {
@@ -142,11 +163,25 @@ class ForwardContent(Content):
         }
     """
 
-    def __init__(self, content: dict):
-        super().__init__(content)
-        msg = content['forward']
-        self.forward = ReliableMessage(msg)
+    #
+    #   forward (top-secret message)
+    #
+    @property
+    def forward(self) -> ReliableMessage:
+        value = self.get('forward')
+        if value:
+            return ReliableMessage(value)
 
+    @forward.setter
+    def forward(self, value: dict):
+        if value:
+            self['forward'] = value
+        else:
+            self.pop('forward')
+
+    #
+    #   Factory
+    #
     @classmethod
     def new(cls, message: ReliableMessage) -> Content:
         content = {
