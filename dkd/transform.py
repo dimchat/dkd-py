@@ -210,7 +210,10 @@ class SecureMessage(Message):
                 # but who knows...
                 receiver = member
             # encrypted key
-            key = self.keys.get(member)
+            if self.keys:
+                key = self.keys.get(member)
+            else:
+                key = None
             if key is None:
                 # trimmed?
                 key = self.key
