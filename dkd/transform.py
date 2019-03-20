@@ -43,23 +43,12 @@
         signature = sender.private_key.sign(data)
 """
 
-import json
 from abc import abstractmethod
 
 from .utils import base64_encode, base64_decode
 
 from .content import Content
 from .message import Envelope, Message, IMessageDelegate
-
-
-def json_str(dictionary):
-    """ convert a dict to json str """
-    return json.dumps(dictionary)
-
-
-def json_dict(string):
-    """ convert a json str to dict """
-    return json.loads(string)
 
 
 class InstantMessage(Message):
@@ -221,9 +210,8 @@ class SecureMessage(Message):
                 # but who knows...
                 receiver = member
             # encrypted key
-            if member in self.keys:
-                key = self.keys[member]
-            else:
+            key = self.keys.get(member)
+            if key is None:
                 # trimmed?
                 key = self.key
         else:
@@ -275,8 +263,8 @@ class SecureMessage(Message):
         :return:        A list of SecureMessage objects for all group members
         """
         msg = self.copy()
-        keys = self.keys
-        if 'keys' in msg:
+        keys = msg.get('keys')
+        if keys:
             msg.pop('keys')
         else:
             keys = {}
@@ -289,9 +277,10 @@ class SecureMessage(Message):
             # 2. change receiver to each member
             msg['receiver'] = member
             # 3. get encrypted key
-            if member in keys:
-                msg['key'] = keys[member]
-            elif 'key' in msg:
+            key = keys.get(member)
+            if key:
+                msg['key'] = key
+            else:
                 msg.pop('key')
             # 4. pack message
             messages.append(SecureMessage(msg))
