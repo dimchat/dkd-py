@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   Dao-Ke-Dao: Universal Message Module
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #

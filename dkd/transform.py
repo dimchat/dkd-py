@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   Dao-Ke-Dao: Universal Message Module
+#
+#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#
 # ==============================================================================
 # MIT License
 #
@@ -100,14 +105,14 @@ class InstantMessage(Message):
         msg = self.copy()
 
         # 1. encrypt 'content' to 'data'
-        data = self.delegate.message_encrypt_content(msg=self, content=self.content, key=password)
+        data = self.delegate.encrypt_content(content=self.content, key=password, msg=self)
         if data is None:
             raise AssertionError('failed to encrypt content with key: %s' % password)
 
         # 2. encrypt password to 'key'/'keys'
         if members is None:
             # personal message
-            key = self.delegate.message_encrypt_key(msg=self, key=password, receiver=self.envelope.receiver)
+            key = self.delegate.encrypt_key(key=password, receiver=self.envelope.receiver, msg=self)
             if key:
                 msg['key'] = base64_encode(key)
             else:
@@ -116,7 +121,7 @@ class InstantMessage(Message):
             # group message
             keys = {}
             for member in members:
-                key = self.delegate.message_encrypt_key(msg=self, key=password, receiver=member)
+                key = self.delegate.encrypt_key(key=password, receiver=member, msg=self)
                 if key:
                     keys[member] = base64_encode(key)
                 else:
@@ -187,6 +192,24 @@ class SecureMessage(Message):
     def group(self):
         self.pop('group')
 
+    def __decrypt_data(self, key: bytes, sender: str, receiver: str) -> InstantMessage:
+        # 1. decrypt 'key' to symmetric key
+        password = self.delegate.decrypt_key(key=key, sender=sender, receiver=receiver, msg=self)
+        if password is not None:
+            # 2. decrypt 'data' to 'content'
+            #    (remember to save password for decrypted File/Image/Audio/Video data)
+            content = self.delegate.decrypt_content(data=self.data, key=password, msg=self)
+            if content is not None:
+                # 3. pack message
+                msg = self.copy()
+                if 'key' in msg:
+                    msg.pop('key')
+                if 'keys' in msg:
+                    msg.pop('keys')
+                msg.pop('data')
+                msg['content'] = content
+                return InstantMessage(msg)
+
     def decrypt(self, member: str=None) -> InstantMessage:
         """
         Decrypt message data to plaintext content
@@ -196,50 +219,31 @@ class SecureMessage(Message):
         """
         sender = self.envelope.sender
         receiver = self.envelope.receiver
-        group = self.group
-
-        # 0. check receiver/group member
-        if member:
-            # group message
-            if group is None:
-                # if field 'group' not exists, the receiver must be a group ID
-                group = receiver
-            else:
-                # if field 'group' exists, it means this is a split message and
-                # the receiver should be replaced to a member ID already,
-                # but who knows...
-                receiver = member
-            # encrypted key
-            if self.keys:
-                key = self.keys.get(member)
-            else:
-                key = None
-            if key is None:
-                # trimmed?
-                key = self.key
-        else:
+        if member is None:
             # personal message
-            key = self.key
-
-        # 1. decrypt 'key' to symmetric key
-        password = self.delegate.message_decrypt_key(msg=self, key=key, sender=sender, receiver=receiver, group=group)
-        if password is None:
-            raise AssertionError('failed to decrypt symmetric key: %s' % key)
-
-        # 2. decrypt 'data' to 'content'
-        content = self.delegate.message_decrypt_content(msg=self, data=self.data, key=password)
-        if content is None:
-            raise AssertionError('failed to decrypt message data: %s', self.data)
-
-        # 3. pack message
-        msg = self.copy()
-        msg['content'] = content
-        msg.pop('data')
-        if 'key' in msg:
-            msg.pop('key')
-        if 'keys' in msg:
-            msg.pop('keys')
-        return InstantMessage(msg)
+            return self.__decrypt_data(key=self.key, sender=sender, receiver=receiver)
+        # group message
+        group = self.group
+        if group is None:
+            # if 'group' not exists, the 'receiver' must be a group ID, and
+            # it is not equal to the member of course
+            if receiver == member:
+                raise AssertionError('receiver error: %s' % receiver)
+            group = receiver
+        else:
+            # if 'group' exists and the 'receiver' is a group ID too
+            # they must be equal; or the 'receiver' must equal to member
+            if receiver != group and receiver != member:
+                raise AssertionError('receiver error: %s' % receiver)
+            # and the 'group' must not equal to member of course
+            if group == member:
+                raise AssertionError('member error: %s' % member)
+        key = self.key
+        if self.keys is not None:
+            base64 = self.keys.get(member)
+            if base64 is not None:
+                key = base64_decode(base64)
+        return self.__decrypt_data(key=key, sender=sender, receiver=group)
 
     def sign(self):
         """
@@ -249,7 +253,7 @@ class SecureMessage(Message):
         """
 
         # 1. sign message.data
-        signature = self.delegate.message_sign(msg=self, data=self.data, sender=self.envelope.sender)
+        signature = self.delegate.sign_data(msg=self, data=self.data, sender=self.envelope.sender)
         if signature is None:
             raise AssertionError('failed to sign message: %s' % self)
 
@@ -350,7 +354,7 @@ class ReliableMessage(SecureMessage):
         data = self.data
         signature = self.signature
         sender = self.envelope.sender
-        if self.delegate.message_verify(msg=self, data=data, signature=signature, sender=sender):
+        if self.delegate.verify_data_signature(data=data, signature=signature, sender=sender, msg=self):
             msg = self.copy()
             msg.pop('signature')  # remove 'signature'
             return SecureMessage(msg)
@@ -366,37 +370,81 @@ class ReliableMessage(SecureMessage):
 class IInstantMessageDelegate(IMessageDelegate):
 
     @abstractmethod
-    def message_encrypt_content(self, msg: InstantMessage, content: Content, key: dict) -> bytes:
-        """ Encrypt the message.content to message.data with symmetric key """
+    def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
+        """
+        Encrypt the message.content to message.data with symmetric key
+
+        :param content: message content
+        :param key:     symmetric key
+        :param msg:     instant message
+        :return:        encrypted message content data
+        """
         pass
 
     @abstractmethod
-    def message_encrypt_key(self, msg: InstantMessage, key: dict, receiver: str) -> bytes:
-        """ Encrypt the symmetric key with receiver's public key """
+    def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
+        """
+        Encrypt the symmetric key with receiver's public key
+
+        :param key:      symmetric key to be encrypted
+        :param receiver: receiver ID/string
+        :param msg:      instant message
+        :return:         encrypted key data
+        """
         pass
 
 
 class ISecureMessageDelegate(IMessageDelegate):
 
     @abstractmethod
-    def message_decrypt_key(self, msg: SecureMessage, key: bytes, sender: str, receiver: str, group: str=None) -> dict:
-        """ Decrypt key data to a symmetric key with receiver's private key """
+    def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> dict:
+        """
+        Decrypt key data to a symmetric key with receiver's private key
+
+        :param key:      encrypted key data
+        :param sender:   sender ID/string
+        :param receiver: receiver(group) ID/string
+        :param msg:      secure message
+        :return:         symmetric key
+        """
         pass
 
     @abstractmethod
-    def message_decrypt_content(self, msg: SecureMessage, data: bytes, key: dict) -> Content:
-        """ Decrypt encrypted data to message.content with symmetric key """
+    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
+        """
+        Decrypt encrypted data to message.content with symmetric key
+
+        :param data: encrypted content data
+        :param key:  symmetric key
+        :param msg:  secure message
+        :return:     message content
+        """
         pass
 
     @abstractmethod
-    def message_sign(self, msg: SecureMessage, data: bytes, sender: str) -> bytes:
-        """ Sign the message data(encrypted) with sender's private key """
+    def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
+        """
+        Sign the message data(encrypted) with sender's private key
+
+        :param data:   encrypted message data
+        :param sender: sender ID/string
+        :param msg:    secure message
+        :return:       signature of encrypted message data
+        """
         pass
 
 
 class IReliableMessageDelegate(IMessageDelegate):
 
     @abstractmethod
-    def message_verify(self, msg: ReliableMessage, data: bytes, signature: bytes, sender: str) -> bool:
-        """ Verify the message data and signature with sender's public key """
+    def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
+        """
+        Verify the message data and signature with sender's public key
+
+        :param data:      encrypted message data
+        :param signature: signature of encrypted message data
+        :param sender:    sender ID/string
+        :param msg:       reliable message
+        :return:          True on signature matched
+        """
         pass

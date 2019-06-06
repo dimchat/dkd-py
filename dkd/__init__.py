@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-#   Dao-Ke-Dao : Decentralized instant messaging
+#   Dao-Ke-Dao: Universal Message Module
 #
 #                                Written in 2019 by Moky <albert.moky@gmail.com>
 #
@@ -43,6 +43,7 @@ __all__ = [
     'MessageType', 'Content',
     'TextContent', 'CommandContent', 'HistoryContent', 'ForwardContent',
     'Envelope', 'Message', 'IMessageDelegate',
+
     # message transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',

@@ -10,27 +10,28 @@
 
 import unittest
 
+from tests.data import *
 from tests.transceiver import *
 
 
 __author__ = 'Albert Moky'
 
 
-def print_msg(msg: dkd.Message):
+def print_msg(msg: Message):
     clazz = msg.__class__.__name__
     sender = msg.envelope.sender
     receiver = msg.envelope.receiver
     time = msg.envelope.time
     print('<%s sender="%s" receiver="%s" time=%d>' % (clazz, sender, receiver, time))
-    if isinstance(msg, dkd.InstantMessage):
+    if isinstance(msg, InstantMessage):
         print('    <content>%s</content>' % msg['content'])
-    if isinstance(msg, dkd.SecureMessage):
+    if isinstance(msg, SecureMessage):
         print('    <data>%s</data>' % msg['data'])
         if 'key' in msg:
             print('    <key>%s</key>' % msg['key'])
         if 'keys' in msg:
             print('    <keys>%s</keys>' % msg['keys'])
-    if isinstance(msg, dkd.ReliableMessage):
+    if isinstance(msg, ReliableMessage):
         print('    <signature>%s</signature>' % msg['signature'])
     print('</%s>' % clazz)
 
@@ -41,29 +42,29 @@ class MessageTestCase(unittest.TestCase):
     content = None
     command = None
 
-    i_msg: dkd.InstantMessage = None
-    s_msg: dkd.SecureMessage = None
-    r_msg: dkd.ReliableMessage = None
+    i_msg: InstantMessage = None
+    s_msg: SecureMessage = None
+    r_msg: ReliableMessage = None
 
     @classmethod
     def setUpClass(cls):
         sender = moki_id
         receiver = hulk_id
-        cls.envelope = dkd.Envelope(sender=sender, receiver=receiver)
+        cls.envelope = Envelope(sender=sender, receiver=receiver)
         cls.content = None
         cls.command = None
 
     def test_1_content(self):
         print('\n---------------- %s' % self)
 
-        content = dkd.TextContent.new('Hello')
+        content = TextContent.new('Hello')
         print('text content: ', content)
-        self.assertEqual(content.type, dkd.MessageType.Text)
+        self.assertEqual(content.type, MessageType.Text)
         MessageTestCase.content = content
 
-        command = dkd.CommandContent.new('handshake')
+        command = CommandContent.new('handshake')
         print('command content: ', command)
-        self.assertEqual(command.type, dkd.MessageType.Command)
+        self.assertEqual(command.type, MessageType.Command)
         MessageTestCase.command = command
 
     def test_2_instant(self):
@@ -74,23 +75,23 @@ class MessageTestCase(unittest.TestCase):
         print('content: ', content)
         print('envelope: ', envelope)
 
-        i_msg = dkd.InstantMessage.new(content=content, envelope=envelope)
+        i_msg = InstantMessage.new(content=content, envelope=envelope)
         print_msg(i_msg)
         MessageTestCase.i_msg = i_msg
 
     def test_3_send(self):
         print('\n---------------- %s' % self)
 
-        pwd = mkm.SymmetricKey.generate({'algorithm': 'AES'})
+        pwd = SymmetricKey({'algorithm': 'AES'})
         print('password: %s' % pwd)
 
         i_msg = MessageTestCase.i_msg
-        i_msg.delegate = trans
+        i_msg.delegate = transceiver
         s_msg = i_msg.encrypt(password=pwd)
         print_msg(s_msg)
         MessageTestCase.s_msg = s_msg
 
-        s_msg.delegate = trans
+        s_msg.delegate = transceiver
         r_msg = s_msg.sign()
         print_msg(r_msg)
         MessageTestCase.r_msg = r_msg
@@ -99,11 +100,11 @@ class MessageTestCase(unittest.TestCase):
         print('\n---------------- %s' % self)
 
         r_msg = MessageTestCase.r_msg
-        r_msg.delegate = trans
+        r_msg.delegate = transceiver
         s_msg = r_msg.verify()
         print_msg(s_msg)
 
-        s_msg.delegate = trans
+        s_msg.delegate = transceiver
         i_msg = s_msg.decrypt()
         print_msg(i_msg)
 
@@ -114,7 +115,7 @@ class MessageTestCase(unittest.TestCase):
     def test_reliable(self):
         print('\n---------------- %s' % self)
 
-        msg = dkd.ReliableMessage(reliable_message)
+        msg = ReliableMessage(reliable_message)
         print_msg(msg)
 
 
