@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from dkd import *
-from tests.immortals import *
+from dkd import ReliableMessage
+from .immortals import moki_meta
 
 reliable_message = {
     'sender': "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk",

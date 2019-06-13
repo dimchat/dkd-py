@@ -10,9 +10,15 @@
 
 import unittest
 
-from tests.data import *
-from tests.transceiver import *
+from mkm import SymmetricKey
 
+from dkd import Message, InstantMessage, SecureMessage, ReliableMessage, Envelope
+from tests.command import CommandContent
+from tests.data import reliable_message
+from tests.immortals import moki_id, hulk_id
+from tests.text import TextContent
+from tests.transceiver import transceiver
+from tests.type import MessageType
 
 __author__ = 'Albert Moky'
 
@@ -50,7 +56,7 @@ class MessageTestCase(unittest.TestCase):
     def setUpClass(cls):
         sender = moki_id
         receiver = hulk_id
-        cls.envelope = Envelope(sender=sender, receiver=receiver)
+        cls.envelope = Envelope.new(sender=sender, receiver=receiver)
         cls.content = None
         cls.command = None
 

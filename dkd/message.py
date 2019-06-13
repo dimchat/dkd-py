@@ -35,52 +35,7 @@
     Base classes for messages
 """
 
-from abc import ABCMeta
-
-
-class Envelope(dict):
-    """
-        This class is used to create a message envelope
-        which contains 'sender', 'receiver' and 'time'
-    """
-
-    def __new__(cls, envelope: dict=None,
-                sender: str=None, receiver: str=None, time: int=0):
-        """
-        Create message envelope object with env info
-
-        :param envelope: A dictionary as envelope info
-        :param sender:   An ID string
-        :param receiver: An ID string
-        :param time:     A integer number as timestamp
-        :return: Envelope object
-        """
-        if envelope:
-            # return Envelope object directly
-            if isinstance(envelope, Envelope):
-                return envelope
-            # get fields from dictionary
-            sender = envelope['sender']
-            receiver = envelope['receiver']
-            time = envelope.get('time')
-            if time is None:
-                time = 0
-            else:
-                time = int(time)
-        elif sender and receiver:
-            envelope = {
-                'sender': sender,
-                'receiver': receiver,
-                'time': time,
-            }
-        else:
-            raise AssertionError('Envelope parameters error')
-        # new Envelope(dict)
-        self = super().__new__(cls, envelope)
-        self.sender = sender
-        self.receiver = receiver
-        self.time = time
-        return self
+from .envelope import Envelope
 
 
 class Message(dict):
@@ -89,28 +44,47 @@ class Message(dict):
         with the envelope fields, such as 'sender', 'receiver', and 'time'
     """
 
-    def __new__(cls, msg: dict):
+    def __init__(self, msg: dict):
+        super().__init__(msg)
+        sender = msg['sender']
+        receiver = msg['receiver']
         time = msg.get('time')
         if time is None:
             time = 0
         else:
             time = int(time)
-        env = {
-            'sender': msg['sender'],
-            'receiver': msg['receiver'],
-            'time': time,
-        }
-        # create it
-        self = super().__new__(cls, msg)
-        self.envelope = Envelope(env)
-        self.delegate = None  # IMessageDelegate
-        return self
+        self.__envelope = Envelope.new(sender=sender, receiver=receiver, time=time)
+        self.__delegate = None  # IMessageDelegate
+
+    @property
+    def envelope(self) -> Envelope:
+        return self.__envelope
+
+    @property
+    def delegate(self):
+        return self.__delegate
+
+    @delegate.setter
+    def delegate(self, delegate: object):
+        self.__delegate = delegate
 
 
-#
-#  Delegate
-#
+"""
+    Message Transforming
+    ~~~~~~~~~~~~~~~~~~~~
 
-
-class IMessageDelegate(metaclass=ABCMeta):
-    pass
+    Instant Message <-> Secure Message <-> Reliable Message
+    +-------------+     +------------+     +--------------+
+    |  sender     |     |  sender    |     |  sender      |
+    |  receiver   |     |  receiver  |     |  receiver    |
+    |  time       |     |  time      |     |  time        |
+    |             |     |            |     |              |
+    |  content    |     |  data      |     |  data        |
+    +-------------+     |  key/keys  |     |  key/keys    |
+                        +------------+     |  signature   |
+                                           +--------------+
+    Algorithm:
+        data      = password.encrypt(content)
+        key       = receiver.public_key.encrypt(password)
+        signature = sender.private_key.sign(data)
+"""

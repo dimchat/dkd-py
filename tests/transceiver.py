@@ -1,11 +1,10 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import json
 
 from dkd import *
 
-from tests.facebook import *
+from .facebook import *
 
 
 class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate):

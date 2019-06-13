@@ -28,27 +28,55 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .envelope import Envelope
-from .content import Content
-from .message import Message
-from .instant import InstantMessage
-from .secure import SecureMessage
-from .reliable import ReliableMessage
-from .delegate import IMessageDelegate, IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
-name = "DaoKeDao"
+class Envelope(dict):
+    """
+        This class is used to create a message envelope
+        which contains 'sender', 'receiver' and 'time'
+    """
 
-__author__ = 'Albert Moky'
+    def __new__(cls, envelope: dict):
+        """
+        Create message envelope
 
-__all__ = [
-    # DaoKeDao
-    'Content',
-    'Envelope',
-    'Message',
+        :param envelope: envelope info
+        :return: Envelope object
+        """
+        if envelope is None:
+            return None
+        elif isinstance(envelope, Envelope):
+            # return Envelope object directly
+            return envelope
+        # new Envelope(dict)
+        return super().__new__(Envelope, envelope)
 
-    # message transform
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    # message delegate
-    'IMessageDelegate',
-    'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
-]
+    def __init__(self, envelope: dict):
+        super().__init__(envelope)
+        self.__sender = envelope['sender']
+        self.__receiver = envelope['receiver']
+        time = envelope.get('time')
+        if time is None:
+            self.__time = 0
+        else:
+            self.__time = int(time)
+
+    @property
+    def sender(self) -> str:
+        return self.__sender
+
+    @property
+    def receiver(self) -> str:
+        return self.__receiver
+
+    @property
+    def time(self) -> int:
+        return self.__time
+
+    @classmethod
+    def new(cls, sender: str, receiver: str, time: int=0):
+        env = {
+            'sender': sender,
+            'receiver': receiver,
+            'time': time
+        }
+        return Envelope(env)
