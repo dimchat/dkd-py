@@ -31,7 +31,7 @@
 from .utils import base64_encode, base64_decode
 from .message import Message
 
-import dkd.instant
+import dkd  # dkd.InstantMessage, dkd.ReliableMessage
 
 
 class SecureMessage(Message):
