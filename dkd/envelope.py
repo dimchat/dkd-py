@@ -28,6 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+import time as time_lib
+
 
 class Envelope(dict):
     """
@@ -74,6 +76,8 @@ class Envelope(dict):
 
     @classmethod
     def new(cls, sender: str, receiver: str, time: int=0):
+        if time == 0:
+            time = int(time_lib.time())
         env = {
             'sender': sender,
             'receiver': receiver,

@@ -28,6 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+import time as time_lib
+
 from .utils import base64_encode
 from .envelope import Envelope
 from .content import Content
@@ -67,6 +69,8 @@ class InstantMessage(Message):
             receiver = envelope.receiver
             time = envelope.time
         # build instant message info
+        if time == 0:
+            time = int(time_lib.time())
         msg = {
             'sender': sender,
             'receiver': receiver,

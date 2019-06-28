@@ -93,4 +93,4 @@ class ReliableMessage(SecureMessage):
             msg.pop('signature')  # remove 'signature'
             return SecureMessage(msg)
         else:
-            raise ValueError('Signature error')
+            raise ValueError('Signature error: %s' % self)

@@ -109,7 +109,7 @@ class SecureMessage(Message):
             +----------+
     """
 
-    def decrypt(self, member: str=None):
+    def decrypt(self, member: str=None):  # -> InstantMessage
         """
         Decrypt message data to plaintext content
 
@@ -170,13 +170,12 @@ class SecureMessage(Message):
                               +----------+
     """
 
-    def sign(self):
+    def sign(self):  # -> ReliableMessage
         """
         Sign the message.data with sender's private key
 
         :return: ReliableMessage object
         """
-
         # 1. sign message.data
         sender = self.envelope.sender
         data = self.data
@@ -226,7 +225,7 @@ class SecureMessage(Message):
         # OK
         return messages
 
-    def trim(self, member: str):
+    def trim(self, member: str):  # -> SecureMessage
         """
         Trim the group message for a member
 
