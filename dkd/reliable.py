@@ -29,7 +29,6 @@
 # ==============================================================================
 
 from .secure import SecureMessage
-from .utils import base64_decode
 
 
 class ReliableMessage(SecureMessage):
@@ -40,15 +39,22 @@ class ReliableMessage(SecureMessage):
 
     def __init__(self, msg: dict):
         super().__init__(msg)
-        # signature
-        self.__signature = base64_decode(msg['signature'])
+        # lazy
+        self.__signature = None
 
     @property
     def signature(self) -> bytes:
+        if self.__signature is None:
+            base64 = self.get('signature')
+            assert base64 is not None
+            self.__signature = self.delegate.decode_signature(signature=base64, msg=self)
         return self.__signature
 
-    # Meta info of sender
-    #    just for the first contact
+    """
+        Sender's Meta
+        ~~~~~~~~~~~~~
+        Extends for the first message package of 'Handshake' protocol.
+    """
     @property
     def meta(self) -> dict:
         return self.get('meta')

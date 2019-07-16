@@ -28,7 +28,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .utils import base64_encode, base64_decode
 from .message import Message
 
 import dkd  # dkd.InstantMessage, dkd.ReliableMessage
@@ -56,44 +55,32 @@ class SecureMessage(Message):
 
     def __init__(self, msg: dict):
         super().__init__(msg)
-        # secure(encrypted) data
-        self.__data = base64_decode(msg['data'])
-        # decrypt key/keys
-        key = msg.get('key')
-        keys = msg.get('keys')
-        if key is not None:
-            self.__key = base64_decode(key)
-            self.__keys = None
-        elif keys is not None:
-            self.__key = None
-            self.__keys = keys
-        else:
-            # reuse key/keys
-            self.__key = None
-            self.__keys = None
+        # lazy
+        self.__data = None
+        self.__key = None
+        self.__keys = None
 
     @property
     def data(self) -> bytes:
+        if self.__data is None:
+            base64 = self.get('data')
+            assert base64 is not None
+            self.__data = self.delegate.decode_content_data(data=base64, msg=self)
         return self.__data
 
-    # Group ID
-    #    when a group message was split/trimmed to a single message,
-    #    the 'receiver' will be changed to a member ID, and
-    #    the 'group' will be set with the group ID.
     @property
-    def group(self) -> str:
-        return self.get('group')
+    def encrypted_key(self) -> bytes:
+        if self.__key is None:
+            base64 = self.get('key')
+            if base64 is not None:
+                self.__key = self.delegate.decode_key_data(key=base64, msg=self)
+        return self.__key
 
-    @group.setter
-    def group(self, value):
-        if value:
-            self['group'] = value
-        else:
-            self.pop('group')
-
-    @group.deleter
-    def group(self):
-        self.pop('group')
+    @property
+    def encrypted_keys(self) -> dict:
+        if self.__keys is None:
+            self.__keys = self.get('keys')
+        return self.__keys
 
     """
         Decrypt the Secure Message to Instant Message
@@ -118,7 +105,7 @@ class SecureMessage(Message):
         """
         sender = self.envelope.sender
         receiver = self.envelope.receiver
-        key = self.__key
+        key = self.encrypted_key
         # 1. check receiver and encrypted key
         if member is not None:
             # group message
@@ -130,11 +117,11 @@ class SecureMessage(Message):
                 # or the 'receiver' must equal to member, and the 'group' must not equal to member of course
                 receiver = group
             # get key for member from 'keys'
-            key_map = self.__keys
+            key_map = self.encrypted_keys
             if key_map is not None:
                 base64 = key_map.get(member)
                 if base64 is not None:
-                    key = base64_decode(base64)
+                    key = self.delegate.decode_key_data(key=base64, msg=self)
         # 2. decrypt 'key' to symmetric key
         password = self.delegate.decrypt_key(key=key, sender=sender, receiver=receiver, msg=self)
         if password is None:
@@ -179,13 +166,13 @@ class SecureMessage(Message):
         # 1. sign message.data
         sender = self.envelope.sender
         data = self.data
-        signature = self.delegate.sign_data(msg=self, data=data, sender=sender)
+        signature = self.delegate.sign_data(data=data, sender=sender, msg=self)
         if signature is None:
             raise AssertionError('failed to sign message: %s' % self)
 
         # 2. pack message
         msg = self.copy()
-        msg['signature'] = base64_encode(signature)
+        msg['signature'] = self.delegate.encode_signature(signature=signature, msg=self)
         return dkd.ReliableMessage(msg)
 
     """

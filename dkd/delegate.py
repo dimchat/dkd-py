@@ -50,7 +50,7 @@ class IInstantMessageDelegate(IMessageDelegate):
     @abstractmethod
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
         """
-        Encrypt the message.content to message.data with symmetric key
+        Encrypt 'message.content' to 'message.data' with symmetric key
 
         :param content: message content
         :param key:     symmetric key
@@ -60,14 +60,36 @@ class IInstantMessageDelegate(IMessageDelegate):
         pass
 
     @abstractmethod
+    def encode_content_data(self, data: bytes, msg: InstantMessage) -> str:
+        """
+        Encode 'message.data' to String(Base64)
+
+        :param data: encrypted content data
+        :param msg:  instant message
+        :return:     string
+        """
+        pass
+
+    @abstractmethod
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
         """
-        Encrypt the symmetric key with receiver's public key
+        Encrypt 'message.key' with receiver's public key
 
         :param key:      symmetric key to be encrypted
         :param receiver: receiver ID/string
         :param msg:      instant message
         :return:         encrypted key data
+        """
+        pass
+
+    @abstractmethod
+    def encode_key_data(self, key: bytes, msg: InstantMessage) -> str:
+        """
+        Encode 'message.key' to String(Base64)
+
+        :param key: encrypted key data
+        :param msg: instant message
+        :return:    string
         """
         pass
 
@@ -77,7 +99,7 @@ class ISecureMessageDelegate(IMessageDelegate):
     @abstractmethod
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> dict:
         """
-        Decrypt key data to a symmetric key with receiver's private key
+        Decrypt 'message.key' with receiver's private key
 
         :param key:      encrypted key data
         :param sender:   sender ID/string
@@ -88,9 +110,20 @@ class ISecureMessageDelegate(IMessageDelegate):
         pass
 
     @abstractmethod
+    def decode_key_data(self, key: str, msg: SecureMessage) -> bytes:
+        """
+        Decode 'message.key' from String(Base64)
+
+        :param key: string
+        :param msg: secure message
+        :return:    encrypted key data
+        """
+        pass
+
+    @abstractmethod
     def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
         """
-        Decrypt encrypted data to message.content with symmetric key
+        Decrypt 'message.data' with symmetric key
 
         :param data: encrypted content data
         :param key:  symmetric key
@@ -100,14 +133,36 @@ class ISecureMessageDelegate(IMessageDelegate):
         pass
 
     @abstractmethod
+    def decode_content_data(self, data: str, msg: SecureMessage) -> bytes:
+        """
+        Decode 'message.data' from String(Base64)
+
+        :param data: string
+        :param msg:  secure message
+        :return:     encrypted content data
+        """
+        pass
+
+    @abstractmethod
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
         """
-        Sign the message data(encrypted) with sender's private key
+        Sign 'message.data' with sender's private key
 
         :param data:   encrypted message data
         :param sender: sender ID/string
         :param msg:    secure message
         :return:       signature of encrypted message data
+        """
+        pass
+
+    @abstractmethod
+    def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
+        """
+        Encode 'message.signature' to String(Base64)
+
+        :param signature: signature of message.data
+        :param msg:       secure message
+        :return:          string
         """
         pass
 
@@ -124,5 +179,16 @@ class IReliableMessageDelegate(IMessageDelegate):
         :param sender:    sender ID/string
         :param msg:       reliable message
         :return:          True on signature matched
+        """
+        pass
+
+    @abstractmethod
+    def decode_signature(self, signature: str, msg: ReliableMessage) -> bytes:
+        """
+        Decode 'message.signature' from String(Base64)
+
+        :param signature: string
+        :param msg:       reliable message
+        :return:          signature data
         """
         pass

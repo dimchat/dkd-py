@@ -30,7 +30,6 @@
 
 import time as time_lib
 
-from .utils import base64_encode
 from .envelope import Envelope
 from .content import Content
 from .message import Message
@@ -61,6 +60,14 @@ class InstantMessage(Message):
     def content(self) -> Content:
         return self.__content
 
+    @property
+    def group(self) -> str:
+        return self.__content.group
+
+    @group.setter
+    def group(self, identifier: str):
+        self.__content.group = identifier
+
     @classmethod
     def new(cls, content: Content, envelope: Envelope=None,
             sender: str=None, receiver: str=None, time: int=0):
@@ -68,9 +75,9 @@ class InstantMessage(Message):
             sender = envelope.sender
             receiver = envelope.receiver
             time = envelope.time
-        # build instant message info
-        if time == 0:
+        elif time == 0:
             time = int(time_lib.time())
+        # build instant message info
         msg = {
             'sender': sender,
             'receiver': receiver,
@@ -116,7 +123,7 @@ class InstantMessage(Message):
             receiver = self.envelope.receiver
             key = self.delegate.encrypt_key(key=password, receiver=receiver, msg=self)
             if key:
-                msg['key'] = base64_encode(key)
+                msg['key'] = self.delegate.encode_key_data(key=key, msg=self)
             else:
                 print('reused key for contact: %s' % self.envelope.sender)
         else:
@@ -125,12 +132,12 @@ class InstantMessage(Message):
             for member in members:
                 key = self.delegate.encrypt_key(key=password, receiver=member, msg=self)
                 if key:
-                    keys[member] = base64_encode(key)
+                    keys[member] = self.delegate.encode_key_data(key=key, msg=self)
                 else:
                     print('reused key for member: %s' % member)
             msg['keys'] = keys
 
         # 3. pack message
-        msg['data'] = base64_encode(data)
+        msg['data'] = self.delegate.encode_content_data(data=data, msg=self)
         msg.pop('content')  # remove 'content'
         return SecureMessage(msg)

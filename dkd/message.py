@@ -68,6 +68,25 @@ class Message(dict):
     def delegate(self, delegate: object):
         self.__delegate = delegate
 
+    """
+        Group ID
+        ~~~~~~~~
+        when a group message was split/trimmed to a single message
+        the 'receiver' will be changed to a member ID, and
+        the group ID will be saved as 'group'.
+    """
+    @property
+    def group(self) -> str:
+        return self.get('group')
+
+    @group.setter
+    def group(self, identifier: str):
+        self['group'] = identifier
+
+    @group.deleter
+    def group(self):
+        self.pop('group')
+
 
 """
     Message Transforming
