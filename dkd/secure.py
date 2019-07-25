@@ -73,6 +73,11 @@ class SecureMessage(Message):
     def encrypted_key(self) -> bytes:
         if self.__key is None:
             base64 = self.get('key')
+            if base64 is None:
+                # check 'keys'
+                keys = self.encrypted_keys
+                if keys is not None:
+                    base64 = keys.get(self.envelope.receiver)
             if base64 is not None:
                 self.__key = self.delegate.decode_key_data(key=base64, msg=self)
         return self.__key
@@ -91,6 +96,17 @@ class SecureMessage(Message):
     def delegate(self, delegate):
         self.__delegate = delegate
 
+    @property
+    def group(self) -> str:
+        return self.get('group')
+
+    @group.setter
+    def group(self, identifier: str):
+        if identifier is None:
+            self.pop('group', None)
+        else:
+            self['group'] = identifier
+
     """
         Decrypt the Secure Message to Instant Message
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,48 +121,30 @@ class SecureMessage(Message):
             +----------+
     """
 
-    def decrypt(self, member: str=None):  # -> InstantMessage
+    def decrypt(self):  # -> InstantMessage
         """
         Decrypt message data to plaintext content
 
-        :param member: If this is a group message, give the member ID here
         :return: InstantMessage object
         """
-        sender = self.envelope.sender
-        receiver = self.envelope.receiver
+        # 1. decrypt 'key' to symmetric key
+        env = self.envelope
         key = self.encrypted_key
-        # 1. check receiver and encrypted key
-        if member is not None:
+        group = self.group
+        if group is None:
+            # personal message
+            password = self.delegate.decrypt_key(key=key, sender=env.sender, receiver=env.receiver, msg=self)
+        else:
             # group message
-            group = self.group
-            # if 'group' not exists, the 'receiver' must be a group ID, and
-            # it is not equal to the member of course
-            if group is not None:
-                # if 'group' exists and the 'receiver' is a group ID too, they must be equal;
-                # or the 'receiver' must equal to member, and the 'group' must not equal to member of course
-                receiver = group
-            # get key for member from 'keys'
-            key_map = self.encrypted_keys
-            if key_map is not None:
-                base64 = key_map.get(member)
-                if base64 is not None:
-                    key = self.delegate.decode_key_data(key=base64, msg=self)
-        # 2. decrypt 'key' to symmetric key
-        password = self.delegate.decrypt_key(key=key, sender=sender, receiver=receiver, msg=self)
-        if password is None:
-            raise ValueError('failed to decrypt key: %s -> %s' % (sender, receiver))
-        # 3. decrypt 'data' to 'content'
+            password = self.delegate.decrypt_key(key=key, sender=env.sender, receiver=group, msg=self)
+        # 2. decrypt 'data' to 'content'
         #    (remember to save password for decrypted File/Image/Audio/Video data)
-        data = self.data
-        content = self.delegate.decrypt_content(data=data, key=password, msg=self)
-        if content is None:
-            raise ValueError('failed to decrypt content: %s, %s' % (data, password))
-        # 4. pack message
+        content = self.delegate.decrypt_content(data=self.data, key=password, msg=self)
+        assert content is not None
+        # 3. pack message
         msg = self.copy()
-        if 'key' in msg:
-            msg.pop('key')
-        if 'keys' in msg:
-            msg.pop('keys')
+        msg.pop('key', None)
+        msg.pop('keys', None)
         msg.pop('data')
         msg['content'] = content
         return dkd.InstantMessage(msg)
@@ -173,9 +171,8 @@ class SecureMessage(Message):
         :return: ReliableMessage object
         """
         # 1. sign message.data
-        sender = self.envelope.sender
-        data = self.data
-        signature = self.delegate.sign_data(data=data, sender=sender, msg=self)
+        env = self.envelope
+        signature = self.delegate.sign_data(data=self.data, sender=env.sender, msg=self)
         if signature is None:
             raise AssertionError('failed to sign message: %s' % self)
 
@@ -197,27 +194,37 @@ class SecureMessage(Message):
         :return:        A list of SecureMessage objects for all group members
         """
         msg = self.copy()
+        # check 'keys'
         keys = msg.get('keys')
-        if keys:
-            msg.pop('keys')
-        else:
+        if keys is None:
             keys = {}
+        else:
+            msg.pop('keys')
+        # check 'signature'
+        reliable = 'signature' in msg
 
         # 1. move the receiver(group ID) to 'group'
+        #    this will help the receiver knows the group ID
+        #    when the group message separated to multi-messages;
+        #    if don't want the others know your membership,
+        #    DON'T do this.
         msg['group'] = self.envelope.receiver
 
         messages = []
         for member in members:
-            # 2. change receiver to each member
+            # 2. change 'receiver' to each group member
             msg['receiver'] = member
             # 3. get encrypted key
             key = keys.get(member)
-            if key:
-                msg['key'] = key
+            if key is None:
+                msg.pop('key', None)
             else:
-                msg.pop('key')
+                msg['key'] = key
             # 4. pack message
-            messages.append(SecureMessage(msg))
+            if reliable:
+                messages.append(dkd.ReliableMessage(msg))
+            else:
+                messages.append(SecureMessage(msg))
         # OK
         return messages
 
@@ -233,11 +240,20 @@ class SecureMessage(Message):
         # trim keys
         keys = msg.get('keys')
         if keys is not None:
+            # move key data from 'keys' to 'key'
             key = keys.get(member)
             if key is not None:
                 msg['key'] = key
             msg.pop('keys')
-
-        # msg['group'] = self.envelope.receiver
-        # msg['receiver'] = member
-        return SecureMessage(msg)
+            # check 'group'
+            group = self.group
+            if group is None:
+                # if 'group' not exists, the 'receiver' must be a group ID here, and
+                # it will not be equal to the member of course,
+                # so move 'receiver' to 'group'
+                msg['group'] = self.envelope.receiver
+            msg['receiver'] = member
+        if 'signature' in msg:
+            return dkd.ReliableMessage(msg)
+        else:
+            return SecureMessage(msg)

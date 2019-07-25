@@ -61,14 +61,10 @@ class ReliableMessage(SecureMessage):
 
     @meta.setter
     def meta(self, value):
-        if value:
-            self['meta'] = value
+        if value is None:
+            self.pop('meta', None)
         else:
-            self.pop('meta')
-
-    @meta.deleter
-    def meta(self):
-        self.pop('meta')
+            self['meta'] = value
 
     """
         Verify the Reliable Message to Secure Message
@@ -91,10 +87,8 @@ class ReliableMessage(SecureMessage):
 
         :return: SecureMessage object if signature matched
         """
-        data = self.data
-        signature = self.signature
         sender = self.envelope.sender
-        if self.delegate.verify_data_signature(data=data, signature=signature, sender=sender, msg=self):
+        if self.delegate.verify_data_signature(data=self.data, signature=self.signature, sender=sender, msg=self):
             msg = self.copy()
             msg.pop('signature')  # remove 'signature'
             return SecureMessage(msg)

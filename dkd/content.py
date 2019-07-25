@@ -117,7 +117,7 @@ class Content(dict):
     @group.setter
     def group(self, value: str):
         if value is None:
-            self.pop('group')
+            self.pop('group', None)
         else:
             self['group'] = value
 

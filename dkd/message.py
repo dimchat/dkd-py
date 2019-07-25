@@ -69,15 +69,11 @@ class Message(dict):
     """
     @property
     def group(self) -> str:
-        return self.get('group')
+        yield None
 
     @group.setter
     def group(self, identifier: str):
-        self['group'] = identifier
-
-    @group.deleter
-    def group(self):
-        self.pop('group')
+        pass
 
 
 """

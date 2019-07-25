@@ -70,6 +70,14 @@ class InstantMessage(Message):
     def delegate(self, delegate):
         self.__delegate = delegate
 
+    @property
+    def group(self) -> str:
+        return self.__content.group
+
+    @group.setter
+    def group(self, identifier: str):
+        self.__content.group = identifier
+
     @classmethod
     def new(cls, content: Content, envelope: Envelope=None,
             sender: str=None, receiver: str=None, time: int=0):

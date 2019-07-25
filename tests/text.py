@@ -28,10 +28,10 @@ class TextContent(Content):
 
     @text.setter
     def text(self, value: str):
-        if value:
-            self['text'] = value
+        if value is None:
+            self.pop('text', None)
         else:
-            self.pop('text')
+            self['text'] = value
 
     #
     #   Factory
