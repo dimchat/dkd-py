@@ -54,19 +54,21 @@ class InstantMessage(Message):
     def __init__(self, msg: dict):
         super().__init__(msg)
         # message content
-        self.__content = Content(msg['content'])
+        self.__content: Content = Content(msg['content'])
+        # delegate
+        self.__delegate = None  # IInstantMessageDelegate
 
     @property
     def content(self) -> Content:
         return self.__content
 
     @property
-    def group(self) -> str:
-        return self.__content.group
+    def delegate(self):  # IInstantMessageDelegate
+        return self.__delegate
 
-    @group.setter
-    def group(self, identifier: str):
-        self.__content.group = identifier
+    @delegate.setter
+    def delegate(self, delegate):
+        self.__delegate = delegate
 
     @classmethod
     def new(cls, content: Content, envelope: Envelope=None,
@@ -82,7 +84,6 @@ class InstantMessage(Message):
             'sender': sender,
             'receiver': receiver,
             'time': time,
-
             'content': content,
         }
         return InstantMessage(msg)
@@ -112,8 +113,7 @@ class InstantMessage(Message):
         msg = self.copy()
 
         # 1. encrypt 'content' to 'data'
-        content = self.content
-        data = self.delegate.encrypt_content(content=content, key=password, msg=self)
+        data = self.delegate.encrypt_content(content=self.content, key=password, msg=self)
         if data is None:
             raise AssertionError('failed to encrypt content with key: %s' % password)
 
@@ -135,7 +135,10 @@ class InstantMessage(Message):
                     keys[member] = self.delegate.encode_key_data(key=key, msg=self)
                 else:
                     print('reused key for member: %s' % member)
-            msg['keys'] = keys
+            if len(keys) > 0:
+                msg['keys'] = keys
+            else:
+                print('reused key for group: %s' % self.group)
 
         # 3. pack message
         msg['data'] = self.delegate.encode_content_data(data=data, msg=self)

@@ -54,12 +54,11 @@ class Envelope(dict):
 
     def __init__(self, envelope: dict):
         super().__init__(envelope)
-        self.__sender = envelope['sender']
-        self.__receiver = envelope['receiver']
+        self.__sender: str = envelope['sender']
+        self.__receiver: str = envelope['receiver']
+        self.__time: int = 0
         time = envelope.get('time')
-        if time is None:
-            self.__time = 0
-        else:
+        if time is not None:
             self.__time = int(time)
 
     @property

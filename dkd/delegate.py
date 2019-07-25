@@ -40,12 +40,7 @@ from .reliable import ReliableMessage
 #  Message Delegates
 #
 
-
-class IMessageDelegate(metaclass=ABCMeta):
-    pass
-
-
-class IInstantMessageDelegate(IMessageDelegate):
+class IInstantMessageDelegate(metaclass=ABCMeta):
 
     @abstractmethod
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
@@ -94,7 +89,7 @@ class IInstantMessageDelegate(IMessageDelegate):
         pass
 
 
-class ISecureMessageDelegate(IMessageDelegate):
+class ISecureMessageDelegate(metaclass=ABCMeta):
 
     @abstractmethod
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> dict:
@@ -167,7 +162,7 @@ class ISecureMessageDelegate(IMessageDelegate):
         pass
 
 
-class IReliableMessageDelegate(IMessageDelegate):
+class IReliableMessageDelegate(ISecureMessageDelegate):
 
     @abstractmethod
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:

@@ -18,7 +18,7 @@ def base64_decode(string: str) -> bytes:
     return base64.b64decode(string)
 
 
-class Transceiver(IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate):
+class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
 
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
         contact = facebook.account(identifier=ID(receiver))

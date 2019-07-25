@@ -34,7 +34,7 @@ from .message import Message
 from .instant import InstantMessage
 from .secure import SecureMessage
 from .reliable import ReliableMessage
-from .delegate import IMessageDelegate, IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
+from .delegate import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
 name = "DaoKeDao"
 
@@ -49,6 +49,5 @@ __all__ = [
     # message transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
     # message delegate
-    'IMessageDelegate',
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 ]

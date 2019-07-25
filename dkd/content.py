@@ -48,7 +48,7 @@ import random
 """
 
 
-def serial_number():
+def random_positive_integer():
     """
     :return: random integer greater than 0
     """
@@ -60,6 +60,7 @@ class Content(dict):
         This class is used to create message content
     """
 
+    # noinspection PyTypeChecker
     def __new__(cls, content: dict):
         """
         Create message content
@@ -91,7 +92,7 @@ class Content(dict):
         sn = content.get('sn')
         if sn is None:
             # generate sn
-            sn = serial_number()
+            sn = random_positive_integer()
             self['sn'] = sn
         else:
             sn = int(sn)
@@ -115,14 +116,10 @@ class Content(dict):
 
     @group.setter
     def group(self, value: str):
-        if value:
-            self['group'] = value
-        else:
+        if value is None:
             self.pop('group')
-
-    @group.deleter
-    def group(self):
-        self.pop('group')
+        else:
+            self['group'] = value
 
 
 """

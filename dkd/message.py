@@ -46,6 +46,7 @@ class Message(dict):
 
     def __init__(self, msg: dict):
         super().__init__(msg)
+        # build envelope
         sender = msg['sender']
         receiver = msg['receiver']
         time = msg.get('time')
@@ -53,20 +54,11 @@ class Message(dict):
             time = 0
         else:
             time = int(time)
-        self.__envelope = Envelope.new(sender=sender, receiver=receiver, time=time)
-        self.__delegate = None  # IMessageDelegate
+        self.__envelope: Envelope = Envelope.new(sender=sender, receiver=receiver, time=time)
 
     @property
     def envelope(self) -> Envelope:
         return self.__envelope
-
-    @property
-    def delegate(self):
-        return self.__delegate
-
-    @delegate.setter
-    def delegate(self, delegate: object):
-        self.__delegate = delegate
 
     """
         Group ID

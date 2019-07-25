@@ -56,9 +56,10 @@ class SecureMessage(Message):
     def __init__(self, msg: dict):
         super().__init__(msg)
         # lazy
-        self.__data = None
-        self.__key = None
-        self.__keys = None
+        self.__data: bytes = None
+        self.__key: bytes = None
+        self.__keys: dict = None
+        self.__delegate = None  # ISecureMessageDelegate
 
     @property
     def data(self) -> bytes:
@@ -81,6 +82,14 @@ class SecureMessage(Message):
         if self.__keys is None:
             self.__keys = self.get('keys')
         return self.__keys
+
+    @property
+    def delegate(self):  # ISecureMessageDelegate
+        return self.__delegate
+
+    @delegate.setter
+    def delegate(self, delegate):
+        self.__delegate = delegate
 
     """
         Decrypt the Secure Message to Instant Message
