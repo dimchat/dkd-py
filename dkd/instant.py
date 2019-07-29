@@ -121,34 +121,38 @@ class InstantMessage(Message):
         msg = self.copy()
 
         # 1. encrypt 'content' to 'data'
+        #    (check attachment for File/Image/Audio/Video message content first)
         data = self.delegate.encrypt_content(content=self.content, key=password, msg=self)
         if data is None:
             raise AssertionError('failed to encrypt content with key: %s' % password)
 
-        # 2. encrypt password to 'key'/'keys'
+        # 2. replace 'content' with encrypted 'data'
+        msg['data'] = self.delegate.encode_content_data(data=data, msg=self)
+        msg.pop('content')  # remove 'content'
+
+        # 3. encrypt password to 'key'/'keys'
         if members is None:
             # personal message
-            receiver = self.envelope.receiver
-            key = self.delegate.encrypt_key(key=password, receiver=receiver, msg=self)
-            if key:
-                msg['key'] = self.delegate.encode_key_data(key=key, msg=self)
-            else:
-                print('reused key for contact: %s' % self.envelope.sender)
+            key = self.delegate.encrypt_key(key=password, receiver=self.envelope.receiver, msg=self)
+            base64 = self.delegate.encode_key_data(key=key, msg=self)
+            if base64 is not None:
+                msg['key'] = base64
         else:
             # group message
             keys = {}
             for member in members:
                 key = self.delegate.encrypt_key(key=password, receiver=member, msg=self)
-                if key:
-                    keys[member] = self.delegate.encode_key_data(key=key, msg=self)
-                else:
-                    print('reused key for member: %s' % member)
+                base64 = self.delegate.encode_key_data(key=key, msg=self)
+                if base64 is not None:
+                    keys[member] = base64
             if len(keys) > 0:
                 msg['keys'] = keys
-            else:
-                print('reused key for group: %s' % self.group)
+            # group ID
+            gid = self.group
+            assert gid is not None, 'group message content error: %s' % self
+            # NOTICE: this help the receiver knows the group ID when the group message separated to multi-messages
+            #         if don't want the others know you are the group members, remove it.
+            msg['group'] = gid
 
-        # 3. pack message
-        msg['data'] = self.delegate.encode_content_data(data=data, msg=self)
-        msg.pop('content')  # remove 'content'
+        # 4. pack message
         return SecureMessage(msg)

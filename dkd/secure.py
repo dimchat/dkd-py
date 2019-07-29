@@ -65,7 +65,7 @@ class SecureMessage(Message):
     def data(self) -> bytes:
         if self.__data is None:
             base64 = self.get('data')
-            assert base64 is not None
+            assert base64 is not None, 'secure message data cannot be empty'
             self.__data = self.delegate.decode_content_data(data=base64, msg=self)
         return self.__data
 
@@ -140,7 +140,7 @@ class SecureMessage(Message):
         # 2. decrypt 'data' to 'content'
         #    (remember to save password for decrypted File/Image/Audio/Video data)
         content = self.delegate.decrypt_content(data=self.data, key=password, msg=self)
-        assert content is not None
+        assert content is not None, 'failed to decrypt message content from secure message: %s' % self
         # 3. pack message
         msg = self.copy()
         msg.pop('key', None)

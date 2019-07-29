@@ -46,7 +46,7 @@ class ReliableMessage(SecureMessage):
     def signature(self) -> bytes:
         if self.__signature is None:
             base64 = self.get('signature')
-            assert base64 is not None
+            assert base64 is not None, 'signature of reliable message cannot be empty: %s' % self
             self.__signature = self.delegate.decode_signature(signature=base64, msg=self)
         return self.__signature
 
