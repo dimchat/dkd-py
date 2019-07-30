@@ -32,9 +32,17 @@ import time as time_lib
 
 
 class Envelope(dict):
-    """
-        This class is used to create a message envelope
-        which contains 'sender', 'receiver' and 'time'
+    """This class is used to create a message envelope
+    which contains 'sender', 'receiver' and 'time'
+
+        Envelope for message
+        ~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            sender   : "moki@xxx",
+            receiver : "hulk@yyy",
+            time     : 123
+        }
     """
 
     def __new__(cls, envelope: dict):

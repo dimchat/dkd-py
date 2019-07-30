@@ -29,19 +29,44 @@
 # ==============================================================================
 
 """
-    Message with Envelope
-    ~~~~~~~~~~~~~~~~~~~~~
+    Message Transforming
+    ~~~~~~~~~~~~~~~~~~~~
 
-    Base classes for messages
+        Instant Message <-> Secure Message <-> Reliable Message
+        +-------------+     +------------+     +--------------+
+        |  sender     |     |  sender    |     |  sender      |
+        |  receiver   |     |  receiver  |     |  receiver    |
+        |  time       |     |  time      |     |  time        |
+        |             |     |            |     |              |
+        |  content    |     |  data      |     |  data        |
+        +-------------+     |  key/keys  |     |  key/keys    |
+                            +------------+     |  signature   |
+                                               +--------------+
+        Algorithm:
+            data      = password.encrypt(content)
+            key       = receiver.public_key.encrypt(password)
+            signature = sender.private_key.sign(data)
 """
 
 from .envelope import Envelope
 
 
 class Message(dict):
-    """
-        This class is used to create a message
-        with the envelope fields, such as 'sender', 'receiver', and 'time'
+    """This class is used to create a message
+    with the envelope fields, such as 'sender', 'receiver', and 'time'
+
+        Message with Envelope
+        ~~~~~~~~~~~~~~~~~~~~~
+        Base classes for messages
+
+        data format: {
+            //-- envelope
+            sender   : "moki@xxx",
+            receiver : "hulk@yyy",
+            time     : 123,
+            //-- body
+            ...
+        }
     """
 
     def __init__(self, msg: dict):
@@ -74,24 +99,3 @@ class Message(dict):
     @group.setter
     def group(self, identifier: str):
         pass
-
-
-"""
-    Message Transforming
-    ~~~~~~~~~~~~~~~~~~~~
-
-    Instant Message <-> Secure Message <-> Reliable Message
-    +-------------+     +------------+     +--------------+
-    |  sender     |     |  sender    |     |  sender      |
-    |  receiver   |     |  receiver  |     |  receiver    |
-    |  time       |     |  time      |     |  time        |
-    |             |     |            |     |              |
-    |  content    |     |  data      |     |  data        |
-    +-------------+     |  key/keys  |     |  key/keys    |
-                        +------------+     |  signature   |
-                                           +--------------+
-    Algorithm:
-        data      = password.encrypt(content)
-        key       = receiver.public_key.encrypt(password)
-        signature = sender.private_key.sign(data)
-"""

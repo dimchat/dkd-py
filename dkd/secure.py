@@ -34,10 +34,10 @@ import dkd  # dkd.InstantMessage, dkd.ReliableMessage
 
 
 class SecureMessage(Message):
-    """
+    """Instant Message encrypted by a symmetric key
+
         Secure Message
         ~~~~~~~~~~~~~~
-        Instant Message encrypted by a symmetric key
 
         data format: {
             //-- envelope
@@ -184,6 +184,8 @@ class SecureMessage(Message):
     """
         Split/Trim group message
         ~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        for each members, get key from 'keys' and replace 'receiver' to member ID
     """
 
     def split(self, members: list) -> list:

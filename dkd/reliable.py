@@ -32,9 +32,26 @@ from .secure import SecureMessage
 
 
 class ReliableMessage(SecureMessage):
-    """
-        This class is used to sign the SecureMessage
-        It contains a 'signature' field which signed with sender's private key
+    """This class is used to sign the SecureMessage
+    It contains a 'signature' field which signed with sender's private key
+
+        Instant Message signed by an asymmetric key
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        data format: {
+            //-- envelope
+            sender   : "moki@xxx",
+            receiver : "hulk@yyy",
+            time     : 123,
+            //-- content data and key/keys
+            data     : "...",  // base64_encode(symmetric)
+            key      : "...",  // base64_encode(asymmetric)
+            keys     : {
+                "ID1": "key1", // base64_encode(asymmetric)
+            },
+            //-- signature
+            signature: "..."   // base64_encode()
+        }
     """
 
     def __init__(self, msg: dict):
@@ -88,9 +105,11 @@ class ReliableMessage(SecureMessage):
         :return: SecureMessage object if signature matched
         """
         sender = self.envelope.sender
+        # 1. verify data signature
         if self.delegate.verify_data_signature(data=self.data, signature=self.signature, sender=sender, msg=self):
+            # 2. pack message
             msg = self.copy()
             msg.pop('signature')  # remove 'signature'
             return SecureMessage(msg)
-        else:
-            raise ValueError('Signature error: %s' % self)
+        # else:
+        #     raise ValueError('Signature error: %s' % self)

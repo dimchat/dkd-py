@@ -31,23 +31,6 @@
 import random
 
 
-"""
-    Message Content
-    ~~~~~~~~~~~~~~~
-
-    data format: {
-        'type'    : 0x00,            // message type
-        'sn'      : 0,               // serial number
-
-        'group'   : 'Group ID',      // for group message
-
-        'text'    : 'text',          // for text message
-        'command' : 'Command Name',  // for system command
-        ...
-    }
-"""
-
-
 def random_positive_integer():
     """
     :return: random integer greater than 0
@@ -56,8 +39,22 @@ def random_positive_integer():
 
 
 class Content(dict):
-    """
-        This class is used to create message content
+    """This class is for creating message content
+
+        Message Content
+        ~~~~~~~~~~~~~~~
+
+        data format: {
+            'type'    : 0x00,            // message type
+            'sn'      : 0,               // serial number
+
+            'group'   : 'Group ID',      // for group message
+
+            //-- message info
+            'text'    : 'text',          // for text message
+            'command' : 'Command Name',  // for system command
+            //...
+        }
     """
 
     # noinspection PyTypeChecker
@@ -86,9 +83,9 @@ class Content(dict):
 
     def __init__(self, content: dict):
         super().__init__(content)
-        # message type
+        # message type: text, image, ...
         self.__type: int = int(content['type'])
-        # serial number
+        # serial number: random number to identify message content
         sn = content.get('sn')
         if sn is None:
             # generate sn
@@ -108,7 +105,7 @@ class Content(dict):
     def serial_number(self) -> int:
         return self.__sn
 
-    # Group ID
+    # Group ID/string for group message
     #    if field 'group' exists, it means this is a group message
     @property
     def group(self) -> str:
