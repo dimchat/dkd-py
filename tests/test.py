@@ -12,13 +12,12 @@ import unittest
 
 from mkm import SymmetricKey
 
-from dkd import Message, InstantMessage, SecureMessage, ReliableMessage, Envelope
+from dkd import Message, InstantMessage, SecureMessage, ReliableMessage, Envelope, ContentType
 from tests.command import CommandContent
 from tests.data import reliable_message
 from tests.immortals import moki_id, hulk_id
 from tests.text import TextContent
 from tests.transceiver import transceiver
-from tests.type import MessageType
 
 __author__ = 'Albert Moky'
 
@@ -65,12 +64,12 @@ class MessageTestCase(unittest.TestCase):
 
         content = TextContent.new('Hello')
         print('text content: ', content)
-        self.assertEqual(content.type, MessageType.Text)
+        self.assertEqual(content.type, ContentType.Text)
         MessageTestCase.content = content
 
         command = CommandContent.new('handshake')
         print('command content: ', command)
-        self.assertEqual(command.type, MessageType.Command)
+        self.assertEqual(command.type, ContentType.Command)
         MessageTestCase.command = command
 
     def test_2_instant(self):

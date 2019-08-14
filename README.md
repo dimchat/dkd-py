@@ -50,25 +50,25 @@ Copyright &copy; 2018 Albert Moky
 
 ```javascript
 enum {
-    DIMMessageType_Unknown = 0x00,
+    DIMContentType_Unknown = 0x00,
     
-    DIMMessageType_Text    = 0x01,
+    DIMContentType_Text    = 0x01,
     
-    DIMMessageType_File    = 0x10,
-    DIMMessageType_Image   = 0x12, // photo
-    DIMMessageType_Audio   = 0x14, // voice
-    DIMMessageType_Video   = 0x16,
+    DIMContentType_File    = 0x10,
+    DIMContentType_Image   = 0x12, // photo
+    DIMContentType_Audio   = 0x14, // voice
+    DIMContentType_Video   = 0x16,
     
-    DIMMessageType_Page    = 0x20, // web page
+    DIMContentType_Page    = 0x20, // web page
     
     // quote an exists message and reply it with text
-    DIMMessageType_Quote   = 0x37,
+    DIMContentType_Quote   = 0x37,
     
     // system command
-    DIMMessageType_Command = 0x88,
+    DIMContentType_Command = 0x88,
     
-    // top-secret message forwarded by proxy(account or station)
-    DIMMessageType_Forward = 0xFF
+    // top-secret message forward by proxy (Service Provider)
+    DIMContentType_Forward = 0xFF
 };
 ```
 

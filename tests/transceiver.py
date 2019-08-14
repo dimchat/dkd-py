@@ -21,7 +21,7 @@ def base64_decode(string: str) -> bytes:
 class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
 
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
-        contact = facebook.account(identifier=ID(receiver))
+        contact = facebook.user(identifier=ID(receiver))
         if contact is not None:
             string = json.dumps(key)
             return contact.encrypt(string.encode('utf-8'))
@@ -68,7 +68,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
         return base64_encode(signature)
 
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
-        contact = facebook.account(identifier=ID(sender))
+        contact = facebook.user(identifier=ID(sender))
         if contact is not None:
             return contact.verify(data=data, signature=signature)
 

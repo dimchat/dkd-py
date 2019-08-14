@@ -28,32 +28,56 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .envelope import Envelope
-from .content import Content
-from .types import ContentType
-from .forward import ForwardContent
-
-from .message import Message
-from .instant import InstantMessage
-from .secure import SecureMessage
+from .content import Content, message_content_classes
 from .reliable import ReliableMessage
-from .delegate import IInstantMessageDelegate, ISecureMessageDelegate, IReliableMessageDelegate
 
-name = "DaoKeDao"
+from .types import ContentType
 
-__author__ = 'Albert Moky'
 
-__all__ = [
-    # DaoKeDao
-    'Envelope',
-    'Content',
-    'Message',
+class ForwardContent(Content):
+    """
+        Top-Secret Message Content
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # content types
-    'ContentType', 'ForwardContent',
+        data format: {
+            type : 0xFF,
+            sn   : 456,
 
-    # message transform
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    # message delegate
-    'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
-]
+            forward : {...}  // reliable (secure + certified) message
+        }
+    """
+
+    def __init__(self, content: dict):
+        super().__init__(content)
+        # 'forward'
+        forward = content.get('forward')
+        self.__forward = ReliableMessage(forward)
+
+    #
+    #   forward (top-secret message)
+    #
+    @property
+    def forward(self) -> ReliableMessage:
+        return self.__forward
+
+    @forward.setter
+    def forward(self, value: dict):
+        self.__forward = value
+        if value is None:
+            self.pop('forward', None)
+        else:
+            self['forward'] = value
+
+    #
+    #   Factory
+    #
+    @classmethod
+    def new(cls, message: ReliableMessage) -> Content:
+        content = {
+            'type': ContentType.Forward,
+            'forward': message,
+        }
+        return ForwardContent(content)
+
+
+message_content_classes[ContentType.Forward] = ForwardContent
