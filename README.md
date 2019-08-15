@@ -1,13 +1,13 @@
-# Dao Ke Dao (道可道) -- Message Module
+# Dao Ke Dao (道可道) -- Message Module (Python)
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/dimchat/dkd-py/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/alpha-0.1.0-red.svg)](https://github.com/dimchat/dkd-py/wiki)
+[![Version](https://img.shields.io/badge/alpha-0.4.2-red.svg)](https://github.com/dimchat/dkd-py/wiki)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/dkd-py/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/dkd-py/wiki)
 
-This document introduces a common **Message Module** for decentralized instant messaging.
+This [document](https://github.com/dimchat/DIMP/blob/master/DaoKeDao-Message.md) introduces a common **Message Module** for decentralized instant messaging.
 
-Copyright &copy; 2018 Albert Moky
+Copyright &copy; 2018-2019 Albert Moky
 
 - [Envelope](#envelope)
     - Sender
@@ -83,6 +83,27 @@ Accordingly, when the client received a message, it needs TWO steps to extract t
 
 1. Verify the **Reliable Message** to **Secure Message**;
 2. Decrypt the **Secure Message** to **Instant Message**.
+
+```javascript
+    Message Transforming
+    ~~~~~~~~~~~~~~~~~~~~
+
+    Instant Message  <-->  Secure Message  <-->  Reliable Message
+    +-------------+        +------------+        +--------------+
+    |  sender     |        |  sender    |        |  sender      |
+    |  receiver   |        |  receiver  |        |  receiver    |
+    |  time       |        |  time      |        |  time        |
+    |             |        |            |        |              |
+    |  content    |        |  data      |        |  data        |
+    +-------------+        |  key/keys  |        |  key/keys    |
+                           +------------+        |  signature   |
+                                                 +--------------+
+    Algorithm:
+        data      = password.encrypt(content)
+        key       = receiver.public_key.encrypt(password)
+        signature = sender.private_key.sign(data)
+
+```
 
 ### <span id="instant-message">Instant Message</span>
 
