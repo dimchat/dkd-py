@@ -55,7 +55,7 @@ class IInstantMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def encode_content_data(self, data: bytes, msg: InstantMessage) -> str:
+    def encode_data(self, data: bytes, msg: InstantMessage) -> str:
         """
         Encode 'message.data' to String(Base64)
 
@@ -128,7 +128,7 @@ class ISecureMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def decode_content_data(self, data: str, msg: SecureMessage) -> bytes:
+    def decode_data(self, data: str, msg: SecureMessage) -> bytes:
         """
         Decode 'message.data' from String(Base64)
 

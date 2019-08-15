@@ -66,7 +66,7 @@ class SecureMessage(Message):
         if self.__data is None:
             base64 = self.get('data')
             assert base64 is not None, 'secure message data cannot be empty'
-            self.__data = self.delegate.decode_content_data(data=base64, msg=self)
+            self.__data = self.delegate.decode_data(data=base64, msg=self)
         return self.__data
 
     @property

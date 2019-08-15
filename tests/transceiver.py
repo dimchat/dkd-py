@@ -35,7 +35,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
             string = json.dumps(content)
             return password.encrypt(string.encode('utf-8'))
 
-    def encode_content_data(self, data: bytes, msg: InstantMessage) -> str:
+    def encode_data(self, data: bytes, msg: InstantMessage) -> str:
         return base64_encode(data)
 
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: InstantMessage) -> dict:
@@ -56,7 +56,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
                 dictionary = json.loads(plaintext)
                 return Content(dictionary)
 
-    def decode_content_data(self, data: str, msg: SecureMessage) -> bytes:
+    def decode_data(self, data: str, msg: SecureMessage) -> bytes:
         return base64_decode(data)
 
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:

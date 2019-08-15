@@ -127,7 +127,7 @@ class InstantMessage(Message):
             raise AssertionError('failed to encrypt content with key: %s' % password)
 
         # 2. replace 'content' with encrypted 'data'
-        msg['data'] = self.delegate.encode_content_data(data=data, msg=self)
+        msg['data'] = self.delegate.encode_data(data=data, msg=self)
         msg.pop('content')  # remove 'content'
 
         # 3. encrypt password to 'key'/'keys'
