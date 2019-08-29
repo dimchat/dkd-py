@@ -79,7 +79,7 @@ class SecureMessage(Message):
                 if keys is not None:
                     base64 = keys.get(self.envelope.receiver)
             if base64 is not None:
-                self.__key = self.delegate.decode_key_data(key=base64, msg=self)
+                self.__key = self.delegate.decode_key(key=base64, msg=self)
         return self.__key
 
     @property
@@ -127,20 +127,36 @@ class SecureMessage(Message):
 
         :return: InstantMessage object
         """
-        # 1. decrypt 'key' to symmetric key
-        env = self.envelope
-        key = self.encrypted_key
+        sender = self.envelope.sender
+        receiver = self.envelope.receiver
         group = self.group
+
+        # 1. decrypt 'message.key' to symmetric key
+        # 1.1. decode encrypted key data
+        key = self.encrypted_key
+        # 1.2. decrypt key data
+        #      if key is empty, means it should be reused, get it from key cache
         if group is None:
             # personal message
-            password = self.delegate.decrypt_key(key=key, sender=env.sender, receiver=env.receiver, msg=self)
+            password = self.delegate.decrypt_key(key=key, sender=sender, receiver=receiver, msg=self)
         else:
             # group message
-            password = self.delegate.decrypt_key(key=key, sender=env.sender, receiver=group, msg=self)
-        # 2. decrypt 'data' to 'content'
-        #    (remember to save password for decrypted File/Image/Audio/Video data)
-        content = self.delegate.decrypt_content(data=self.data, key=password, msg=self)
-        assert content is not None, 'failed to decrypt message content from secure message: %s' % self
+            password = self.delegate.decrypt_key(key=key, sender=sender, receiver=group, msg=self)
+
+        # 2. decrypt 'message.data' to 'message.content'
+        # 2.1. decode encrypted content data
+        data = self.data
+        # 2.2. decrypt & deserialize content data
+        content = self.delegate.decrypt_content(data=data, key=password, msg=self)
+        # 2.3. check attachment for File/Image/Audio/Video message content
+        #      if file data not download yet,
+        #          decrypt file data with password;
+        #      else,
+        #          save password to 'message.content.password'.
+        #      (do it in 'core' module)
+        if content is None:
+            raise ValueError('failed to decrypt message content from secure message: %s' % self)
+
         # 3. pack message
         msg = self.copy()
         msg.pop('key', None)
@@ -173,8 +189,7 @@ class SecureMessage(Message):
         # 1. sign message.data
         env = self.envelope
         signature = self.delegate.sign_data(data=self.data, sender=env.sender, msg=self)
-        if signature is None:
-            raise AssertionError('failed to sign message: %s' % self)
+        assert signature is not None, 'failed to sign message: %s' % self
 
         # 2. pack message
         msg = self.copy()

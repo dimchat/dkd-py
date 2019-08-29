@@ -26,7 +26,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
             string = json.dumps(key)
             return contact.encrypt(string.encode('utf-8'))
 
-    def encode_key_data(self, key: bytes, msg: InstantMessage) -> str:
+    def encode_key(self, key: bytes, msg: InstantMessage) -> str:
         return base64_encode(key)
 
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
@@ -45,7 +45,7 @@ class Transceiver(IInstantMessageDelegate, IReliableMessageDelegate):
             if data is not None:
                 return json.loads(data)
 
-    def decode_key_data(self, key: str, msg: SecureMessage) -> bytes:
+    def decode_key(self, key: str, msg: SecureMessage) -> bytes:
         return base64_decode(key)
 
     def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:

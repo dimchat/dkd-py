@@ -123,8 +123,7 @@ class InstantMessage(Message):
         # 1. encrypt 'content' to 'data'
         #    (check attachment for File/Image/Audio/Video message content first)
         data = self.delegate.encrypt_content(content=self.content, key=password, msg=self)
-        if data is None:
-            raise AssertionError('failed to encrypt content with key: %s' % password)
+        assert data is not None, 'failed to encrypt content with key: %s' % password
 
         # 2. replace 'content' with encrypted 'data'
         msg['data'] = self.delegate.encode_data(data=data, msg=self)
@@ -134,16 +133,18 @@ class InstantMessage(Message):
         if members is None:
             # personal message
             key = self.delegate.encrypt_key(key=password, receiver=self.envelope.receiver, msg=self)
-            base64 = self.delegate.encode_key_data(key=key, msg=self)
-            if base64 is not None:
+            if key is not None:
+                base64 = self.delegate.encode_key(key=key, msg=self)
+                assert base64 is not None, 'failed to encode key data: %s' % key
                 msg['key'] = base64
         else:
             # group message
             keys = {}
             for member in members:
                 key = self.delegate.encrypt_key(key=password, receiver=member, msg=self)
-                base64 = self.delegate.encode_key_data(key=key, msg=self)
-                if base64 is not None:
+                if key is not None:
+                    base64 = self.delegate.encode_key(key=key, msg=self)
+                    assert base64 is not None, 'failed to encode key data: %s' % key
                     keys[member] = base64
             if len(keys) > 0:
                 msg['keys'] = keys

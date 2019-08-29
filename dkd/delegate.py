@@ -78,7 +78,7 @@ class IInstantMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def encode_key_data(self, key: bytes, msg: InstantMessage) -> str:
+    def encode_key(self, key: bytes, msg: InstantMessage) -> str:
         """
         Encode 'message.key' to String(Base64)
 
@@ -92,26 +92,37 @@ class IInstantMessageDelegate(metaclass=ABCMeta):
 class ISecureMessageDelegate(metaclass=ABCMeta):
 
     @abstractmethod
+    def decode_key(self, key: str, msg: SecureMessage) -> bytes:
+        """
+        Decode 'message.key' to encrypted symmetric key data
+
+        :param key: base64 string
+        :param msg: secure message
+        :return:    encrypted symmetric key data
+        """
+        pass
+
+    @abstractmethod
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> dict:
         """
         Decrypt 'message.key' with receiver's private key
 
-        :param key:      encrypted key data
-        :param sender:   sender ID/string
-        :param receiver: receiver(group) ID/string
+        :param key:      encrypted symmetric key data
+        :param sender:   sender/member ID string
+        :param receiver: receiver/group ID string
         :param msg:      secure message
         :return:         symmetric key
         """
         pass
 
     @abstractmethod
-    def decode_key_data(self, key: str, msg: SecureMessage) -> bytes:
+    def decode_data(self, data: str, msg: SecureMessage) -> bytes:
         """
-        Decode 'message.key' from String(Base64)
+        Decode 'message.data' to encrypted content data
 
-        :param key: string
-        :param msg: secure message
-        :return:    encrypted key data
+        :param data: base64 string
+        :param msg:  secure message
+        :return:     encrypted content data
         """
         pass
 
@@ -128,23 +139,12 @@ class ISecureMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def decode_data(self, data: str, msg: SecureMessage) -> bytes:
-        """
-        Decode 'message.data' from String(Base64)
-
-        :param data: string
-        :param msg:  secure message
-        :return:     encrypted content data
-        """
-        pass
-
-    @abstractmethod
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
         """
         Sign 'message.data' with sender's private key
 
         :param data:   encrypted message data
-        :param sender: sender ID/string
+        :param sender: sender ID string
         :param msg:    secure message
         :return:       signature of encrypted message data
         """
@@ -165,25 +165,25 @@ class ISecureMessageDelegate(metaclass=ABCMeta):
 class IReliableMessageDelegate(ISecureMessageDelegate):
 
     @abstractmethod
-    def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
-        """
-        Verify the message data and signature with sender's public key
-
-        :param data:      encrypted message data
-        :param signature: signature of encrypted message data
-        :param sender:    sender ID/string
-        :param msg:       reliable message
-        :return:          True on signature matched
-        """
-        pass
-
-    @abstractmethod
     def decode_signature(self, signature: str, msg: ReliableMessage) -> bytes:
         """
         Decode 'message.signature' from String(Base64)
 
-        :param signature: string
+        :param signature: base64 string
         :param msg:       reliable message
         :return:          signature data
+        """
+        pass
+
+    @abstractmethod
+    def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
+        """
+        Verify the message data and signature with sender's public key
+
+        :param data:      message content(encrypted) data
+        :param signature: signature of message content(encrypted) data
+        :param sender:    sender ID/string
+        :param msg:       reliable message
+        :return:          True on signature matched
         """
         pass
