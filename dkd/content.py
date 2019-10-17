@@ -72,7 +72,7 @@ class Content(dict):
             return content
         elif cls is Content:
             # get subclass by message content type
-            clazz = message_content_classes[int(content['type'])]
+            clazz = message_content_classes.get(int(content['type']))
             if issubclass(clazz, Content):
                 return clazz(content)
         # new Content(dict)
