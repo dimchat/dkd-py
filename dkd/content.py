@@ -67,19 +67,16 @@ class Content(dict):
         """
         if content is None:
             return None
-        elif cls is not Content:
-            # subclass
-            return super().__new__(cls, content)
         elif isinstance(content, Content):
             # return Content object directly
             return content
-        # get class by message content type
-        clazz = message_content_classes[int(content['type'])]
-        if issubclass(clazz, Content):
-            return clazz(content)
-        else:
-            # raise ModuleNotFoundError('Invalid message type')
-            return super().__new__(cls, content)
+        elif cls is Content:
+            # get subclass by message content type
+            clazz = message_content_classes[int(content['type'])]
+            if issubclass(clazz, Content):
+                return clazz(content)
+        # new Content(dict)
+        return super().__new__(cls, content)
 
     def __init__(self, content: dict):
         super().__init__(content)

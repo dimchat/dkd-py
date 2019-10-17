@@ -72,7 +72,7 @@ class ForwardContent(Content):
     #   Factory
     #
     @classmethod
-    def new(cls, message: ReliableMessage) -> Content:
+    def new(cls, message: ReliableMessage):
         content = {
             'type': ContentType.Forward,
             'forward': message,

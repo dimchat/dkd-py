@@ -3,3 +3,4 @@
 /build
 /dist
 /dkd.egg-info
+*.pyc
