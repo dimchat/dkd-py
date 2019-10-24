@@ -74,18 +74,20 @@ class InstantMessage(Message):
     def new(cls, content: Content, envelope: Envelope=None,
             sender: str=None, receiver: str=None, time: int=0):
         if envelope:
-            sender = envelope.sender
-            receiver = envelope.receiver
-            time = envelope.time
-        elif time == 0:
-            time = int(time_lib.time())
-        # build instant message info
-        msg = {
-            'sender': sender,
-            'receiver': receiver,
-            'time': time,
-            'content': content,
-        }
+            # share the same dictionary with envelope object
+            msg = envelope.dictionary
+            msg['content'] = content
+        else:
+            assert sender is not None and receiver is not None, 'sender/receiver error'
+            if time == 0:
+                time = int(time_lib.time())
+            # build instant message info
+            msg = {
+                'sender': sender,
+                'receiver': receiver,
+                'time': time,
+                'content': content,
+            }
         return InstantMessage(msg)
 
     """

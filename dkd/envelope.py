@@ -31,7 +31,35 @@
 import time as time_lib
 
 
-class Envelope(dict):
+class Dictionary:
+    """
+        A container share the same inner dictionary
+    """
+
+    def __init__(self, dictionary: dict):
+        super().__init__()
+        self.__dictionary: dict = dictionary
+
+    @property
+    def dictionary(self) -> dict:
+        return self.__dictionary
+
+    def __setitem__(self, key, value):
+        # self.__dictionary.__setitem__(key, value)
+        self.__dictionary[key] = value
+
+    def __getitem__(self, key):
+        # return self.__dictionary.__getitem__(key)
+        return self.__dictionary[key]
+
+    def get(self, key):
+        return self.__dictionary.get(key)
+
+    def pop(self, key, default=None):
+        return self.__dictionary.pop(key, default)
+
+
+class Envelope(Dictionary):
     """This class is used to create a message envelope
     which contains 'sender', 'receiver' and 'time'
 
@@ -45,28 +73,17 @@ class Envelope(dict):
         }
     """
 
-    def __new__(cls, envelope: dict):
-        """
-        Create message envelope
-
-        :param envelope: envelope info
-        :return: Envelope object
-        """
-        if envelope is None:
-            return None
-        elif isinstance(envelope, Envelope):
-            # return Envelope object directly
-            return envelope
-        # new Envelope(dict)
-        return super().__new__(Envelope, envelope)
-
     def __init__(self, envelope: dict):
         super().__init__(envelope)
+        # sender ID string
         self.__sender: str = envelope['sender']
+        # receiver ID string
         self.__receiver: str = envelope['receiver']
-        self.__time: int = 0
+        # timestamp
         time = envelope.get('time')
-        if time is not None:
+        if time is None:
+            self.__time = 0
+        else:
             self.__time = int(time)
 
     @property
@@ -110,7 +127,9 @@ class Envelope(dict):
     @property
     def type(self) -> int:
         number = self.get('type')
-        if number is not None:
+        if number is None:
+            return 0
+        else:
             return int(number)
 
     @type.setter

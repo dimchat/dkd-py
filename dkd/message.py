@@ -69,17 +69,25 @@ class Message(dict):
         }
     """
 
+    # def __new__(cls, msg: dict):
+    #     """
+    #     Create message
+    #
+    #     :param msg: message info
+    #     :return: Message object
+    #     """
+    #     if msg is None:
+    #         return None
+    #     elif isinstance(msg, Message):
+    #         # return Message object directly
+    #         return msg
+    #     # new Message(dict)
+    #     return super().__new__(cls, msg)
+
     def __init__(self, msg: dict):
         super().__init__(msg)
-        # build envelope
-        sender = msg['sender']
-        receiver = msg['receiver']
-        time = msg.get('time')
-        if time is None:
-            time = 0
-        else:
-            time = int(time)
-        self.__envelope: Envelope = Envelope.new(sender=sender, receiver=receiver, time=time)
+        # let envelope share the same dictionary with message
+        self.__envelope = Envelope(self)
 
     @property
     def envelope(self) -> Envelope:
