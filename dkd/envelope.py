@@ -81,6 +81,42 @@ class Envelope(dict):
     def time(self) -> int:
         return self.__time
 
+    """
+        Group ID
+        ~~~~~~~~
+        when a group message was split/trimmed to a single message
+        the 'receiver' will be changed to a member ID, and
+        the group ID will be saved as 'group'.
+    """
+    @property
+    def group(self) -> str:
+        return self.get('group')
+
+    @group.setter
+    def group(self, value: str):
+        if value is None:
+            self.pop('group', None)
+        else:
+            self['group'] = value
+
+    """
+        Message Type
+        ~~~~~~~~~~~~
+        because the message content will be encrypted, so
+        the intermediate nodes(station) cannot recognize what kind of it.
+        we pick out the content type and set it in envelope
+        to let the station do its job.
+    """
+    @property
+    def type(self) -> int:
+        number = self.get('type')
+        if number is not None:
+            return int(number)
+
+    @type.setter
+    def type(self, value: int):
+        self['type'] = value
+
     @classmethod
     def new(cls, sender: str, receiver: str, time: int=0):
         if time == 0:

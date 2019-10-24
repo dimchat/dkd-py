@@ -70,14 +70,6 @@ class InstantMessage(Message):
     def delegate(self, delegate):
         self.__delegate = delegate
 
-    @property
-    def group(self) -> str:
-        return self.__content.group
-
-    @group.setter
-    def group(self, identifier: str):
-        self.__content.group = identifier
-
     @classmethod
     def new(cls, content: Content, envelope: Envelope=None,
             sender: str=None, receiver: str=None, time: int=0):
@@ -149,11 +141,7 @@ class InstantMessage(Message):
             if len(keys) > 0:
                 msg['keys'] = keys
             # group ID
-            gid = self.group
-            assert gid is not None, 'group message content error: %s' % self
-            # NOTICE: this help the receiver knows the group ID when the group message separated to multi-messages
-            #         if don't want the others know you are the group members, remove it.
-            msg['group'] = gid
+            assert self.content.group is not None, 'group message content error: %s' % self
 
         # 4. pack message
         return SecureMessage(msg)

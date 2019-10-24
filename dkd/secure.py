@@ -96,17 +96,6 @@ class SecureMessage(Message):
     def delegate(self, delegate):
         self.__delegate = delegate
 
-    @property
-    def group(self) -> str:
-        return self.get('group')
-
-    @group.setter
-    def group(self, identifier: str):
-        if identifier is None:
-            self.pop('group', None)
-        else:
-            self['group'] = identifier
-
     """
         Decrypt the Secure Message to Instant Message
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -129,7 +118,7 @@ class SecureMessage(Message):
         """
         sender = self.envelope.sender
         receiver = self.envelope.receiver
-        group = self.group
+        group = self.envelope.group
 
         # 1. decrypt 'message.key' to symmetric key
         # 1.1. decode encrypted key data
@@ -253,7 +242,6 @@ class SecureMessage(Message):
         :return:       A SecureMessage object drop all irrelevant keys to the member
         """
         msg = self.copy()
-
         # trim keys
         keys = msg.get('keys')
         if keys is not None:
@@ -262,14 +250,16 @@ class SecureMessage(Message):
             if key is not None:
                 msg['key'] = key
             msg.pop('keys')
-            # check 'group'
-            group = self.group
-            if group is None:
-                # if 'group' not exists, the 'receiver' must be a group ID here, and
-                # it will not be equal to the member of course,
-                # so move 'receiver' to 'group'
-                msg['group'] = self.envelope.receiver
-            msg['receiver'] = member
+        # check 'group'
+        group = self.envelope.group
+        if group is None:
+            # if 'group' not exists, the 'receiver' must be a group ID here, and
+            # it will not be equal to the member of course,
+            # so move 'receiver' to 'group'
+            msg['group'] = self.envelope.receiver
+        # replace receiver
+        msg['receiver'] = member
+        # repack
         if 'signature' in msg:
             return dkd.ReliableMessage(msg)
         else:

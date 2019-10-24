@@ -84,18 +84,3 @@ class Message(dict):
     @property
     def envelope(self) -> Envelope:
         return self.__envelope
-
-    """
-        Group ID
-        ~~~~~~~~
-        when a group message was split/trimmed to a single message
-        the 'receiver' will be changed to a member ID, and
-        the group ID will be saved as 'group'.
-    """
-    @property
-    def group(self) -> str:
-        yield None
-
-    @group.setter
-    def group(self, identifier: str):
-        pass
