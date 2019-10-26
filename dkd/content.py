@@ -29,6 +29,7 @@
 # ==============================================================================
 
 import random
+from typing import Union
 
 
 def random_positive_integer():
@@ -82,16 +83,9 @@ class Content(dict):
     def __init__(self, content: dict):
         super().__init__(content)
         # message type: text, image, ...
-        self.__type: int = int(content['type'])
+        self.__type = int(content['type'])
         # serial number: random number to identify message content
-        sn = content.get('sn')
-        if sn is None:
-            # generate sn
-            sn = random_positive_integer()
-            self['sn'] = sn
-        else:
-            sn = int(sn)
-        self.__sn: int = sn
+        self.__sn = int(content['sn'])
 
     # message content type: text, image, ...
     @property
@@ -115,6 +109,27 @@ class Content(dict):
             self.pop('group', None)
         else:
             self['group'] = value
+
+    #
+    #   Factory
+    #
+    @classmethod
+    def new(cls, content: Union[int, dict]):
+        if isinstance(content, int):
+            # create with content type
+            dictionary = {
+                'type': content,
+                'sn': random_positive_integer(),
+            }
+        elif isinstance(content, dict):
+            assert 'type' in content, 'content type error: %s' % content
+            dictionary = content
+            if 'sn' not in dictionary:
+                dictionary['sn'] = random_positive_integer()
+        else:
+            raise TypeError('message content error: %s' % content)
+        # new Content(dict)
+        return cls(dictionary)
 
 
 """

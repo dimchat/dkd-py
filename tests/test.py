@@ -13,7 +13,7 @@ import unittest
 from mkm import SymmetricKey
 
 from dkd import Message, InstantMessage, SecureMessage, ReliableMessage, Envelope, ContentType
-from tests.command import CommandContent
+from tests.command import Command
 from tests.data import reliable_message
 from tests.immortals import moki_id, hulk_id
 from tests.text import TextContent
@@ -67,7 +67,7 @@ class MessageTestCase(unittest.TestCase):
         self.assertEqual(content.type, ContentType.Text)
         MessageTestCase.content = content
 
-        command = CommandContent.new('handshake')
+        command = Command.new('handshake')
         print('command content: ', command)
         self.assertEqual(command.type, ContentType.Command)
         MessageTestCase.command = command

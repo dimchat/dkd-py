@@ -93,7 +93,8 @@ class ForwardContent(Content):
             'type': ContentType.Forward,
             'forward': message,
         }
-        return ForwardContent(content)
+        # new
+        return Content.new(content)
 
 
 message_content_classes[ContentType.Forward] = ForwardContent

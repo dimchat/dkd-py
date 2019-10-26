@@ -40,7 +40,7 @@ class TextContent(Content):
             'type': ContentType.Text,
             'text': text,
         }
-        return TextContent(content)
+        return Content.new(content)
 
 
 message_content_classes[ContentType.Text] = TextContent
