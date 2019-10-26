@@ -67,16 +67,16 @@ class Content(dict):
         """
         if content is None:
             return None
-        elif isinstance(content, Content):
-            # return Content object directly
-            return content
         elif cls is Content:
+            if isinstance(content, Content):
+                # return Content object directly
+                return content
             # get subclass by message content type
             clazz = message_content_classes.get(int(content['type']))
             if clazz is not None:
                 assert issubclass(clazz, Content), '%s must be sub-class of Content' % clazz
                 return clazz(content)
-        # new Content(dict)
+        # subclass or default Content(dict)
         return super().__new__(cls, content)
 
     def __init__(self, content: dict):

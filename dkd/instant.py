@@ -51,6 +51,22 @@ class InstantMessage(Message):
         }
     """
 
+    def __new__(cls, msg: dict):
+        """
+        Create instant message
+
+        :param msg: message info
+        :return: InstantMessage object
+        """
+        if msg is None:
+            return None
+        elif cls is InstantMessage:
+            if isinstance(msg, InstantMessage):
+                # return InstantMessage object directly
+                return msg
+        # new InstantMessage(dict)
+        return super().__new__(cls, msg)
+
     def __init__(self, msg: dict):
         super().__init__(msg)
         # message content

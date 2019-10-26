@@ -50,6 +50,8 @@
 
 from .envelope import Envelope
 
+import dkd  # dkd.InstantMessage, dkd.ReliableMessage
+
 
 class Message(dict):
     """This class is used to create a message
@@ -69,20 +71,31 @@ class Message(dict):
         }
     """
 
-    # def __new__(cls, msg: dict):
-    #     """
-    #     Create message
-    #
-    #     :param msg: message info
-    #     :return: Message object
-    #     """
-    #     if msg is None:
-    #         return None
-    #     elif isinstance(msg, Message):
-    #         # return Message object directly
-    #         return msg
-    #     # new Message(dict)
-    #     return super().__new__(cls, msg)
+    # noinspection PyTypeChecker
+    def __new__(cls, msg: dict):
+        """
+        Create message
+
+        :param msg: message info
+        :return: Message object
+        """
+        if msg is None:
+            return None
+        elif cls is Message:
+            if 'content' in msg:
+                # this should be an instant message
+                return dkd.InstantMessage(msg)
+            elif 'signature' in msg:
+                # this should be a reliable message
+                return dkd.ReliableMessage(msg)
+            elif 'data' in msg:
+                # this should be a secure message
+                return dkd.SecureMessage(msg)
+            elif isinstance(msg, Message):
+                # return Message object directly
+                return msg
+        # subclass
+        return super().__new__(cls, msg)
 
     def __init__(self, msg: dict):
         super().__init__(msg)

@@ -54,6 +54,22 @@ class ReliableMessage(SecureMessage):
         }
     """
 
+    def __new__(cls, msg: dict):
+        """
+        Create reliable secure message
+
+        :param msg: message info
+        :return: ReliableMessage object
+        """
+        if msg is None:
+            return None
+        elif cls is ReliableMessage:
+            if isinstance(msg, ReliableMessage):
+                # return ReliableMessage object directly
+                return msg
+        # new ReliableMessage(dict)
+        return super().__new__(cls, msg)
+
     def __init__(self, msg: dict):
         super().__init__(msg)
         # lazy

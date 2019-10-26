@@ -33,12 +33,12 @@ import time as time_lib
 
 class Dictionary:
     """
-        A container share the same inner dictionary
+        A container sharing the same inner dictionary
     """
 
     def __init__(self, dictionary: dict):
         super().__init__()
-        self.__dictionary: dict = dictionary
+        self.__dictionary = dictionary
 
     @property
     def dictionary(self) -> dict:
@@ -72,6 +72,22 @@ class Envelope(Dictionary):
             time     : 123
         }
     """
+
+    def __new__(cls, env: dict):
+        """
+        Create message envelope
+
+        :param env: envelope info
+        :return: Envelope object
+        """
+        if env is None:
+            return None
+        elif cls is Envelope:
+            if isinstance(env, Envelope):
+                # return Envelope object directly
+                return env
+        # new Envelope(dict)
+        return super().__new__(cls)
 
     def __init__(self, envelope: dict):
         super().__init__(envelope)

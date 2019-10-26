@@ -47,6 +47,22 @@ class ForwardContent(Content):
         }
     """
 
+    def __new__(cls, content: dict):
+        """
+        Create forward message content
+
+        :param content: content info
+        :return: ForwardContent object
+        """
+        if content is None:
+            return None
+        elif cls is ForwardContent:
+            if isinstance(content, ForwardContent):
+                # return ForwardContent object directly
+                return content
+        # new ForwardContent(dict)
+        return super().__new__(cls, content)
+
     def __init__(self, content: dict):
         super().__init__(content)
         # 'forward'
