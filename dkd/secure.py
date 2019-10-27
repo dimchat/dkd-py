@@ -65,14 +65,18 @@ class SecureMessage(Message):
         elif cls is SecureMessage:
             if 'signature' in msg:
                 # this should be a reliable message
-                return dkd.ReliableMessage(msg)
+                # noinspection PyTypeChecker
+                return dkd.ReliableMessage.__new__(dkd.ReliableMessage, msg)
             elif isinstance(msg, SecureMessage):
                 # return SecureMessage object directly
                 return msg
-        # new SecureMessage(dict)
+        # subclass or SecureMessage(dict)
         return super().__new__(cls, msg)
 
     def __init__(self, msg: dict):
+        if self is msg:
+            # no need to init again
+            return
         super().__init__(msg)
         # lazy
         self.__data: bytes = None

@@ -84,24 +84,30 @@ class Message(dict):
         elif cls is Message:
             if 'content' in msg:
                 # this should be an instant message
-                return dkd.InstantMessage(msg)
+                return dkd.InstantMessage.__new__(dkd.InstantMessage, msg)
             elif 'signature' in msg:
                 # this should be a reliable message
-                return dkd.ReliableMessage(msg)
+                return dkd.ReliableMessage.__new__(dkd.ReliableMessage, msg)
             elif 'data' in msg:
                 # this should be a secure message
-                return dkd.SecureMessage(msg)
+                return dkd.SecureMessage.__new__(dkd.SecureMessage, msg)
             elif isinstance(msg, Message):
                 # return Message object directly
                 return msg
-        # subclass
+        # subclass or default Message(dict)
         return super().__new__(cls, msg)
 
     def __init__(self, msg: dict):
+        if self is msg:
+            # no need to init again
+            return
         super().__init__(msg)
-        # let envelope share the same dictionary with message
-        self.__envelope = Envelope(self)
+        # message envelope
+        self.__envelope: Envelope = None
 
     @property
     def envelope(self) -> Envelope:
+        if self.__envelope is None:
+            # let envelope share the same dictionary with message
+            self.__envelope = Envelope(self)
         return self.__envelope

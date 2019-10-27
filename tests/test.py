@@ -12,8 +12,9 @@ import unittest
 
 from mkm import SymmetricKey
 
-from dkd import Message, InstantMessage, SecureMessage, ReliableMessage, Envelope, ContentType
-from tests.command import Command
+from dkd import ContentType, Content, Envelope
+from dkd import Message, InstantMessage, SecureMessage, ReliableMessage
+
 from tests.data import reliable_message
 from tests.immortals import moki_id, hulk_id
 from tests.text import TextContent
@@ -45,7 +46,6 @@ class MessageTestCase(unittest.TestCase):
 
     envelope = None
     content = None
-    command = None
 
     i_msg: InstantMessage = None
     s_msg: SecureMessage = None
@@ -57,20 +57,20 @@ class MessageTestCase(unittest.TestCase):
         receiver = hulk_id
         cls.envelope = Envelope.new(sender=sender, receiver=receiver)
         cls.content = None
-        cls.command = None
 
     def test_1_content(self):
         print('\n---------------- %s' % self)
 
-        content = TextContent.new('Hello')
+        content = TextContent.new(text='Hello')
+        content = TextContent(content)
+        content = Content(content)
         print('text content: ', content)
+
+        content = {'type': ContentType.Text, 'text': 'Hi'}
+        content = Content(content)
+
         self.assertEqual(content.type, ContentType.Text)
         MessageTestCase.content = content
-
-        command = Command.new('handshake')
-        print('command content: ', command)
-        self.assertEqual(command.type, ContentType.Command)
-        MessageTestCase.command = command
 
     def test_2_instant(self):
         print('\n---------------- %s' % self)
@@ -87,7 +87,8 @@ class MessageTestCase(unittest.TestCase):
     def test_3_send(self):
         print('\n---------------- %s' % self)
 
-        pwd = SymmetricKey({'algorithm': 'AES'})
+        key = {'algorithm': 'AES', 'data': None}
+        pwd = SymmetricKey(key)
         print('password: %s' % pwd)
 
         i_msg = MessageTestCase.i_msg

@@ -64,37 +64,50 @@ class ForwardContent(Content):
         return super().__new__(cls, content)
 
     def __init__(self, content: dict):
+        if self is content:
+            # no need to init again
+            return
         super().__init__(content)
-        # 'forward'
-        forward = content.get('forward')
-        self.__forward = ReliableMessage(forward)
+        # lazy
+        self.__forward: ReliableMessage = None
 
     #
     #   forward (top-secret message)
     #
     @property
     def forward(self) -> ReliableMessage:
+        if self.__forward is None:
+            self.__forward = ReliableMessage(self.get('forward'))
         return self.__forward
 
     @forward.setter
     def forward(self, value: dict):
-        self.__forward = value
         if value is None:
             self.pop('forward', None)
         else:
             self['forward'] = value
+        self.__forward = value
 
     #
     #   Factory
     #
     @classmethod
-    def new(cls, message: ReliableMessage):
-        content = {
-            'type': ContentType.Forward,
-            'forward': message,
-        }
-        # new
-        return Content.new(content)
+    def new(cls, content: dict=None, message: ReliableMessage=None):
+        """
+        Create forward message content with 'forward' (top-secret) message
+
+        :param content: content info
+        :param message: top-secret message
+        :return: ForwardMessage object
+        """
+        if content is None:
+            # create empty content
+            content = {}
+        # set 'forward' message
+        if message is not None:
+            content['forward'] = message
+        # new ForwardContent(dict)
+        return super().new(content=content, content_type=ContentType.Forward)
 
 
 message_content_classes[ContentType.Forward] = ForwardContent

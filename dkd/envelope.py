@@ -90,28 +90,37 @@ class Envelope(Dictionary):
         return super().__new__(cls)
 
     def __init__(self, envelope: dict):
+        if self is envelope:
+            # no need to init again
+            return
         super().__init__(envelope)
         # sender ID string
-        self.__sender: str = envelope['sender']
+        self.__sender: str = None
         # receiver ID string
-        self.__receiver: str = envelope['receiver']
+        self.__receiver: str = None
         # timestamp
-        time = envelope.get('time')
-        if time is None:
-            self.__time = 0
-        else:
-            self.__time = int(time)
+        self.__time: int = None
 
     @property
     def sender(self) -> str:
+        if self.__sender is None:
+            self.__sender = self['sender']
         return self.__sender
 
     @property
     def receiver(self) -> str:
+        if self.__receiver is None:
+            self.__receiver = self['receiver']
         return self.__receiver
 
     @property
     def time(self) -> int:
+        if self.__time is None:
+            time = self.get('time')
+            if time is None:
+                self.__time = 0
+            else:
+                self.__time = int(time)
         return self.__time
 
     """
@@ -161,4 +170,4 @@ class Envelope(Dictionary):
             'receiver': receiver,
             'time': time
         }
-        return Envelope(env)
+        return cls(env)

@@ -68,14 +68,19 @@ class InstantMessage(Message):
         return super().__new__(cls, msg)
 
     def __init__(self, msg: dict):
+        if self is msg:
+            # no need to init again
+            return
         super().__init__(msg)
         # message content
-        self.__content: Content = Content(msg['content'])
+        self.__content: Content = None
         # delegate
         self.__delegate = None  # IInstantMessageDelegate
 
     @property
     def content(self) -> Content:
+        if self.__content is None:
+            self.__content = Content(self['content'])
         return self.__content
 
     @property
@@ -85,26 +90,6 @@ class InstantMessage(Message):
     @delegate.setter
     def delegate(self, delegate):
         self.__delegate = delegate
-
-    @classmethod
-    def new(cls, content: Content, envelope: Envelope=None,
-            sender: str=None, receiver: str=None, time: int=0):
-        if envelope:
-            # share the same dictionary with envelope object
-            msg = envelope.dictionary
-            msg['content'] = content
-        else:
-            assert sender is not None and receiver is not None, 'sender/receiver error'
-            if time == 0:
-                time = int(time_lib.time())
-            # build instant message info
-            msg = {
-                'sender': sender,
-                'receiver': receiver,
-                'time': time,
-                'content': content,
-            }
-        return InstantMessage(msg)
 
     """
         Encrypt the Instant Message to Secure Message
@@ -163,3 +148,26 @@ class InstantMessage(Message):
 
         # 4. pack message
         return SecureMessage(msg)
+
+    #
+    #  Factory
+    #
+    @classmethod
+    def new(cls, content: Content, envelope: Envelope=None,
+            sender: str=None, receiver: str=None, time: int=0):
+        if envelope:
+            # share the same dictionary with envelope object
+            msg = envelope.dictionary
+            msg['content'] = content
+        else:
+            assert sender is not None and receiver is not None, 'sender/receiver error'
+            if time == 0:
+                time = int(time_lib.time())
+            # build instant message info
+            msg = {
+                'sender': sender,
+                'receiver': receiver,
+                'time': time,
+                'content': content,
+            }
+        return cls(msg)

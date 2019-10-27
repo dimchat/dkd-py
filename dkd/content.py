@@ -29,7 +29,8 @@
 # ==============================================================================
 
 import random
-from typing import Union
+
+from .types import ContentType
 
 
 def random_positive_integer():
@@ -76,25 +77,32 @@ class Content(dict):
             clazz = message_content_classes.get(int(content['type']))
             if clazz is not None:
                 assert issubclass(clazz, Content), '%s must be sub-class of Content' % clazz
-                return clazz(content)
+                return clazz.__new__(clazz, content)
         # subclass or default Content(dict)
         return super().__new__(cls, content)
 
     def __init__(self, content: dict):
+        if self is content:
+            # no need to init again
+            return
         super().__init__(content)
         # message type: text, image, ...
-        self.__type = int(content['type'])
+        self.__type: ContentType = None
         # serial number: random number to identify message content
-        self.__sn = int(content['sn'])
+        self.__sn: int = None
 
     # message content type: text, image, ...
     @property
-    def type(self) -> int:
+    def type(self) -> ContentType:
+        if self.__type is None:
+            self.__type = ContentType(int(self['type']))
         return self.__type
 
     # random number to identify message content
     @property
     def serial_number(self) -> int:
+        if self.__sn is None:
+            self.__sn = int(self['sn'])
         return self.__sn
 
     # Group ID/string for group message
@@ -114,22 +122,28 @@ class Content(dict):
     #   Factory
     #
     @classmethod
-    def new(cls, content: Union[int, dict]):
-        if isinstance(content, int):
-            # create with content type
-            dictionary = {
-                'type': content,
+    def new(cls, content: dict=None, content_type: ContentType=0):
+        """
+        Create message content with 'type' & 'sn' (serial number)
+
+        :param content:      content info, if empty then create a new one with 'type'
+        :param content_type: content type, if not empty then set into content
+        :return: Content object
+        """
+        if content is None:
+            # create content with 'sn'
+            content = {
                 'sn': random_positive_integer(),
             }
-        elif isinstance(content, dict):
-            assert 'type' in content, 'content type error: %s' % content
-            dictionary = content
-            if 'sn' not in dictionary:
-                dictionary['sn'] = random_positive_integer()
         else:
-            raise TypeError('message content error: %s' % content)
+            # generate 'sn'
+            if 'sn' not in content:
+                content['sn'] = random_positive_integer()
+        # set content type
+        if content_type > 0:
+            content['type'] = content_type
         # new Content(dict)
-        return cls(dictionary)
+        return cls(content)
 
 
 """

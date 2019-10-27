@@ -71,6 +71,9 @@ class ReliableMessage(SecureMessage):
         return super().__new__(cls, msg)
 
     def __init__(self, msg: dict):
+        if self is msg:
+            # no need to init again
+            return
         super().__init__(msg)
         # lazy
         self.__signature = None
