@@ -133,7 +133,7 @@ class SecureMessage(Message):
             +----------+
     """
 
-    def decrypt(self):  # -> InstantMessage
+    def decrypt(self):  # -> Optional[InstantMessage]
         """
         Decrypt message data to plaintext content
 

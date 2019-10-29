@@ -28,6 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+from typing import Optional
+
 from .secure import SecureMessage
 
 
@@ -117,7 +119,7 @@ class ReliableMessage(SecureMessage):
             +----------+
     """
 
-    def verify(self) -> SecureMessage:
+    def verify(self) -> Optional[SecureMessage]:
         """
         Verify the message.data with signature
 

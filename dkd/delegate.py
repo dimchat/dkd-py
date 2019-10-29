@@ -29,6 +29,7 @@
 # ==============================================================================
 
 from abc import abstractmethod, ABCMeta
+from typing import Optional
 
 from .content import Content
 from .instant import InstantMessage
@@ -40,7 +41,7 @@ from .reliable import ReliableMessage
 #  Message Delegates
 #
 
-class IInstantMessageDelegate(metaclass=ABCMeta):
+class InstantMessageDelegate(metaclass=ABCMeta):
 
     @abstractmethod
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
@@ -89,10 +90,10 @@ class IInstantMessageDelegate(metaclass=ABCMeta):
         pass
 
 
-class ISecureMessageDelegate(metaclass=ABCMeta):
+class SecureMessageDelegate(metaclass=ABCMeta):
 
     @abstractmethod
-    def decode_key(self, key: str, msg: SecureMessage) -> bytes:
+    def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
         """
         Decode 'message.key' to encrypted symmetric key data
 
@@ -103,7 +104,7 @@ class ISecureMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> dict:
+    def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
         """
         Decrypt 'message.key' with receiver's private key
 
@@ -116,7 +117,7 @@ class ISecureMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def decode_data(self, data: str, msg: SecureMessage) -> bytes:
+    def decode_data(self, data: str, msg: SecureMessage) -> Optional[bytes]:
         """
         Decode 'message.data' to encrypted content data
 
@@ -127,7 +128,7 @@ class ISecureMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Content:
+    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Optional[Content]:
         """
         Decrypt 'message.data' with symmetric key
 
@@ -162,10 +163,10 @@ class ISecureMessageDelegate(metaclass=ABCMeta):
         pass
 
 
-class IReliableMessageDelegate(ISecureMessageDelegate):
+class ReliableMessageDelegate(SecureMessageDelegate):
 
     @abstractmethod
-    def decode_signature(self, signature: str, msg: ReliableMessage) -> bytes:
+    def decode_signature(self, signature: str, msg: ReliableMessage) -> Optional[bytes]:
         """
         Decode 'message.signature' from String(Base64)
 
