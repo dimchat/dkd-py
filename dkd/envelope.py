@@ -29,6 +29,7 @@
 # ==============================================================================
 
 import time as time_lib
+from typing import Optional
 
 
 class Dictionary:
@@ -131,7 +132,7 @@ class Envelope(Dictionary):
         the group ID will be saved as 'group'.
     """
     @property
-    def group(self) -> str:
+    def group(self) -> Optional[str]:
         return self.get('group')
 
     @group.setter
@@ -152,9 +153,7 @@ class Envelope(Dictionary):
     @property
     def type(self) -> int:
         number = self.get('type')
-        if number is None:
-            return 0
-        else:
+        if number is not None:
             return int(number)
 
     @type.setter

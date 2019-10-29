@@ -29,6 +29,7 @@
 # ==============================================================================
 
 import random
+from typing import Optional
 
 from .types import ContentType
 
@@ -108,7 +109,7 @@ class Content(dict):
     # Group ID/string for group message
     #    if field 'group' exists, it means this is a group message
     @property
-    def group(self) -> str:
+    def group(self) -> Optional[str]:
         return self.get('group')
 
     @group.setter

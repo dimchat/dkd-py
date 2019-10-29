@@ -28,6 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+from typing import Optional
+
 from .message import Message
 
 import dkd  # dkd.InstantMessage, dkd.ReliableMessage
@@ -93,7 +95,7 @@ class SecureMessage(Message):
         return self.__data
 
     @property
-    def encrypted_key(self) -> bytes:
+    def encrypted_key(self) -> Optional[bytes]:
         if self.__key is None:
             base64 = self.get('key')
             if base64 is None:
@@ -106,7 +108,7 @@ class SecureMessage(Message):
         return self.__key
 
     @property
-    def encrypted_keys(self) -> dict:
+    def encrypted_keys(self) -> Optional[dict]:
         if self.__keys is None:
             self.__keys = self.get('keys')
         return self.__keys

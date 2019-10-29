@@ -94,7 +94,7 @@ class ReliableMessage(SecureMessage):
         Extends for the first message package of 'Handshake' protocol.
     """
     @property
-    def meta(self) -> dict:
+    def meta(self) -> Optional[dict]:
         return self.get('meta')
 
     @meta.setter
