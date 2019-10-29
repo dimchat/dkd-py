@@ -74,7 +74,7 @@ class Content(dict):
                 # return Content object directly
                 return content
             # get subclass by message content type
-            clazz = message_content_classes.get(int(content['type']))
+            clazz = cls.content_class(content_type=ContentType(int(content['type'])))
             if clazz is not None:
                 assert issubclass(clazz, Content), '%s must be sub-class of Content' % clazz
                 return clazz.__new__(clazz, content)
@@ -145,10 +145,33 @@ class Content(dict):
         # new Content(dict)
         return cls(content)
 
+    #
+    #   Runtime
+    #
+    __content_classes = {}  # class map
 
-"""
-    Message Content Classes Map
-"""
+    @classmethod
+    def register(cls, content_type: ContentType, content_class=None) -> bool:
+        """
+        Register content class with type
 
-message_content_classes = {
-}
+        :param content_type:  message content type
+        :param content_class: if content class is None, then remove with type
+        :return: False on error
+        """
+        if content_class is None:
+            cls.__content_classes.pop(content_type, None)
+        else:
+            cls.__content_classes[content_type] = content_class
+        # TODO: check issubclass(content_class, Content)
+        return True
+
+    @classmethod
+    def content_class(cls, content_type: ContentType):
+        """
+        Get content class with type
+
+        :param content_type: message content type
+        :return: content class
+        """
+        return cls.__content_classes.get(content_type)

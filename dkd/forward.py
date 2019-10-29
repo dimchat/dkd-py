@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .content import Content, message_content_classes
+from .content import Content
 from .reliable import ReliableMessage
 
 from .types import ContentType
@@ -110,4 +110,5 @@ class ForwardContent(Content):
         return super().new(content=content, content_type=ContentType.Forward)
 
 
-message_content_classes[ContentType.Forward] = ForwardContent
+# register content class with type
+Content.register(content_type=ContentType.Forward, content_class=ForwardContent)

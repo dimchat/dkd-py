@@ -44,16 +44,15 @@ name = "DaoKeDao"
 __author__ = 'Albert Moky'
 
 __all__ = [
-    # DaoKeDao
-    'Envelope',
-    'Content',
-    'Message',
+
+    # message
+    'Envelope', 'Content', 'Message',
 
     # content types
     'ContentType', 'ForwardContent',
 
-    # message transform
+    # transform
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    # message delegate
+    # delegate
     'IInstantMessageDelegate', 'ISecureMessageDelegate', 'IReliableMessageDelegate',
 ]
