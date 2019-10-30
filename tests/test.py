@@ -11,16 +11,19 @@
 import unittest
 
 from mkm import SymmetricKey
+from mkm.immortals import Immortals
 
 from dkd import ContentType, Content, Envelope
 from dkd import Message, InstantMessage, SecureMessage, ReliableMessage
 
 from tests.data import reliable_message
-from tests.immortals import moki_id, hulk_id
 from tests.text import TextContent
 from tests.transceiver import transceiver
 
-__author__ = 'Albert Moky'
+
+immortals = Immortals()
+moki_id = immortals.identifier(string='moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk')
+hulk_id = immortals.identifier(string='hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj')
 
 
 def print_msg(msg: Message):

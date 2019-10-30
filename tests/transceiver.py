@@ -4,8 +4,13 @@ import base64
 import json
 
 from dkd import *
+from mkm import *
+from mkm.immortals import Immortals
 
-from .facebook import *
+
+immortals = Immortals()
+moki_id = immortals.identifier(string='moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk')
+hulk_id = immortals.identifier(string='hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj')
 
 
 def base64_encode(data: bytes) -> str:
@@ -21,7 +26,7 @@ def base64_decode(string: str) -> bytes:
 class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
-        contact = facebook.user(identifier=ID(receiver))
+        contact = immortals.user(identifier=ID(receiver))
         if contact is not None:
             string = json.dumps(key)
             return contact.encrypt(string.encode('utf-8'))
@@ -39,8 +44,9 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return base64_encode(data)
 
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: InstantMessage) -> dict:
-        user = facebook.user(identifier=ID(receiver))
+        user = immortals.user(identifier=ID(receiver))
         if user is not None:
+            assert isinstance(user, LocalUser)
             data = user.decrypt(key)
             if data is not None:
                 return json.loads(data)
@@ -60,15 +66,16 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return base64_decode(data)
 
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
-        user = facebook.user(identifier=ID(sender))
+        user = immortals.user(identifier=ID(sender))
         if user is not None:
+            assert isinstance(user, LocalUser)
             return user.sign(data)
 
     def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
         return base64_encode(signature)
 
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
-        contact = facebook.user(identifier=ID(sender))
+        contact = immortals.user(identifier=ID(sender))
         if contact is not None:
             return contact.verify(data=data, signature=signature)
 

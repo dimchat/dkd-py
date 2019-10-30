@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from dkd import ReliableMessage
-from .immortals import moki_meta
+from mkm.immortals import Immortals
+
+
+immortals = Immortals()
+moki_id = immortals.identifier(string='moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk')
+moki_meta = immortals.meta(identifier=moki_id)
+
 
 reliable_message = {
     'sender': "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk",
