@@ -104,7 +104,7 @@ class Message(dict, metaclass=ABCMeta):
             # no need to init again
             return
         super().__init__(msg)
-        # message envelope
+        # lazy
         self.__envelope: Envelope = None
 
     @property

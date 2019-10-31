@@ -72,24 +72,16 @@ class InstantMessage(Message):
             # no need to init again
             return
         super().__init__(msg)
-        # message content
+        # lazy
         self.__content: Content = None
         # delegate
-        self.__delegate = None  # IInstantMessageDelegate
+        self.delegate = None  # InstantMessageDelegate
 
     @property
     def content(self) -> Content:
         if self.__content is None:
             self.__content = Content(self['content'])
         return self.__content
-
-    @property
-    def delegate(self):  # IInstantMessageDelegate
-        return self.__delegate
-
-    @delegate.setter
-    def delegate(self, delegate):
-        self.__delegate = delegate
 
     """
         Encrypt the Instant Message to Secure Message

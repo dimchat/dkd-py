@@ -87,9 +87,8 @@ class Content(dict):
             # no need to init again
             return
         super().__init__(content)
-        # message type: text, image, ...
+        # lazy
         self.__type: ContentType = None
-        # serial number: random number to identify message content
         self.__sn: int = None
 
     # message content type: text, image, ...
@@ -99,7 +98,7 @@ class Content(dict):
             self.__type = ContentType(int(self['type']))
         return self.__type
 
-    # random number to identify message content
+    # serial number: random number to identify message content
     @property
     def serial_number(self) -> int:
         if self.__sn is None:
@@ -162,9 +161,10 @@ class Content(dict):
         """
         if content_class is None:
             cls.__content_classes.pop(content_type, None)
-        else:
+        elif issubclass(content_class, Content):
             cls.__content_classes[content_type] = content_class
-        # TODO: check issubclass(content_class, Content)
+        else:
+            raise TypeError('%s must be subclass of Content' % content_class)
         return True
 
     @classmethod

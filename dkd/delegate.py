@@ -67,9 +67,9 @@ class InstantMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> bytes:
+    def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> Optional[bytes]:
         """
-        Encrypt 'message.key' with receiver's public key
+        Encrypt 'message.key' with receiver's public key (broadcast message has no key)
 
         :param key:      symmetric key to be encrypted
         :param receiver: receiver ID/string
@@ -79,9 +79,9 @@ class InstantMessageDelegate(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def encode_key(self, key: bytes, msg: InstantMessage) -> str:
+    def encode_key(self, key: bytes, msg: InstantMessage) -> Optional[str]:
         """
-        Encode 'message.key' to String(Base64)
+        Encode 'message.key' to String(Base64) (broadcast message has no key)
 
         :param key: encrypted key data
         :param msg: instant message

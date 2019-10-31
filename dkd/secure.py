@@ -84,7 +84,8 @@ class SecureMessage(Message):
         self.__data: bytes = None
         self.__key: bytes = None
         self.__keys: dict = None
-        self.__delegate = None  # ISecureMessageDelegate
+        # delegate
+        self.delegate = None  # SecureMessageDelegate
 
     @property
     def data(self) -> bytes:
@@ -112,14 +113,6 @@ class SecureMessage(Message):
         if self.__keys is None:
             self.__keys = self.get('keys')
         return self.__keys
-
-    @property
-    def delegate(self):  # ISecureMessageDelegate
-        return self.__delegate
-
-    @delegate.setter
-    def delegate(self, delegate):
-        self.__delegate = delegate
 
     """
         Decrypt the Secure Message to Instant Message
@@ -201,8 +194,7 @@ class SecureMessage(Message):
         :return: ReliableMessage object
         """
         # 1. sign message.data
-        env = self.envelope
-        signature = self.delegate.sign_data(data=self.data, sender=env.sender, msg=self)
+        signature = self.delegate.sign_data(data=self.data, sender=self.envelope.sender, msg=self)
         assert signature is not None, 'failed to sign message: %s' % self
 
         # 2. pack message
