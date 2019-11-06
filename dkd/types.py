@@ -74,22 +74,31 @@ class ContentType(IntEnum):
 
             0001 0000 - this message's main part is in somewhere else.
             0010 0000 - this message contains the 3rd party content.
-            0100 0000 - (RESERVED)
+            0100 0000 - this message contains digital assets
             1000 0000 - this is a message send by the system, not human.
 
             (All above are just some advices to help choosing numbers :P)
     """
-    Text = 0x01     # 0000 0001
+    Unknown = 0x00
 
-    File = 0x10     # 0001 0000
-    Image = 0x12    # 0001 0010
-    Audio = 0x14    # 0001 0100
-    Video = 0x16    # 0001 0110
+    Text = 0x01        # 0000 0001
 
-    Page = 0x20     # 0010 0000
+    File = 0x10        # 0001 0000
+    Image = 0x12       # 0001 0010
+    Audio = 0x14       # 0001 0100
+    Video = 0x16       # 0001 0110
 
-    Command = 0x88  # 1000 1000
-    History = 0x89  # 1000 1001 (Entity history command)
+    Page = 0x20        # 0010 0000
+
+    # quote a message before and reply it with text
+    Quote = 0x37       # 0011 0111
+
+    Money = 0x40       # 0100 0000
+    # LuckyMoney = 0x41  # 0100 0001
+    # Transfer = 0x42    # 0100 0010
+
+    Command = 0x88     # 1000 1000
+    History = 0x89     # 1000 1001 (Entity history command)
 
     # top-secret message forward by proxy (Service Provider)
     Forward = 0xFF  # 1111 1111
