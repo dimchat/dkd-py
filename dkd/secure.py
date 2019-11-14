@@ -28,6 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
+import weakref
 from typing import Optional
 
 from .message import Message
@@ -80,12 +81,23 @@ class SecureMessage(Message):
             # no need to init again
             return
         super().__init__(msg)
+        self.__delegate: weakref.ReferenceType = None
         # lazy
         self.__data: bytes = None
         self.__key: bytes = None
         self.__keys: dict = None
-        # delegate
-        self.delegate = None  # SecureMessageDelegate
+
+    @property
+    def delegate(self):  # Optional[SecureMessageDelegate]
+        if self.__delegate is not None:
+            return self.__delegate()
+
+    @delegate.setter
+    def delegate(self, value):
+        if value is None:
+            self.__delegate = None
+        else:
+            self.__delegate = weakref.ref(value)
 
     @property
     def data(self) -> bytes:

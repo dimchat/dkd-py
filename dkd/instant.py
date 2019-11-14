@@ -29,6 +29,7 @@
 # ==============================================================================
 
 import time as time_lib
+import weakref
 
 from .envelope import Envelope
 from .content import Content
@@ -72,10 +73,21 @@ class InstantMessage(Message):
             # no need to init again
             return
         super().__init__(msg)
+        self.__delegate: weakref.ReferenceType = None
         # lazy
         self.__content: Content = None
-        # delegate
-        self.delegate = None  # InstantMessageDelegate
+
+    @property
+    def delegate(self):  # Optional[InstantMessageDelegate]
+        if self.__delegate is not None:
+            return self.__delegate()
+
+    @delegate.setter
+    def delegate(self, value):
+        if value is None:
+            self.__delegate = None
+        else:
+            self.__delegate = weakref.ref(value)
 
     @property
     def content(self) -> Content:
