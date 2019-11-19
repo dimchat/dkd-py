@@ -53,7 +53,7 @@ class InstantMessageDelegate(metaclass=ABCMeta):
         :param msg:     instant message
         :return:        encrypted message content data
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def encode_data(self, data: bytes, msg: InstantMessage) -> str:
@@ -64,7 +64,7 @@ class InstantMessageDelegate(metaclass=ABCMeta):
         :param msg:  instant message
         :return:     string
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def encrypt_key(self, key: dict, receiver: str, msg: InstantMessage) -> Optional[bytes]:
@@ -76,7 +76,7 @@ class InstantMessageDelegate(metaclass=ABCMeta):
         :param msg:      instant message
         :return:         encrypted key data
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def encode_key(self, key: bytes, msg: InstantMessage) -> Optional[str]:
@@ -87,7 +87,7 @@ class InstantMessageDelegate(metaclass=ABCMeta):
         :param msg: instant message
         :return:    string
         """
-        pass
+        raise NotImplemented
 
 
 class SecureMessageDelegate(metaclass=ABCMeta):
@@ -101,7 +101,7 @@ class SecureMessageDelegate(metaclass=ABCMeta):
         :param msg: secure message
         :return:    encrypted symmetric key data
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
@@ -114,7 +114,7 @@ class SecureMessageDelegate(metaclass=ABCMeta):
         :param msg:      secure message
         :return:         symmetric key
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def decode_data(self, data: str, msg: SecureMessage) -> Optional[bytes]:
@@ -125,7 +125,7 @@ class SecureMessageDelegate(metaclass=ABCMeta):
         :param msg:  secure message
         :return:     encrypted content data
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Optional[Content]:
@@ -137,7 +137,7 @@ class SecureMessageDelegate(metaclass=ABCMeta):
         :param msg:  secure message
         :return:     message content
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
@@ -149,7 +149,7 @@ class SecureMessageDelegate(metaclass=ABCMeta):
         :param msg:    secure message
         :return:       signature of encrypted message data
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
@@ -160,7 +160,7 @@ class SecureMessageDelegate(metaclass=ABCMeta):
         :param msg:       secure message
         :return:          string
         """
-        pass
+        raise NotImplemented
 
 
 class ReliableMessageDelegate(SecureMessageDelegate):
@@ -174,7 +174,7 @@ class ReliableMessageDelegate(SecureMessageDelegate):
         :param msg:       reliable message
         :return:          signature data
         """
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
@@ -187,4 +187,4 @@ class ReliableMessageDelegate(SecureMessageDelegate):
         :param msg:       reliable message
         :return:          True on signature matched
         """
-        pass
+        raise NotImplemented
