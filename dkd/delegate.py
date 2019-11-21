@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import abstractmethod, ABCMeta
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from .content import Content
@@ -41,7 +41,7 @@ from .reliable import ReliableMessage
 #  Message Delegates
 #
 
-class InstantMessageDelegate(metaclass=ABCMeta):
+class InstantMessageDelegate(ABC):
 
     @abstractmethod
     def encrypt_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
@@ -90,7 +90,7 @@ class InstantMessageDelegate(metaclass=ABCMeta):
         raise NotImplemented
 
 
-class SecureMessageDelegate(metaclass=ABCMeta):
+class SecureMessageDelegate(ABC):
 
     @abstractmethod
     def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:

@@ -29,10 +29,10 @@
 # ==============================================================================
 
 import time as time_lib
-from typing import Optional
+from typing import Optional, MutableMapping, Iterator
 
 
-class Dictionary:
+class Dictionary(MutableMapping):
     """
         A container sharing the same inner dictionary
     """
@@ -45,13 +45,20 @@ class Dictionary:
     def dictionary(self) -> dict:
         return self.__dictionary
 
+    def __iter__(self) -> Iterator:
+        return iter(self.__dictionary)
+
+    def __len__(self) -> int:
+        return len(self.__dictionary)
+
     def __setitem__(self, key, value):
-        # self.__dictionary.__setitem__(key, value)
         self.__dictionary[key] = value
 
     def __getitem__(self, key):
-        # return self.__dictionary.__getitem__(key)
         return self.__dictionary[key]
+
+    def __delitem__(self, key) -> None:
+        del self.__dictionary[key]
 
     def get(self, key):
         return self.__dictionary.get(key)

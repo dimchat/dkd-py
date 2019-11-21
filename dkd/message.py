@@ -48,14 +48,14 @@
             signature = sender.private_key.sign(data)
 """
 
-from abc import ABCMeta
+from abc import ABC
 
 from .envelope import Envelope
 
 import dkd  # dkd.InstantMessage, dkd.ReliableMessage
 
 
-class Message(dict, metaclass=ABCMeta):
+class Message(dict, ABC):
     """This class is used to create a message
     with the envelope fields, such as 'sender', 'receiver', and 'time'
 

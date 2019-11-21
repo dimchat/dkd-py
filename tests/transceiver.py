@@ -45,11 +45,10 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     def decrypt_key(self, key: bytes, sender: str, receiver: str, msg: InstantMessage) -> dict:
         user = immortals.user(identifier=ID(receiver))
-        if user is not None:
-            assert isinstance(user, LocalUser)
-            data = user.decrypt(key)
-            if data is not None:
-                return json.loads(data)
+        assert user is not None, 'failed to get user: %s' % receiver
+        data = user.decrypt(key)
+        if data is not None:
+            return json.loads(data)
 
     def decode_key(self, key: str, msg: SecureMessage) -> bytes:
         return base64_decode(key)
@@ -67,9 +66,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
 
     def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
         user = immortals.user(identifier=ID(sender))
-        if user is not None:
-            assert isinstance(user, LocalUser)
-            return user.sign(data)
+        assert user is not None, 'failed to get user: %s' % sender
+        return user.sign(data)
 
     def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
         return base64_encode(signature)
