@@ -75,9 +75,9 @@ class Content(dict):
                 # return Content object directly
                 return content
             # get subclass by message content type
-            clazz = cls.content_class(content_type=ContentType(int(content['type'])))
+            c_type = ContentType(int(content['type']))
+            clazz = cls.content_class(content_type=c_type)
             if clazz is not None:
-                assert issubclass(clazz, Content), '%s must be sub-class of Content' % clazz
                 return clazz.__new__(clazz, content)
         # subclass or default Content(dict)
         return super().__new__(cls, content)

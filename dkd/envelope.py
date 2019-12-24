@@ -102,11 +102,9 @@ class Envelope(Dictionary):
             # no need to init again
             return
         super().__init__(envelope)
-        # sender ID string
+        # lazy
         self.__sender: str = None
-        # receiver ID string
         self.__receiver: str = None
-        # timestamp
         self.__time: int = None
 
     @property

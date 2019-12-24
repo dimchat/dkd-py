@@ -48,14 +48,12 @@
             signature = sender.private_key.sign(data)
 """
 
-from abc import ABC
-
 from .envelope import Envelope
 
 import dkd  # dkd.InstantMessage, dkd.ReliableMessage
 
 
-class Message(dict, ABC):
+class Message(dict):
     """This class is used to create a message
     with the envelope fields, such as 'sender', 'receiver', and 'time'
 
@@ -87,13 +85,13 @@ class Message(dict, ABC):
             if 'content' in msg:
                 # this should be an instant message
                 return dkd.InstantMessage.__new__(dkd.InstantMessage, msg)
-            elif 'signature' in msg:
+            if 'signature' in msg:
                 # this should be a reliable message
                 return dkd.ReliableMessage.__new__(dkd.ReliableMessage, msg)
-            elif 'data' in msg:
+            if 'data' in msg:
                 # this should be a secure message
                 return dkd.SecureMessage.__new__(dkd.SecureMessage, msg)
-            elif isinstance(msg, Message):
+            if isinstance(msg, Message):
                 # return Message object directly
                 return msg
         # subclass or default Message(dict)

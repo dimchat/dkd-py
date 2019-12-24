@@ -117,18 +117,20 @@ class InstantMessage(Message):
         :param members:  If this is a group message, get all members here
         :return: SecureMessage object
         """
+        # 0. check attachment for File/Image/Audio/Video message content
+        #    (do it in 'core' module)
         msg = self.copy()
 
-        # 1. encrypt 'content' to 'data'
-        #    (check attachment for File/Image/Audio/Video message content first)
+        # 1. encrypt 'message.content' to 'message.data'
+        # 1.1. encrypt message content with password
         data = self.delegate.encrypt_content(content=self.content, key=password, msg=self)
         assert data is not None, 'failed to encrypt content with key: %s' % password
-
-        # 2. replace 'content' with encrypted 'data'
+        # 1.2. encode encrypted data
+        # 1.3. replace 'content' with encrypted 'data'
         msg['data'] = self.delegate.encode_data(data=data, msg=self)
         msg.pop('content')  # remove 'content'
 
-        # 3. encrypt password to 'key'/'keys'
+        # 2. encrypt symmetric key(password) to 'key'/'keys'
         if members is None:
             # personal message
             key = self.delegate.encrypt_key(key=password, receiver=self.envelope.receiver, msg=self)
@@ -140,17 +142,26 @@ class InstantMessage(Message):
             # group message
             keys = {}
             for member in members:
+                # 2.1. serialize & encrypt symmetric key
                 key = self.delegate.encrypt_key(key=password, receiver=member, msg=self)
                 if key is not None:
+                    # 2.2. encode encrypted key data
                     base64 = self.delegate.encode_key(key=key, msg=self)
                     assert base64 is not None, 'failed to encode key data: %s' % key
+                    # 2.3. insert to 'message.keys' with member ID
                     keys[member] = base64
             if len(keys) > 0:
                 msg['keys'] = keys
             # group ID
-            assert self.content.group is not None, 'group message content error: %s' % self
+            group = self.content.group
+            assert group is not None, 'group message content error: %s' % self
+            # NOTICE: this help the receiver knows the group ID
+            #         when the group message separated to multi-messages,
+            #         if don't want the others know you are the group members,
+            #         remove it.
+            msg['group'] = group
 
-        # 4. pack message
+        # 3. pack message
         return SecureMessage(msg)
 
     #

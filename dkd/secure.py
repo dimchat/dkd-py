@@ -271,7 +271,7 @@ class SecureMessage(Message):
         :return:       A SecureMessage object drop all irrelevant keys to the member
         """
         msg = self.copy()
-        # trim keys
+        # check keys
         keys = msg.get('keys')
         if keys is not None:
             # move key data from 'keys' to 'key'
