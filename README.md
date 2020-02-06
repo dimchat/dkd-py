@@ -48,28 +48,32 @@ Copyright &copy; 2018-2019 Albert Moky
 
 ### <span id="content-type">Message Content Type</span>
 
-```javascript
-enum {
-    DIMContentType_Unknown = 0x00,
-    
-    DIMContentType_Text    = 0x01,
-    
-    DIMContentType_File    = 0x10,
-    DIMContentType_Image   = 0x12, // photo
-    DIMContentType_Audio   = 0x14, // voice
-    DIMContentType_Video   = 0x16,
-    
-    DIMContentType_Page    = 0x20, // web page
-    
-    // quote an exists message and reply it with text
-    DIMContentType_Quote   = 0x37,
-    
-    // system command
-    DIMContentType_Command = 0x88,
-    
-    // top-secret message forward by proxy (Service Provider)
-    DIMContentType_Forward = 0xFF
-};
+```python
+class ContentType(IntEnum):
+
+    Unknown = 0x00
+
+    Text = 0x01        # 0000 0001
+
+    File = 0x10        # 0001 0000
+    Image = 0x12       # 0001 0010
+    Audio = 0x14       # 0001 0100
+    Video = 0x16       # 0001 0110
+
+    Page = 0x20        # 0010 0000
+
+    # quote a message before and reply it with text
+    Quote = 0x37       # 0011 0111
+
+    Money = 0x40       # 0100 0000
+    # LuckyMoney = 0x41  # 0100 0001
+    # Transfer = 0x42    # 0100 0010
+
+    Command = 0x88     # 1000 1000
+    History = 0x89     # 1000 1001 (Entity history command)
+
+    # top-secret message forward by proxy (Service Provider)
+    Forward = 0xFF  # 1111 1111
 ```
 
 ## <span id="message">2. Message</span>
