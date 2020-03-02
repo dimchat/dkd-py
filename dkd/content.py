@@ -29,7 +29,7 @@
 # ==============================================================================
 
 import random
-from typing import Optional
+from typing import Optional, Union
 
 from .types import ContentType
 
@@ -75,8 +75,8 @@ class Content(dict):
                 # return Content object directly
                 return content
             # get subclass by message content type
-            c_type = ContentType(int(content['type']))
-            clazz = cls.content_class(content_type=c_type)
+            c_type = int(content['type'])
+            clazz = cls.__content_classes.get(c_type)
             if clazz is not None:
                 return clazz.__new__(clazz, content)
         # subclass or default Content(dict)
@@ -88,14 +88,14 @@ class Content(dict):
             return
         super().__init__(content)
         # lazy
-        self.__type: ContentType = None
+        self.__type: int = None
         self.__sn: int = None
 
     # message content type: text, image, ...
     @property
-    def type(self) -> ContentType:
+    def type(self) -> int:
         if self.__type is None:
-            self.__type = ContentType(int(self['type']))
+            self.__type = int(self['type'])
         return self.__type
 
     # serial number: random number to identify message content
@@ -122,7 +122,7 @@ class Content(dict):
     #   Factory
     #
     @classmethod
-    def new(cls, content: dict=None, content_type: ContentType=0):
+    def new(cls, content: dict=None, content_type: Union[ContentType, int, None]=0):
         """
         Create message content with 'type' & 'sn' (serial number)
 
@@ -140,7 +140,9 @@ class Content(dict):
             if 'sn' not in content:
                 content['sn'] = random_positive_integer()
         # set content type
-        if content_type > 0:
+        if isinstance(content_type, ContentType):
+            content['type'] = content_type.value
+        elif content_type > 0:
             content['type'] = content_type
         # new Content(dict)
         return cls(content)
@@ -151,7 +153,7 @@ class Content(dict):
     __content_classes = {}  # class map
 
     @classmethod
-    def register(cls, content_type: ContentType, content_class=None) -> bool:
+    def register(cls, content_type: Union[ContentType, int], content_class=None) -> bool:
         """
         Register content class with type
 
@@ -159,6 +161,8 @@ class Content(dict):
         :param content_class: if content class is None, then remove with type
         :return: False on error
         """
+        if isinstance(content_type, ContentType):
+            content_type = content_type.value
         if content_class is None:
             cls.__content_classes.pop(content_type, None)
         elif issubclass(content_class, Content):
@@ -166,13 +170,3 @@ class Content(dict):
         else:
             raise TypeError('%s must be subclass of Content' % content_class)
         return True
-
-    @classmethod
-    def content_class(cls, content_type: ContentType):
-        """
-        Get content class with type
-
-        :param content_type: message content type
-        :return: content class
-        """
-        return cls.__content_classes.get(content_type)

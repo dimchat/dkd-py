@@ -68,6 +68,7 @@ class MessageTestCase(unittest.TestCase):
         content = TextContent(content)
         content = Content(content)
         print('text content: ', content)
+        self.assertTrue(content.serial_number > 0)
 
         content = {'type': ContentType.Text, 'text': 'Hi'}
         content = Content(content)

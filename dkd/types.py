@@ -93,9 +93,11 @@ class ContentType(IntEnum):
     # quote a message before and reply it with text
     Quote = 0x37       # 0011 0111
 
-    Money = 0x40       # 0100 0000
-    # LuckyMoney = 0x41  # 0100 0001
-    # Transfer = 0x42    # 0100 0010
+    Money = 0x40         # 0100 0000
+    Transfer = 0x41      # 0100 0001
+    LuckyMoney = 0x42    # 0100 0010
+    ClaimPayment = 0x48  # 0100 1000 (Claim for payment)
+    SplitBill = 0x49     # 0100 1001 (Split the bill)
 
     Command = 0x88     # 1000 1000
     History = 0x89     # 1000 1001 (Entity history command)
