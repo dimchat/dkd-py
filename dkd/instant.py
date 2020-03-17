@@ -155,11 +155,6 @@ class InstantMessage(Message):
             # group ID
             group = self.content.group
             assert group is not None, 'group message content error: %s' % self
-            # NOTICE: this help the receiver knows the group ID
-            #         when the group message separated to multi-messages,
-            #         if don't want the others know you are the group members,
-            #         remove it.
-            msg['group'] = group
 
         # 3. pack message
         return SecureMessage(msg)
