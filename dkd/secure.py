@@ -117,7 +117,7 @@ class SecureMessage(Message):
                 if keys is not None:
                     base64 = keys.get(self.envelope.receiver)
             if base64 is not None:
-                self.__key = self.delegate.decode_key(key=base64, msg=self)
+                self.__key = self.delegate.decode_key(string=base64, msg=self)
         return self.__key
 
     @property
@@ -151,22 +151,25 @@ class SecureMessage(Message):
         group = self.envelope.group
 
         # 1. decrypt 'message.key' to symmetric key
+        delegate = self.delegate
         # 1.1. decode encrypted key data
         key = self.encrypted_key
         # 1.2. decrypt key data
         #      if key is empty, means it should be reused, get it from key cache
         if group is None:
             # personal message
-            password = self.delegate.decrypt_key(key=key, sender=sender, receiver=receiver, msg=self)
+            key = delegate.decrypt_key(data=key, sender=sender, receiver=receiver, msg=self)
+            password = delegate.deserialize_key(data=key, sender=sender, receiver=receiver, msg=self)
         else:
             # group message
-            password = self.delegate.decrypt_key(key=key, sender=sender, receiver=group, msg=self)
+            key = delegate.decrypt_key(data=key, sender=sender, receiver=group, msg=self)
+            password = delegate.deserialize_key(data=key, sender=sender, receiver=group, msg=self)
 
         # 2. decrypt 'message.data' to 'message.content'
-        # 2.1. decode encrypted content data
-        data = self.data
-        # 2.2. decrypt & deserialize content data
-        content = self.delegate.decrypt_content(data=data, key=password, msg=self)
+        # 2.1. decrypt content data
+        data = delegate.decrypt_content(data=self.data, key=password, msg=self)
+        # 2.2. deserialize content
+        content = delegate.deserialize_content(data=data, key=password, msg=self)
         # 2.3. check attachment for File/Image/Audio/Video message content
         #      if file data not download yet,
         #          decrypt file data with password;
