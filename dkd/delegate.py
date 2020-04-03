@@ -83,7 +83,7 @@ class InstantMessageDelegate(ABC):
 
     """ Encrypt Key """
 
-    def serialize_key(self, key: dict, msg: InstantMessage) -> bytes:
+    def serialize_key(self, key: dict, msg: InstantMessage) -> Optional[bytes]:
         """
         4. Serialize message key to data (JsON / ProtoBuf / ...)
 

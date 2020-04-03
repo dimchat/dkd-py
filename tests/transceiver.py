@@ -42,7 +42,8 @@ class Transceiver(InstantMessageDelegate, ReliableMessageDelegate):
         return base64_encode(data)
 
     # 4.
-    def serialize_key(self, key: dict, msg: InstantMessage) -> bytes:
+    def serialize_key(self, key: dict, msg: InstantMessage) -> Optional[bytes]:
+        # TODO: broadcast message has no key
         string = json.dumps(key)
         return string.encode('utf-8')
 
