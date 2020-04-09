@@ -30,11 +30,13 @@
 
 import time as time_lib
 import weakref
+from typing import Optional
 
 from .envelope import Envelope
 from .content import Content
 from .message import Message
-from .secure import SecureMessage
+
+import dkd  # dkd.SecureMessage
 
 
 class InstantMessage(Message):
@@ -109,7 +111,7 @@ class InstantMessage(Message):
                               +----------+
     """
 
-    def encrypt(self, password: dict, members: list=None) -> SecureMessage:
+    def encrypt(self, password: dict, members: list=None) -> Optional[dkd.SecureMessage]:
         """
         Encrypt message content with password(symmetric key)
 
@@ -129,24 +131,30 @@ class InstantMessage(Message):
             msg = self.__encrypt_keys(password=password, members=members)
 
         # 3. pack message
-        return SecureMessage(msg)
+        return dkd.SecureMessage(msg)
 
-    def __encrypt_key(self, password: dict) -> dict:
+    def __encrypt_key(self, password: dict) -> Optional[dict]:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
         delegate = self.delegate
         # 2.1. serialize symmetric key
         key = delegate.serialize_key(key=password, msg=self)
-        if key is not None:
-            # 2.2. encrypt symmetric key data
-            data = delegate.encrypt_key(data=key, receiver=self.envelope.receiver, msg=self)
-            if data is not None:
-                # 2.3. encode encrypted key data
-                base64 = delegate.encode_key(data=data, msg=self)
-                assert base64 is not None, 'failed to encode key data: %s' % data
-                # 2.4. insert as 'key'
-                msg['key'] = base64
+        if key is None:
+            # A) broadcast message has no key
+            # B) reused key
+            return msg
+        # 2.2. encrypt symmetric key data
+        data = delegate.encrypt_key(data=key, receiver=self.envelope.receiver, msg=self)
+        if data is None:
+            # public key for encryption not found
+            # TODO: suspend this message for waiting receiver's meta
+            return None
+        # 2.3. encode encrypted key data
+        base64 = delegate.encode_key(data=data, msg=self)
+        assert base64 is not None, 'failed to encode key data: %s' % data
+        # 2.4. insert as 'key'
+        msg['key'] = base64
         return msg
 
     def __encrypt_keys(self, password: dict, members: list) -> dict:
@@ -156,32 +164,41 @@ class InstantMessage(Message):
         delegate = self.delegate
         # 2.1. serialize symmetric key
         key = delegate.serialize_key(key=password, msg=self)
-        if key is not None:
-            # encrypt key data to 'message.keys'
-            keys = {}
-            for member in members:
-                # 2.2. encrypt symmetric key data
-                data = delegate.encrypt_key(data=key, receiver=member, msg=self)
-                if data is not None:
-                    # 2.3. encode encrypted key data
-                    base64 = delegate.encode_key(data=data, msg=self)
-                    assert base64 is not None, 'failed to encode key data: %s' % data
-                    # 2.4. insert to 'message.keys' with member ID
-                    keys[member] = base64
-            if len(keys) > 0:
-                msg['keys'] = keys
+        if key is None:
+            # A) broadcast message has no key
+            # B) reused key
+            return msg
+        # encrypt key data to 'message.keys'
+        keys = {}
+        count = 0
+        for member in members:
+            # 2.2. encrypt symmetric key data
+            data = delegate.encrypt_key(data=key, receiver=member, msg=self)
+            if data is None:
+                # public key for encryption not found
+                # TODO: suspend this message for waiting receiver's meta
+                continue
+            # 2.3. encode encrypted key data
+            base64 = delegate.encode_key(data=data, msg=self)
+            assert base64 is not None, 'failed to encode key data: %s' % data
+            # 2.4. insert to 'message.keys' with member ID
+            keys[member] = base64
+            count += 1
+        if count > 0:
+            msg['keys'] = keys
         return msg
 
     def __prepare_data(self, password: dict) -> dict:
         delegate = self.delegate
         # 1. serialize message content
         data = delegate.serialize_content(content=self.content, key=password, msg=self)
+        assert data is not None, 'failed to serialize content: %s' % self.content
         # 2. encrypt content data with password
         data = delegate.encrypt_content(data=data, key=password, msg=self)
         assert data is not None, 'failed to encrypt content with key: %s' % password
         # 3. encode encrypted data
         base64 = delegate.encode_data(data=data, msg=self)
-        assert base64 is not None, 'failed to encode data: %s' % data
+        assert base64 is not None, 'failed to encode content data: %s' % data
         # 4. replace 'content' with encrypted 'data'
         msg = self.copy()
         msg.pop('content')  # remove 'content'

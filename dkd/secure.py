@@ -88,7 +88,7 @@ class SecureMessage(Message):
         self.__keys: dict = None
 
     @property
-    def delegate(self):  # Optional[SecureMessageDelegate]
+    def delegate(self):  # -> Optional[SecureMessageDelegate]
         if self.__delegate is not None:
             return self.__delegate()
 
@@ -140,44 +140,55 @@ class SecureMessage(Message):
             +----------+
     """
 
-    def decrypt(self):  # -> Optional[InstantMessage]
+    def decrypt(self) -> Optional[dkd.InstantMessage]:
         """
         Decrypt message data to plaintext content
 
         :return: InstantMessage object
         """
         sender = self.envelope.sender
-        receiver = self.envelope.receiver
         group = self.envelope.group
+        if group is None:
+            # personal message
+            # not split group message
+            receiver = self.envelope.receiver
+        else:
+            # group message
+            receiver = group
 
         # 1. decrypt 'message.key' to symmetric key
         delegate = self.delegate
         # 1.1. decode encrypted key data
         key = self.encrypted_key
         # 1.2. decrypt key data
-        #      if key is empty, means it should be reused, get it from key cache
-        if group is None:
-            # personal message
+        if key is not None:
             key = delegate.decrypt_key(data=key, sender=sender, receiver=receiver, msg=self)
-            password = delegate.deserialize_key(data=key, sender=sender, receiver=receiver, msg=self)
-        else:
-            # group message
-            key = delegate.decrypt_key(data=key, sender=sender, receiver=group, msg=self)
-            password = delegate.deserialize_key(data=key, sender=sender, receiver=group, msg=self)
+        # 1.3. deserialize key
+        #      if key is empty, means it should be reused, get it from key cache
+        password = delegate.deserialize_key(data=key, sender=sender, receiver=receiver, msg=self)
+        if password is None:
+            # raise ValueError('failed to get msg key: %s -> %s' % (sender, receiver))
+            return None
 
         # 2. decrypt 'message.data' to 'message.content'
-        # 2.1. decrypt content data
-        data = delegate.decrypt_content(data=self.data, key=password, msg=self)
-        # 2.2. deserialize content
+        # 2.1. decode encrypted content data
+        data = self.data
+        if data is None:
+            raise ValueError('failed to decode content data: %s' % self)
+        # 2.2. decrypt content data
+        data = delegate.decrypt_content(data=data, key=password, msg=self)
+        if data is None:
+            raise ValueError('failed to decrypt data with key: %s, %s' % (password, data))
+        # 2.3. deserialize content
         content = delegate.deserialize_content(data=data, key=password, msg=self)
-        # 2.3. check attachment for File/Image/Audio/Video message content
+        if content is None:
+            raise ValueError('failed to deserialize content: %s' % data)
+        # 2.4. check attachment for File/Image/Audio/Video message content
         #      if file data not download yet,
         #          decrypt file data with password;
         #      else,
         #          save password to 'message.content.password'.
         #      (do it in 'core' module)
-        if content is None:
-            raise ValueError('failed to decrypt message content from secure message: %s' % self)
 
         # 3. pack message
         msg = self.copy()
@@ -202,19 +213,23 @@ class SecureMessage(Message):
                               +----------+
     """
 
-    def sign(self):  # -> ReliableMessage
+    def sign(self) -> dkd.ReliableMessage:
         """
         Sign the message.data with sender's private key
 
         :return: ReliableMessage object
         """
+        sender = self.envelope.sender
+        data = self.data
         # 1. sign message.data
-        signature = self.delegate.sign_data(data=self.data, sender=self.envelope.sender, msg=self)
+        signature = self.delegate.sign_data(data=data, sender=sender, msg=self)
         assert signature is not None, 'failed to sign message: %s' % self
-
-        # 2. pack message
+        # 2. encode signature
+        base64 = self.delegate.encode_signature(signature=signature, msg=self)
+        assert base64 is not None, 'failed to encode signature: %s' % signature
+        # 3. pack message
         msg = self.copy()
-        msg['signature'] = self.delegate.encode_signature(signature=signature, msg=self)
+        msg['signature'] = base64
         return dkd.ReliableMessage(msg)
 
     """

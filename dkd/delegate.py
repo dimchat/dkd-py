@@ -106,7 +106,7 @@ class InstantMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def encode_key(self, data: bytes, msg: InstantMessage) -> Optional[str]:
+    def encode_key(self, data: bytes, msg: InstantMessage) -> str:
         """
         6. Encode 'message.key' to String (Base64)
 
@@ -147,7 +147,7 @@ class SecureMessageDelegate(ABC):
         """
         raise NotImplemented
 
-    def deserialize_key(self, data: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
+    def deserialize_key(self, data: Optional[bytes], sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
         """
         3. Deserialize message key from data (JsON / ProtoBuf / ...)
 
