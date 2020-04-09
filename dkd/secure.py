@@ -163,12 +163,13 @@ class SecureMessage(Message):
         # 1.2. decrypt key data
         if key is not None:
             key = delegate.decrypt_key(data=key, sender=sender, receiver=receiver, msg=self)
+            if key is None:
+                raise AssertionError('failed to decrypt key in msg: %s' % self)
         # 1.3. deserialize key
         #      if key is empty, means it should be reused, get it from key cache
         password = delegate.deserialize_key(data=key, sender=sender, receiver=receiver, msg=self)
         if password is None:
-            # raise ValueError('failed to get msg key: %s -> %s' % (sender, receiver))
-            return None
+            raise ValueError('failed to get msg key: %s -> %s, %s' % (sender, receiver, key))
 
         # 2. decrypt 'message.data' to 'message.content'
         # 2.1. decode encrypted content data
@@ -213,7 +214,7 @@ class SecureMessage(Message):
                               +----------+
     """
 
-    def sign(self) -> dkd.ReliableMessage:
+    def sign(self):  # -> dkd.ReliableMessage:
         """
         Sign the message.data with sender's private key
 

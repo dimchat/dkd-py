@@ -111,7 +111,7 @@ class InstantMessage(Message):
                               +----------+
     """
 
-    def encrypt(self, password: dict, members: list=None) -> Optional[dkd.SecureMessage]:
+    def encrypt(self, password: dict, members: list=None):  # -> Optional[dkd.SecureMessage]:
         """
         Encrypt message content with password(symmetric key)
 

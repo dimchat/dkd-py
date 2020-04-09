@@ -28,10 +28,9 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .envelope import Envelope
-from .content import Content
 from .types import ContentType
-from .forward import ForwardContent
+from .content import Content
+from .envelope import Envelope
 
 from .message import Message
 from .instant import InstantMessage
@@ -39,21 +38,27 @@ from .secure import SecureMessage
 from .reliable import ReliableMessage
 from .delegate import InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate
 
+from .forward import ForwardContent
+
 name = "DaoKeDao"
 
 __author__ = 'Albert Moky'
 
 __all__ = [
 
-    # message
-    'Envelope', 'Content', 'Message',
-
     # content types
-    'ContentType', 'ForwardContent',
+    'ContentType',
 
-    # transform
+    'Content',
+    'Envelope',
+
+    # message
+    'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
     # delegate
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
+
+    # extended contents
+    'ForwardContent',
 ]
