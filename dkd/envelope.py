@@ -95,7 +95,7 @@ class Envelope(Dictionary):
                 # return Envelope object directly
                 return env
         # new Envelope(dict)
-        return super().__new__(cls)
+        return super().__new__(cls, env)
 
     def __init__(self, envelope: dict):
         if self is envelope:

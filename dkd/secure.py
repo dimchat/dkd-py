@@ -173,17 +173,17 @@ class SecureMessage(Message):
 
         # 2. decrypt 'message.data' to 'message.content'
         # 2.1. decode encrypted content data
-        data = self.data
-        if data is None:
+        ciphertext = self.data
+        if ciphertext is None:
             raise ValueError('failed to decode content data: %s' % self)
         # 2.2. decrypt content data
-        data = delegate.decrypt_content(data=data, key=password, msg=self)
-        if data is None:
-            raise ValueError('failed to decrypt data with key: %s, %s' % (password, data))
+        plaintext = delegate.decrypt_content(data=ciphertext, key=password, msg=self)
+        if plaintext is None:
+            raise ValueError('failed to decrypt data with key: %s, %s' % (password, ciphertext))
         # 2.3. deserialize content
-        content = delegate.deserialize_content(data=data, key=password, msg=self)
+        content = delegate.deserialize_content(data=plaintext, key=password, msg=self)
         if content is None:
-            raise ValueError('failed to deserialize content: %s' % data)
+            raise ValueError('failed to deserialize content: %s' % plaintext)
         # 2.4. check attachment for File/Image/Audio/Video message content
         #      if file data not download yet,
         #          decrypt file data with password;
