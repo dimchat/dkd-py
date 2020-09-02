@@ -165,7 +165,8 @@ class Envelope(Dictionary):
             self.pop('group', None)
         else:
             self['group'] = value
-        self.__group = self.delegate.identifier(string=value)
+        # lazy load
+        self.__group = None
 
     """
         Message Type

@@ -157,7 +157,7 @@ class InstantMessage(Message):
             # B) reused key
             return msg
         # 2.2. encrypt symmetric key data
-        data = delegate.encrypt_key(data=key, receiver=self.envelope.receiver, msg=self)
+        data = delegate.encrypt_key(data=key, receiver=self.receiver, msg=self)
         if data is None:
             # public key for encryption not found
             # TODO: suspend this message for waiting receiver's meta

@@ -116,12 +116,12 @@ class InstantMessageDelegate(MessageDelegate):
         raise NotImplemented
 
     @abstractmethod
-    def encrypt_key(self, data: bytes, receiver: str, msg: InstantMessage) -> Optional[bytes]:
+    def encrypt_key(self, data: bytes, receiver, msg: InstantMessage) -> Optional[bytes]:
         """
         5. Encrypt key data to 'message.key' with receiver's public key
 
         :param data:     serialized data of symmetric key
-        :param receiver: receiver ID/string
+        :param receiver: receiver ID
         :param msg:      instant message
         :return:         encrypted key data
         """
@@ -157,25 +157,25 @@ class SecureMessageDelegate(MessageDelegate):
         raise NotImplemented
 
     @abstractmethod
-    def decrypt_key(self, data: bytes, sender: str, receiver: str, msg: SecureMessage) -> Optional[bytes]:
+    def decrypt_key(self, data: bytes, sender, receiver, msg: SecureMessage) -> Optional[bytes]:
         """
         2. Decrypt 'message.key' with receiver's private key
 
         :param data:     encrypted symmetric key data
-        :param sender:   sender/member ID string
-        :param receiver: receiver/group ID string
+        :param sender:   sender/member ID
+        :param receiver: receiver/group ID
         :param msg:      secure message
         :return:         serialized data of symmetric key
         """
         raise NotImplemented
 
-    def deserialize_key(self, data: Optional[bytes], sender: str, receiver: str, msg: SecureMessage):  # Optional[KEY]
+    def deserialize_key(self, data: Optional[bytes], sender, receiver, msg: SecureMessage):  # Optional[KEY]
         """
         3. Deserialize message key from data (JsON / ProtoBuf / ...)
 
         :param data:     serialized key data
-        :param sender:   sender/member ID string
-        :param receiver: receiver/group ID string
+        :param sender:   sender/member ID
+        :param receiver: receiver/group ID
         :param msg:      secure message
         :return:         symmetric key
         """
@@ -220,12 +220,12 @@ class SecureMessageDelegate(MessageDelegate):
     """ Signature """
 
     @abstractmethod
-    def sign_data(self, data: bytes, sender: str, msg: SecureMessage) -> bytes:
+    def sign_data(self, data: bytes, sender, msg: SecureMessage) -> bytes:
         """
         1. Sign 'message.data' with sender's private key
 
         :param data:      encrypted message data
-        :param sender:    sender ID string
+        :param sender:    sender ID
         :param msg:       secure message
         :return:          signature of encrypted message data
         """
@@ -257,13 +257,13 @@ class ReliableMessageDelegate(SecureMessageDelegate):
         raise NotImplemented
 
     @abstractmethod
-    def verify_data_signature(self, data: bytes, signature: bytes, sender: str, msg: ReliableMessage) -> bool:
+    def verify_data_signature(self, data: bytes, signature: bytes, sender, msg: ReliableMessage) -> bool:
         """
         2. Verify the message data and signature with sender's public key
 
         :param data:      message content(encrypted) data
         :param signature: signature of message content(encrypted) data
-        :param sender:    sender ID/string
+        :param sender:    sender ID
         :param msg:       reliable message
         :return:          True on signature matched
         """

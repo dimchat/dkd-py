@@ -141,7 +141,6 @@ class ReliableMessage(SecureMessage):
 
         :return: SecureMessage object if signature matched
         """
-        sender = self.envelope.sender
         data = self.data
         if data is None:
             raise ValueError('failed to decode content data: %s' % self)
@@ -149,7 +148,7 @@ class ReliableMessage(SecureMessage):
         if signature is None:
             raise ValueError('failed to decode message signature: %s' % self)
         # 1. verify data signature
-        if self.delegate.verify_data_signature(data=data, signature=signature, sender=sender, msg=self):
+        if self.delegate.verify_data_signature(data=data, signature=signature, sender=self.sender, msg=self):
             # 2. pack message
             msg = self.copy()
             msg.pop('signature')  # remove 'signature'

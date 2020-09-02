@@ -101,7 +101,7 @@ class SecureMessage(Message):
                 # check 'keys'
                 keys = self.encrypted_keys
                 if keys is not None:
-                    base64 = keys.get(self.envelope.receiver)
+                    base64 = keys.get(self.receiver)
             if base64 is not None:
                 self.__key = self.delegate.decode_key(key=base64, msg=self)
         return self.__key
@@ -132,12 +132,12 @@ class SecureMessage(Message):
 
         :return: InstantMessage object
         """
-        sender = self.envelope.sender
-        group = self.envelope.group
+        sender = self.sender
+        group = self.group
         if group is None:
             # personal message
             # not split group message
-            receiver = self.envelope.receiver
+            receiver = self.receiver
         else:
             # group message
             receiver = group
@@ -206,10 +206,9 @@ class SecureMessage(Message):
 
         :return: ReliableMessage object
         """
-        sender = self.envelope.sender
         data = self.data
         # 1. sign message.data
-        signature = self.delegate.sign_data(data=data, sender=sender, msg=self)
+        signature = self.delegate.sign_data(data=data, sender=self.sender, msg=self)
         assert signature is not None, 'failed to sign message: %s' % self
         # 2. encode signature
         base64 = self.delegate.encode_signature(signature=signature, msg=self)
@@ -248,7 +247,7 @@ class SecureMessage(Message):
         #    when the group message separated to multi-messages;
         #    if don't want the others know your membership,
         #    DON'T do this.
-        msg['group'] = self.envelope.receiver
+        msg['group'] = self.receiver
 
         messages = []
         for member in members:
@@ -285,12 +284,12 @@ class SecureMessage(Message):
                 msg['key'] = key
             msg.pop('keys')
         # check 'group'
-        group = self.envelope.group
+        group = self.group
         if group is None:
             # if 'group' not exists, the 'receiver' must be a group ID here, and
             # it will not be equal to the member of course,
             # so move 'receiver' to 'group'
-            msg['group'] = self.envelope.receiver
+            msg['group'] = self.receiver
         # replace receiver
         msg['receiver'] = member
         # repack
