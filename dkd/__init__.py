@@ -38,8 +38,6 @@ from .secure import SecureMessage
 from .reliable import ReliableMessage
 from .delegate import InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate
 
-from .forward import ForwardContent
-
 name = "DaoKeDao"
 
 __author__ = 'Albert Moky'
@@ -58,7 +56,4 @@ __all__ = [
 
     # delegate
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
-
-    # extended contents
-    'ForwardContent',
 ]

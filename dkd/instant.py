@@ -80,22 +80,34 @@ class InstantMessage(Message):
         self.__content: Content = None
 
     @property
-    def delegate(self):  # Optional[InstantMessageDelegate]
-        if self.__delegate is not None:
-            return self.__delegate()
-
-    @delegate.setter
-    def delegate(self, value):
-        if value is None:
-            self.__delegate = None
-        else:
-            self.__delegate = weakref.ref(value)
-
-    @property
     def content(self) -> Content:
         if self.__content is None:
             self.__content = Content(self['content'])
         return self.__content
+
+    @property
+    def delegate(self):  # Optional[InstantMessageDelegate]
+        return self.envelope.delegate
+
+    @delegate.setter
+    def delegate(self, value):
+        self.envelope.delegate = value
+        self.content.delegate = value
+
+    @property
+    def time(self) -> Optional[int]:
+        value = self.content.time
+        if value > 0:
+            return value
+        return self.envelope.time
+
+    @property
+    def group(self):  # ID
+        return self.content.group
+
+    @property
+    def type(self) -> Optional[int]:
+        return self.content.type
 
     """
         Encrypt the Instant Message to Secure Message
@@ -111,7 +123,7 @@ class InstantMessage(Message):
                               +----------+
     """
 
-    def encrypt(self, password: dict, members: list=None):  # -> Optional[dkd.SecureMessage]:
+    def encrypt(self, password, members: list=None):  # -> Optional[dkd.SecureMessage]:
         """
         Encrypt message content with password(symmetric key)
 
@@ -133,7 +145,7 @@ class InstantMessage(Message):
         # 3. pack message
         return dkd.SecureMessage(msg)
 
-    def __encrypt_key(self, password: dict) -> Optional[dict]:
+    def __encrypt_key(self, password) -> Optional[dict]:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
@@ -157,7 +169,7 @@ class InstantMessage(Message):
         msg['key'] = base64
         return msg
 
-    def __encrypt_keys(self, password: dict, members: list) -> dict:
+    def __encrypt_keys(self, password, members: list) -> dict:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
@@ -188,7 +200,7 @@ class InstantMessage(Message):
             msg['keys'] = keys
         return msg
 
-    def __prepare_data(self, password: dict) -> dict:
+    def __prepare_data(self, password) -> dict:
         delegate = self.delegate
         # 1. serialize message content
         data = delegate.serialize_content(content=self.content, key=password, msg=self)

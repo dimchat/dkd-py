@@ -29,7 +29,8 @@
 # ==============================================================================
 
 import time as time_lib
-from typing import Optional, MutableMapping, Iterator
+import weakref
+from typing import MutableMapping, Iterator
 
 
 class Dictionary(MutableMapping):
@@ -102,21 +103,37 @@ class Envelope(Dictionary):
             # no need to init again
             return
         super().__init__(envelope)
+        self.__delegate: weakref.ReferenceType = None
         # lazy
-        self.__sender: str = None
-        self.__receiver: str = None
+        self.__sender = None
+        self.__receiver = None
         self.__time: int = None
+        # extra info
+        self.__group = None
+        self.__type: int = None
 
     @property
-    def sender(self) -> str:
+    def delegate(self):  # Optional[MessageDelegate]
+        if self.__delegate is not None:
+            return self.__delegate()
+
+    @delegate.setter
+    def delegate(self, value):
+        if value is None:
+            self.__delegate = None
+        else:
+            self.__delegate = weakref.ref(value)
+
+    @property
+    def sender(self):  # ID
         if self.__sender is None:
-            self.__sender = self['sender']
+            self.__sender = self.delegate.identifier(string=self['sender'])
         return self.__sender
 
     @property
-    def receiver(self) -> str:
+    def receiver(self):  # ID
         if self.__receiver is None:
-            self.__receiver = self['receiver']
+            self.__receiver = self.delegate.identifier(string=self['receiver'])
         return self.__receiver
 
     @property
@@ -137,8 +154,10 @@ class Envelope(Dictionary):
         the group ID will be saved as 'group'.
     """
     @property
-    def group(self) -> Optional[str]:
-        return self.get('group')
+    def group(self):  # Optional[ID]
+        if self.__group is None:
+            self.__group = self.delegate.identifier(string=self.get('group'))
+        return self.__group
 
     @group.setter
     def group(self, value: str):
@@ -146,6 +165,7 @@ class Envelope(Dictionary):
             self.pop('group', None)
         else:
             self['group'] = value
+        self.__group = self.delegate.identifier(string=value)
 
     """
         Message Type
@@ -157,13 +177,16 @@ class Envelope(Dictionary):
     """
     @property
     def type(self) -> int:
-        number = self.get('type')
-        if number is not None:
-            return int(number)
+        if self.__type is None:
+            number = self.get('type')
+            if number is not None:
+                self.__type = int(number)
+        return self.__type
 
     @type.setter
     def type(self, value: int):
         self['type'] = value
+        self.__type = value
 
     @classmethod
     def new(cls, sender: str, receiver: str, time: int=0):

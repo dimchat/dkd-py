@@ -28,17 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-import random
-from typing import Optional, Union
-
-from .types import ContentType
-
-
-def random_positive_integer():
-    """
-    :return: random integer greater than 0
-    """
-    return random.randint(1, 2**32-1)
+import weakref
 
 
 class Content(dict):
@@ -60,36 +50,29 @@ class Content(dict):
         }
     """
 
-    # noinspection PyTypeChecker
-    def __new__(cls, content: dict):
-        """
-        Create message content
-
-        :param content: content info
-        :return: Content object
-        """
-        if content is None:
-            return None
-        elif cls is Content:
-            if isinstance(content, Content):
-                # return Content object directly
-                return content
-            # get subclass by message content type
-            c_type = int(content['type'])
-            clazz = cls.__content_classes.get(c_type)
-            if clazz is not None:
-                return clazz.__new__(clazz, content)
-        # subclass or default Content(dict)
-        return super().__new__(cls, content)
-
     def __init__(self, content: dict):
         if self is content:
             # no need to init again
             return
         super().__init__(content)
+        self.__delegate: weakref.ReferenceType = None
         # lazy
         self.__type: int = None
         self.__sn: int = None
+        self.__time: int = None
+        self.__group = None
+
+    @property
+    def delegate(self):  # Optional[MessageDelegate]
+        if self.__delegate is not None:
+            return self.__delegate()
+
+    @delegate.setter
+    def delegate(self, value):
+        if value is None:
+            self.__delegate = None
+        else:
+            self.__delegate = weakref.ref(value)
 
     # message content type: text, image, ...
     @property
@@ -105,11 +88,23 @@ class Content(dict):
             self.__sn = int(self['sn'])
         return self.__sn
 
+    @property
+    def time(self) -> int:
+        if self.__time is None:
+            time = self.get('time')
+            if time is None:
+                self.__time = 0
+            else:
+                self.__time = int(time)
+        return self.__time
+
     # Group ID/string for group message
     #    if field 'group' exists, it means this is a group message
     @property
-    def group(self) -> Optional[str]:
-        return self.get('group')
+    def group(self):  # Optional[ID]
+        if self.__group is None:
+            self.__group = self.delegate.identifier(string=self.get('group'))
+        return self.__group
 
     @group.setter
     def group(self, value: str):
@@ -117,56 +112,4 @@ class Content(dict):
             self.pop('group', None)
         else:
             self['group'] = value
-
-    #
-    #   Factory
-    #
-    @classmethod
-    def new(cls, content: dict=None, content_type: Union[ContentType, int, None]=0):
-        """
-        Create message content with 'type' & 'sn' (serial number)
-
-        :param content:      content info, if empty then create a new one with 'type'
-        :param content_type: content type, if not empty then set into content
-        :return: Content object
-        """
-        if content is None:
-            # create content with 'sn'
-            content = {
-                'sn': random_positive_integer(),
-            }
-        else:
-            # generate 'sn'
-            if 'sn' not in content:
-                content['sn'] = random_positive_integer()
-        # set content type
-        if isinstance(content_type, ContentType):
-            content['type'] = content_type.value
-        elif content_type > 0:
-            content['type'] = content_type
-        # new Content(dict)
-        return cls(content)
-
-    #
-    #   Runtime
-    #
-    __content_classes = {}  # class map
-
-    @classmethod
-    def register(cls, content_type: Union[ContentType, int], content_class=None) -> bool:
-        """
-        Register content class with type
-
-        :param content_type:  message content type
-        :param content_class: if content class is None, then remove with type
-        :return: False on error
-        """
-        if isinstance(content_type, ContentType):
-            content_type = content_type.value
-        if content_class is None:
-            cls.__content_classes.pop(content_type, None)
-        elif issubclass(content_class, Content):
-            cls.__content_classes[content_type] = content_class
-        else:
-            raise TypeError('%s must be subclass of Content' % content_class)
-        return True
+        self.__group = self.delegate.identifier(string=value)

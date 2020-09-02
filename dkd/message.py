@@ -111,3 +111,33 @@ class Message(dict):
             # let envelope share the same dictionary with message
             self.__envelope = Envelope(self)
         return self.__envelope
+
+    @property
+    def delegate(self):  # Optional[MessageDelegate]
+        return self.envelope.delegate
+
+    @delegate.setter
+    def delegate(self, value):
+        self.envelope.delegate = value
+
+    # --------
+
+    @property
+    def sender(self):  # ID
+        return self.envelope.sender
+
+    @property
+    def receiver(self):  # ID
+        return self.envelope.receiver
+
+    @property
+    def time(self) -> int:
+        return self.envelope.time
+
+    @property
+    def group(self):  # ID
+        return self.envelope.group
+
+    @property
+    def type(self) -> int:
+        return self.envelope.type

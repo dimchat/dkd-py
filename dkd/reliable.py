@@ -98,11 +98,27 @@ class ReliableMessage(SecureMessage):
         return self.get('meta')
 
     @meta.setter
-    def meta(self, value):
+    def meta(self, value: dict):
         if value is None:
             self.pop('meta', None)
         else:
             self['meta'] = value
+
+    """
+        Sender's Profile
+        ~~~~~~~~~~~~~
+        Extends for the first message package of 'Handshake' protocol.
+    """
+    @property
+    def profile(self) -> Optional[dict]:
+        return self.get('profile')
+
+    @profile.setter
+    def profile(self, value: dict):
+        if value is None:
+            self.pop('profile', None)
+        else:
+            self['profile'] = value
 
     """
         Verify the Reliable Message to Secure Message

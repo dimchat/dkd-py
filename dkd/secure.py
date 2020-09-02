@@ -28,7 +28,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-import weakref
 from typing import Optional
 
 from .message import Message
@@ -81,23 +80,10 @@ class SecureMessage(Message):
             # no need to init again
             return
         super().__init__(msg)
-        self.__delegate: weakref.ReferenceType = None
         # lazy
         self.__data: bytes = None
         self.__key: bytes = None
         self.__keys: dict = None
-
-    @property
-    def delegate(self):  # -> Optional[SecureMessageDelegate]
-        if self.__delegate is not None:
-            return self.__delegate()
-
-    @delegate.setter
-    def delegate(self, value):
-        if value is None:
-            self.__delegate = None
-        else:
-            self.__delegate = weakref.ref(value)
 
     @property
     def data(self) -> bytes:
@@ -117,7 +103,7 @@ class SecureMessage(Message):
                 if keys is not None:
                     base64 = keys.get(self.envelope.receiver)
             if base64 is not None:
-                self.__key = self.delegate.decode_key(string=base64, msg=self)
+                self.__key = self.delegate.decode_key(key=base64, msg=self)
         return self.__key
 
     @property
@@ -173,13 +159,13 @@ class SecureMessage(Message):
 
         # 2. decrypt 'message.data' to 'message.content'
         # 2.1. decode encrypted content data
-        ciphertext = self.data
-        if ciphertext is None:
+        data = self.data
+        if data is None:
             raise ValueError('failed to decode content data: %s' % self)
         # 2.2. decrypt content data
-        plaintext = delegate.decrypt_content(data=ciphertext, key=password, msg=self)
+        plaintext = delegate.decrypt_content(data=data, key=password, msg=self)
         if plaintext is None:
-            raise ValueError('failed to decrypt data with key: %s, %s' % (password, ciphertext))
+            raise ValueError('failed to decrypt data with key: %s, %s' % (password, data))
         # 2.3. deserialize content
         content = delegate.deserialize_content(data=plaintext, key=password, msg=self)
         if content is None:

@@ -41,13 +41,35 @@ from .reliable import ReliableMessage
 #  Message Delegates
 #
 
-class InstantMessageDelegate(ABC):
+class MessageDelegate(ABC):
+
+    @abstractmethod
+    def identifier(self, string: str):  # ID
+        """
+        Create entity ID with String
+
+        :param string: ID string
+        :return: ID object
+        """
+        raise NotImplemented
+
+
+class InstantMessageDelegate(MessageDelegate):
 
     """ Delegate for InstantMessage """
 
+    def content(self, content: dict) -> Optional[Content]:
+        """
+        0. Convert Map object to Content object
+
+        :param content: message content info
+        :return: Content object
+        """
+        raise NotImplemented
+
     """ Encrypt Content """
 
-    def serialize_content(self, content: Content, key: dict, msg: InstantMessage) -> bytes:
+    def serialize_content(self, content: Content, key, msg: InstantMessage) -> bytes:
         """
         1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
 
@@ -59,7 +81,7 @@ class InstantMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def encrypt_content(self, data: bytes, key: dict, msg: InstantMessage) -> bytes:
+    def encrypt_content(self, data: bytes, key, msg: InstantMessage) -> bytes:
         """
         2. Encrypt content data to 'message.data' with symmetric key
 
@@ -83,7 +105,7 @@ class InstantMessageDelegate(ABC):
 
     """ Encrypt Key """
 
-    def serialize_key(self, key: dict, msg: InstantMessage) -> Optional[bytes]:
+    def serialize_key(self, key, msg: InstantMessage) -> Optional[bytes]:
         """
         4. Serialize message key to data (JsON / ProtoBuf / ...)
 
@@ -112,23 +134,23 @@ class InstantMessageDelegate(ABC):
 
         :param data:     encrypted key data
         :param msg:      instant message
-        :return:         string
+        :return:         base64 string
         """
         raise NotImplemented
 
 
-class SecureMessageDelegate(ABC):
+class SecureMessageDelegate(MessageDelegate):
 
     """ Delegate for SecureMessage """
 
     """ Decrypt Key """
 
     @abstractmethod
-    def decode_key(self, string: str, msg: SecureMessage) -> Optional[bytes]:
+    def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
         """
         1. Decode 'message.key' to encrypted symmetric key data
 
-        :param string:   base64 string
+        :param key:      base64 string
         :param msg:      secure message
         :return:         encrypted symmetric key data
         """
@@ -147,7 +169,7 @@ class SecureMessageDelegate(ABC):
         """
         raise NotImplemented
 
-    def deserialize_key(self, data: Optional[bytes], sender: str, receiver: str, msg: SecureMessage) -> Optional[dict]:
+    def deserialize_key(self, data: Optional[bytes], sender: str, receiver: str, msg: SecureMessage):  # Optional[KEY]
         """
         3. Deserialize message key from data (JsON / ProtoBuf / ...)
 
@@ -173,7 +195,7 @@ class SecureMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def decrypt_content(self, data: bytes, key: dict, msg: SecureMessage) -> Optional[bytes]:
+    def decrypt_content(self, data: bytes, key, msg: SecureMessage) -> Optional[bytes]:
         """
         5. Decrypt 'message.data' with symmetric key
 
@@ -184,7 +206,7 @@ class SecureMessageDelegate(ABC):
         """
         raise NotImplemented
 
-    def deserialize_content(self, data: bytes, key: dict, msg: SecureMessage) -> Optional[Content]:
+    def deserialize_content(self, data: bytes, key, msg: SecureMessage) -> Optional[Content]:
         """
         6. Deserialize message content from data (JsON / ProtoBuf / ...)
 
