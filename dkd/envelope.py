@@ -180,7 +180,9 @@ class Envelope(Dictionary):
     def type(self) -> int:
         if self.__type is None:
             number = self.get('type')
-            if number is not None:
+            if number is None:
+                self.__type = 0
+            else:
                 self.__type = int(number)
         return self.__type
 

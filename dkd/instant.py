@@ -82,7 +82,7 @@ class InstantMessage(Message):
     @property
     def content(self) -> Content:
         if self.__content is None:
-            self.__content = Content(self['content'])
+            self.__content = self.delegate.content(self['content'])
         return self.__content
 
     @property
