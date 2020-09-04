@@ -30,45 +30,12 @@
 
 import time as time_lib
 import weakref
-from typing import MutableMapping, Iterator
+from typing import Optional, Generic
+
+from .types import ID, Dictionary
 
 
-class Dictionary(MutableMapping):
-    """
-        A container sharing the same inner dictionary
-    """
-
-    def __init__(self, dictionary: dict):
-        super().__init__()
-        self.__dictionary = dictionary
-
-    @property
-    def dictionary(self) -> dict:
-        return self.__dictionary
-
-    def __iter__(self) -> Iterator:
-        return iter(self.__dictionary)
-
-    def __len__(self) -> int:
-        return len(self.__dictionary)
-
-    def __setitem__(self, key, value):
-        self.__dictionary[key] = value
-
-    def __getitem__(self, key):
-        return self.__dictionary[key]
-
-    def __delitem__(self, key) -> None:
-        del self.__dictionary[key]
-
-    def get(self, key):
-        return self.__dictionary.get(key)
-
-    def pop(self, key, default=None):
-        return self.__dictionary.pop(key, default)
-
-
-class Envelope(Dictionary):
+class Envelope(Dictionary, Generic[ID]):
     """This class is used to create a message envelope
     which contains 'sender', 'receiver' and 'time'
 
@@ -105,15 +72,15 @@ class Envelope(Dictionary):
         super().__init__(envelope)
         self.__delegate: weakref.ReferenceType = None
         # lazy
-        self.__sender = None
-        self.__receiver = None
+        self.__sender: ID = None
+        self.__receiver: ID = None
         self.__time: int = None
         # extra info
-        self.__group = None
+        self.__group: ID = None
         self.__type: int = None
 
     @property
-    def delegate(self):  # Optional[MessageDelegate]
+    def delegate(self):  # Optional[MessageDelegate[ID]]:
         if self.__delegate is not None:
             return self.__delegate()
 
@@ -125,13 +92,13 @@ class Envelope(Dictionary):
             self.__delegate = weakref.ref(value)
 
     @property
-    def sender(self):  # ID
+    def sender(self) -> ID:
         if self.__sender is None:
             self.__sender = self.delegate.identifier(string=self['sender'])
         return self.__sender
 
     @property
-    def receiver(self):  # ID
+    def receiver(self) -> ID:
         if self.__receiver is None:
             self.__receiver = self.delegate.identifier(string=self['receiver'])
         return self.__receiver
@@ -154,19 +121,18 @@ class Envelope(Dictionary):
         the group ID will be saved as 'group'.
     """
     @property
-    def group(self):  # Optional[ID]
+    def group(self) -> Optional[ID]:
         if self.__group is None:
             self.__group = self.delegate.identifier(string=self.get('group'))
         return self.__group
 
     @group.setter
-    def group(self, value: str):
+    def group(self, value: ID):
         if value is None:
             self.pop('group', None)
         else:
             self['group'] = value
-        # lazy load
-        self.__group = None
+        self.__group = value
 
     """
         Message Type
@@ -192,7 +158,7 @@ class Envelope(Dictionary):
         self.__type = value
 
     @classmethod
-    def new(cls, sender: str, receiver: str, time: int=0):
+    def new(cls, sender: ID, receiver: ID, time: int=0):
         if time == 0:
             time = int(time_lib.time())
         env = {

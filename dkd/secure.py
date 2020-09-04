@@ -28,14 +28,15 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional
+from typing import Optional, Generic
 
+from .types import ID, KEY
 from .message import Message
 
-import dkd  # dkd.InstantMessage, dkd.ReliableMessage
+import dkd  # dkd.SecureMessageDelegate, dkd.InstantMessage, dkd.ReliableMessage
 
 
-class SecureMessage(Message):
+class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
     """Instant Message encrypted by a symmetric key
 
         Secure Message
@@ -68,7 +69,7 @@ class SecureMessage(Message):
             if 'signature' in msg:
                 # this should be a reliable message
                 # noinspection PyTypeChecker
-                return dkd.ReliableMessage.__new__(dkd.ReliableMessage, msg)
+                return dkd.ReliableMessage[ID, KEY].__new__(dkd.ReliableMessage[ID, KEY], msg)
             elif isinstance(msg, SecureMessage):
                 # return SecureMessage object directly
                 return msg
@@ -90,7 +91,9 @@ class SecureMessage(Message):
         if self.__data is None:
             base64 = self.get('data')
             assert base64 is not None, 'secure message data cannot be empty'
-            self.__data = self.delegate.decode_data(data=base64, msg=self)
+            delegate = self.delegate
+            assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
+            self.__data = delegate.decode_data(data=base64, msg=self)
         return self.__data
 
     @property
@@ -103,7 +106,9 @@ class SecureMessage(Message):
                 if keys is not None:
                     base64 = keys.get(self.receiver)
             if base64 is not None:
-                self.__key = self.delegate.decode_key(key=base64, msg=self)
+                delegate = self.delegate
+                assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
+                self.__key = delegate.decode_key(key=base64, msg=self)
         return self.__key
 
     @property
@@ -126,7 +131,7 @@ class SecureMessage(Message):
             +----------+
     """
 
-    def decrypt(self) -> Optional[dkd.InstantMessage]:
+    def decrypt(self) -> Optional[dkd.InstantMessage[ID, KEY]]:
         """
         Decrypt message data to plaintext content
 
@@ -144,6 +149,7 @@ class SecureMessage(Message):
 
         # 1. decrypt 'message.key' to symmetric key
         delegate = self.delegate
+        assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
         # 1.1. decode encrypted key data
         key = self.encrypted_key
         # 1.2. decrypt key data
@@ -183,7 +189,7 @@ class SecureMessage(Message):
         msg.pop('keys', None)
         msg.pop('data')
         msg['content'] = content
-        return dkd.InstantMessage(msg)
+        return dkd.InstantMessage[ID, KEY](msg)
 
     """
         Sign the Secure Message to Reliable Message
@@ -207,16 +213,18 @@ class SecureMessage(Message):
         :return: ReliableMessage object
         """
         data = self.data
+        delegate = self.delegate
+        assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
         # 1. sign message.data
-        signature = self.delegate.sign_data(data=data, sender=self.sender, msg=self)
+        signature = delegate.sign_data(data=data, sender=self.sender, msg=self)
         assert signature is not None, 'failed to sign message: %s' % self
         # 2. encode signature
-        base64 = self.delegate.encode_signature(signature=signature, msg=self)
+        base64 = delegate.encode_signature(signature=signature, msg=self)
         assert base64 is not None, 'failed to encode signature: %s' % signature
         # 3. pack message
         msg = self.copy()
         msg['signature'] = base64
-        return dkd.ReliableMessage(msg)
+        return dkd.ReliableMessage[ID, KEY](msg)
 
     """
         Split/Trim group message
@@ -261,13 +269,13 @@ class SecureMessage(Message):
                 msg['key'] = key
             # 4. pack message
             if reliable:
-                messages.append(dkd.ReliableMessage(msg))
+                messages.append(dkd.ReliableMessage[ID, KEY](msg))
             else:
-                messages.append(SecureMessage(msg))
+                messages.append(SecureMessage[ID, KEY](msg))
         # OK
         return messages
 
-    def trim(self, member: str):  # -> SecureMessage
+    def trim(self, member: ID):  # -> SecureMessage
         """
         Trim the group message for a member
 
@@ -294,6 +302,6 @@ class SecureMessage(Message):
         msg['receiver'] = member
         # repack
         if 'signature' in msg:
-            return dkd.ReliableMessage(msg)
+            return dkd.ReliableMessage[ID, KEY](msg)
         else:
-            return SecureMessage(msg)
+            return SecureMessage[ID, KEY](msg)

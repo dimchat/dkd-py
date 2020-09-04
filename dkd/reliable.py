@@ -28,12 +28,15 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional
+from typing import Optional, Generic
 
+from .types import ID, KEY
 from .secure import SecureMessage
 
+import dkd  # dkd.ReliableMessageDelegate
 
-class ReliableMessage(SecureMessage):
+
+class ReliableMessage(SecureMessage[ID, KEY], Generic[ID, KEY]):
     """This class is used to sign the SecureMessage
     It contains a 'signature' field which signed with sender's private key
 
@@ -85,7 +88,9 @@ class ReliableMessage(SecureMessage):
         if self.__signature is None:
             base64 = self.get('signature')
             assert base64 is not None, 'signature of reliable message cannot be empty: %s' % self
-            self.__signature = self.delegate.decode_signature(signature=base64, msg=self)
+            delegate = self.delegate
+            assert isinstance(delegate, dkd.ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
+            self.__signature = delegate.decode_signature(signature=base64, msg=self)
         return self.__signature
 
     """
@@ -135,7 +140,7 @@ class ReliableMessage(SecureMessage):
             +----------+
     """
 
-    def verify(self) -> Optional[SecureMessage]:
+    def verify(self) -> Optional[SecureMessage[ID, KEY]]:
         """
         Verify the message.data with signature
 
@@ -148,10 +153,12 @@ class ReliableMessage(SecureMessage):
         if signature is None:
             raise ValueError('failed to decode message signature: %s' % self)
         # 1. verify data signature
-        if self.delegate.verify_data_signature(data=data, signature=signature, sender=self.sender, msg=self):
+        delegate = self.delegate
+        assert isinstance(delegate, dkd.ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
+        if delegate.verify_data_signature(data=data, signature=signature, sender=self.sender, msg=self):
             # 2. pack message
             msg = self.copy()
             msg.pop('signature')  # remove 'signature'
-            return SecureMessage(msg)
+            return SecureMessage[ID, KEY](msg)
         # else:
         #     raise ValueError('Signature error: %s' % self)

@@ -29,9 +29,12 @@
 # ==============================================================================
 
 import weakref
+from typing import Optional, Generic
+
+from .types import ID
 
 
-class Content(dict):
+class Content(dict, Generic[ID]):
     """This class is for creating message content
 
         Message Content
@@ -63,7 +66,7 @@ class Content(dict):
         self.__group = None
 
     @property
-    def delegate(self):  # Optional[MessageDelegate]
+    def delegate(self):  # Optional[MessageDelegate[ID]]:
         if self.__delegate is not None:
             return self.__delegate()
 
@@ -101,13 +104,13 @@ class Content(dict):
     # Group ID/string for group message
     #    if field 'group' exists, it means this is a group message
     @property
-    def group(self):  # Optional[ID]
+    def group(self) -> Optional[ID]:
         if self.__group is None:
             self.__group = self.delegate.identifier(string=self.get('group'))
         return self.__group
 
     @group.setter
-    def group(self, value: str):
+    def group(self, value: ID):
         if value is None:
             self.pop('group', None)
         else:

@@ -30,16 +30,17 @@
 
 import time as time_lib
 import weakref
-from typing import Optional
+from typing import Optional, Generic
 
+from .types import ID, KEY
 from .envelope import Envelope
 from .content import Content
 from .message import Message
 
-import dkd  # dkd.SecureMessage
+import dkd  # dkd.InstantMessageDelegate, dkd.SecureMessage
 
 
-class InstantMessage(Message):
+class InstantMessage(Message[ID, KEY], Generic[ID, KEY]):
     """
         Instant Message
         ~~~~~~~~~~~~~~~
@@ -77,12 +78,14 @@ class InstantMessage(Message):
         super().__init__(msg)
         self.__delegate: weakref.ReferenceType = None
         # lazy
-        self.__content: Content = None
+        self.__content: Content[ID] = None
 
     @property
-    def content(self) -> Content:
+    def content(self) -> Content[ID]:
         if self.__content is None:
-            self.__content = self.delegate.content(self['content'])
+            delegate = self.delegate
+            assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
+            self.__content = delegate.content(self['content'])
         return self.__content
 
     @property
@@ -102,7 +105,7 @@ class InstantMessage(Message):
         return self.envelope.time
 
     @property
-    def group(self):  # ID
+    def group(self) -> ID:
         return self.content.group
 
     @property
@@ -123,7 +126,7 @@ class InstantMessage(Message):
                               +----------+
     """
 
-    def encrypt(self, password, members: list=None):  # -> Optional[dkd.SecureMessage]:
+    def encrypt(self, password: KEY, members: list=None):  # -> Optional[dkd.SecureMessage]:
         """
         Encrypt message content with password(symmetric key)
 
@@ -143,13 +146,14 @@ class InstantMessage(Message):
             msg = self.__encrypt_keys(password=password, members=members)
 
         # 3. pack message
-        return dkd.SecureMessage(msg)
+        return dkd.SecureMessage[ID, KEY](msg)
 
-    def __encrypt_key(self, password) -> Optional[dict]:
+    def __encrypt_key(self, password: KEY) -> Optional[dict]:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
         delegate = self.delegate
+        assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
         # 2.1. serialize symmetric key
         key = delegate.serialize_key(key=password, msg=self)
         if key is None:
@@ -169,11 +173,12 @@ class InstantMessage(Message):
         msg['key'] = base64
         return msg
 
-    def __encrypt_keys(self, password, members: list) -> dict:
+    def __encrypt_keys(self, password: KEY, members: list) -> dict:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
         delegate = self.delegate
+        assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
         # 2.1. serialize symmetric key
         key = delegate.serialize_key(key=password, msg=self)
         if key is None:
@@ -200,8 +205,9 @@ class InstantMessage(Message):
             msg['keys'] = keys
         return msg
 
-    def __prepare_data(self, password) -> dict:
+    def __prepare_data(self, password: KEY) -> dict:
         delegate = self.delegate
+        assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
         # 1. serialize message content
         data = delegate.serialize_content(content=self.content, key=password, msg=self)
         assert data is not None, 'failed to serialize content: %s' % self.content
@@ -221,8 +227,8 @@ class InstantMessage(Message):
     #  Factory
     #
     @classmethod
-    def new(cls, content: Content, envelope: Envelope=None,
-            sender: str=None, receiver: str=None, time: int=0):
+    def new(cls, content: Content[ID], envelope: Envelope[ID]=None,
+            sender: ID=None, receiver: ID=None, time: int=0):
         if envelope:
             # share the same dictionary with envelope object
             msg = envelope.dictionary
