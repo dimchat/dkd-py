@@ -127,12 +127,13 @@ class Envelope(Dictionary, Generic[ID]):
         return self.__group
 
     @group.setter
-    def group(self, value: ID):
+    def group(self, value: str):
         if value is None:
             self.pop('group', None)
         else:
             self['group'] = value
-        self.__group = value
+        # lazy load
+        self.__group = None
 
     """
         Message Type
@@ -158,7 +159,7 @@ class Envelope(Dictionary, Generic[ID]):
         self.__type = value
 
     @classmethod
-    def new(cls, sender: ID, receiver: ID, time: int=0):
+    def new(cls, sender: str, receiver: str, time: int=0):
         if time == 0:
             time = int(time_lib.time())
         env = {

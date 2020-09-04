@@ -87,13 +87,13 @@ class Message(dict, Generic[ID, KEY]):
         elif cls is Message:
             if 'content' in msg:
                 # this should be an instant message
-                return dkd.InstantMessage[ID, KEY].__new__(dkd.InstantMessage[ID, KEY], msg)
+                return dkd.InstantMessage.__new__(dkd.InstantMessage[ID, KEY], msg)
             if 'signature' in msg:
                 # this should be a reliable message
-                return dkd.ReliableMessage[ID, KEY].__new__(dkd.ReliableMessage[ID, KEY], msg)
+                return dkd.ReliableMessage.__new__(dkd.ReliableMessage[ID, KEY], msg)
             if 'data' in msg:
                 # this should be a secure message
-                return dkd.SecureMessage[ID, KEY].__new__(dkd.SecureMessage[ID, KEY], msg)
+                return dkd.SecureMessage.__new__(dkd.SecureMessage[ID, KEY], msg)
             if isinstance(msg, Message):
                 # return Message object directly
                 return msg

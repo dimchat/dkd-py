@@ -110,7 +110,7 @@ class Content(dict, Generic[ID]):
         return self.__group
 
     @group.setter
-    def group(self, value: ID):
+    def group(self, value: str):
         if value is None:
             self.pop('group', None)
         else:

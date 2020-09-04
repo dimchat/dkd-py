@@ -28,9 +28,8 @@
 # SOFTWARE.
 # ==============================================================================
 
-import time as time_lib
 import weakref
-from typing import Optional, Generic
+from typing import Union, Optional, Generic
 
 from .types import ID, KEY
 from .envelope import Envelope
@@ -227,21 +226,15 @@ class InstantMessage(Message[ID, KEY], Generic[ID, KEY]):
     #  Factory
     #
     @classmethod
-    def new(cls, content: Content[ID], envelope: Envelope[ID]=None,
-            sender: ID=None, receiver: ID=None, time: int=0):
-        if envelope:
-            # share the same dictionary with envelope object
+    def new(cls, content: dict, envelope: Union[Envelope, dict]=None,
+            sender: str=None, receiver: str=None, time: int=0):  # InstantMessage
+        # message will share the same dictionary with envelope object
+        if isinstance(envelope, Envelope):
             msg = envelope.dictionary
-            msg['content'] = content
+        elif isinstance(envelope, dict):
+            msg = envelope
         else:
-            assert sender is not None and receiver is not None, 'sender/receiver error'
-            if time == 0:
-                time = int(time_lib.time())
-            # build instant message info
-            msg = {
-                'sender': sender,
-                'receiver': receiver,
-                'time': time,
-                'content': content,
-            }
+            envelope = Envelope.new(sender=sender, receiver=receiver, time=time)
+            msg = envelope.dictionary
+        msg['content'] = content
         return cls(msg)

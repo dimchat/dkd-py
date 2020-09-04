@@ -69,7 +69,7 @@ class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
             if 'signature' in msg:
                 # this should be a reliable message
                 # noinspection PyTypeChecker
-                return dkd.ReliableMessage[ID, KEY].__new__(dkd.ReliableMessage[ID, KEY], msg)
+                return dkd.ReliableMessage.__new__(dkd.ReliableMessage[ID, KEY], msg)
             elif isinstance(msg, SecureMessage):
                 # return SecureMessage object directly
                 return msg
