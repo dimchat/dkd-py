@@ -30,13 +30,13 @@
 
 from typing import Optional, Generic
 
-from .types import ID, KEY
+from .types import IT, KT
 from .message import Message
 
 import dkd  # dkd.SecureMessageDelegate, dkd.InstantMessage, dkd.ReliableMessage
 
 
-class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
+class SecureMessage(Message[IT, KT], Generic[IT, KT]):
     """Instant Message encrypted by a symmetric key
 
         Secure Message
@@ -69,7 +69,7 @@ class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
             if 'signature' in msg:
                 # this should be a reliable message
                 # noinspection PyTypeChecker
-                return dkd.ReliableMessage.__new__(dkd.ReliableMessage[ID, KEY], msg)
+                return dkd.ReliableMessage.__new__(dkd.ReliableMessage[IT, KT], msg)
             elif isinstance(msg, SecureMessage):
                 # return SecureMessage object directly
                 return msg
@@ -131,7 +131,7 @@ class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
             +----------+
     """
 
-    def decrypt(self) -> Optional[dkd.InstantMessage[ID, KEY]]:
+    def decrypt(self) -> Optional[dkd.InstantMessage[IT, KT]]:
         """
         Decrypt message data to plaintext content
 
@@ -189,7 +189,7 @@ class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
         msg.pop('keys', None)
         msg.pop('data')
         msg['content'] = content
-        return dkd.InstantMessage[ID, KEY](msg)
+        return dkd.InstantMessage[IT, KT](msg)
 
     """
         Sign the Secure Message to Reliable Message
@@ -224,7 +224,7 @@ class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
         # 3. pack message
         msg = self.copy()
         msg['signature'] = base64
-        return dkd.ReliableMessage[ID, KEY](msg)
+        return dkd.ReliableMessage[IT, KT](msg)
 
     """
         Split/Trim group message
@@ -269,13 +269,13 @@ class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
                 msg['key'] = key
             # 4. pack message
             if reliable:
-                messages.append(dkd.ReliableMessage[ID, KEY](msg))
+                messages.append(dkd.ReliableMessage[IT, KT](msg))
             else:
-                messages.append(SecureMessage[ID, KEY](msg))
+                messages.append(SecureMessage[IT, KT](msg))
         # OK
         return messages
 
-    def trim(self, member: ID):  # -> SecureMessage
+    def trim(self, member: IT):  # -> SecureMessage
         """
         Trim the group message for a member
 
@@ -302,6 +302,6 @@ class SecureMessage(Message[ID, KEY], Generic[ID, KEY]):
         msg['receiver'] = member
         # repack
         if 'signature' in msg:
-            return dkd.ReliableMessage[ID, KEY](msg)
+            return dkd.ReliableMessage[IT, KT](msg)
         else:
-            return SecureMessage[ID, KEY](msg)
+            return SecureMessage[IT, KT](msg)

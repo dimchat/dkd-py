@@ -30,13 +30,13 @@
 
 from typing import Optional, Generic
 
-from .types import ID, KEY
+from .types import IT, KT
 from .secure import SecureMessage
 
 import dkd  # dkd.ReliableMessageDelegate
 
 
-class ReliableMessage(SecureMessage[ID, KEY], Generic[ID, KEY]):
+class ReliableMessage(SecureMessage[IT, KT], Generic[IT, KT]):
     """This class is used to sign the SecureMessage
     It contains a 'signature' field which signed with sender's private key
 
@@ -140,7 +140,7 @@ class ReliableMessage(SecureMessage[ID, KEY], Generic[ID, KEY]):
             +----------+
     """
 
-    def verify(self) -> Optional[SecureMessage[ID, KEY]]:
+    def verify(self) -> Optional[SecureMessage[IT, KT]]:
         """
         Verify the message.data with signature
 
@@ -159,6 +159,6 @@ class ReliableMessage(SecureMessage[ID, KEY], Generic[ID, KEY]):
             # 2. pack message
             msg = self.copy()
             msg.pop('signature')  # remove 'signature'
-            return SecureMessage[ID, KEY](msg)
+            return SecureMessage[IT, KT](msg)
         # else:
         #     raise ValueError('Signature error: %s' % self)

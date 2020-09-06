@@ -50,13 +50,13 @@
 
 from typing import Generic
 
-from .types import ID, KEY
+from .types import IT, KT
 from .envelope import Envelope
 
 import dkd  # dkd.InstantMessage, dkd.ReliableMessage
 
 
-class Message(dict, Generic[ID, KEY]):
+class Message(dict, Generic[IT, KT]):
     """This class is used to create a message
     with the envelope fields, such as 'sender', 'receiver', and 'time'
 
@@ -87,13 +87,13 @@ class Message(dict, Generic[ID, KEY]):
         elif cls is Message:
             if 'content' in msg:
                 # this should be an instant message
-                return dkd.InstantMessage.__new__(dkd.InstantMessage[ID, KEY], msg)
+                return dkd.InstantMessage.__new__(dkd.InstantMessage[IT, KT], msg)
             if 'signature' in msg:
                 # this should be a reliable message
-                return dkd.ReliableMessage.__new__(dkd.ReliableMessage[ID, KEY], msg)
+                return dkd.ReliableMessage.__new__(dkd.ReliableMessage[IT, KT], msg)
             if 'data' in msg:
                 # this should be a secure message
-                return dkd.SecureMessage.__new__(dkd.SecureMessage[ID, KEY], msg)
+                return dkd.SecureMessage.__new__(dkd.SecureMessage[IT, KT], msg)
             if isinstance(msg, Message):
                 # return Message object directly
                 return msg
@@ -106,13 +106,13 @@ class Message(dict, Generic[ID, KEY]):
             return
         super().__init__(msg)
         # lazy
-        self.__envelope: Envelope[ID] = None
+        self.__envelope: Envelope[IT] = None
 
     @property
-    def envelope(self) -> Envelope[ID]:
+    def envelope(self) -> Envelope[IT]:
         if self.__envelope is None:
             # let envelope share the same dictionary with message
-            self.__envelope = Envelope[ID](self)
+            self.__envelope = Envelope[IT](self)
         return self.__envelope
 
     @property
@@ -126,11 +126,11 @@ class Message(dict, Generic[ID, KEY]):
     # --------
 
     @property
-    def sender(self) -> ID:
+    def sender(self) -> IT:
         return self.envelope.sender
 
     @property
-    def receiver(self) -> ID:
+    def receiver(self) -> IT:
         return self.envelope.receiver
 
     @property
@@ -138,7 +138,7 @@ class Message(dict, Generic[ID, KEY]):
         return self.envelope.time
 
     @property
-    def group(self) -> ID:
+    def group(self) -> IT:
         return self.envelope.group
 
     @property

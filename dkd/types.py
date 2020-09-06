@@ -33,8 +33,8 @@ from typing import TypeVar, MutableMapping, Iterator
 
 
 # generics
-ID = TypeVar('ID', str, object)
-KEY = TypeVar('KEY', dict, object)
+IT = TypeVar('IT', str, object)   # Identifier Type
+KT = TypeVar('KT', dict, object)  # Key Type
 
 
 class ContentType(IntEnum):

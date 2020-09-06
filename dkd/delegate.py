@@ -31,7 +31,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Generic
 
-from .types import ID, KEY
+from .types import IT, KT
 from .content import Content
 from .instant import InstantMessage
 from .secure import SecureMessage
@@ -42,10 +42,10 @@ from .reliable import ReliableMessage
 #  Message Delegates
 #
 
-class MessageDelegate(ABC, Generic[ID]):
+class MessageDelegate(ABC, Generic[IT]):
 
     @abstractmethod
-    def identifier(self, string: str) -> ID:
+    def identifier(self, string: str) -> IT:
         """
         Create entity ID with String
 
@@ -55,11 +55,11 @@ class MessageDelegate(ABC, Generic[ID]):
         raise NotImplemented
 
 
-class InstantMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
+class InstantMessageDelegate(MessageDelegate[IT], Generic[IT, KT]):
 
     """ Delegate for InstantMessage """
 
-    def content(self, content: dict) -> Optional[Content[ID]]:
+    def content(self, content: dict) -> Optional[Content[IT]]:
         """
         0. Convert Map object to Content object
 
@@ -70,7 +70,7 @@ class InstantMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
 
     """ Encrypt Content """
 
-    def serialize_content(self, content: Content[ID], key: KEY, msg: InstantMessage[ID, KEY]) -> bytes:
+    def serialize_content(self, content: Content[IT], key: KT, msg: InstantMessage[IT, KT]) -> bytes:
         """
         1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
 
@@ -82,7 +82,7 @@ class InstantMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
     @abstractmethod
-    def encrypt_content(self, data: bytes, key: KEY, msg: InstantMessage[ID, KEY]) -> bytes:
+    def encrypt_content(self, data: bytes, key: KT, msg: InstantMessage[IT, KT]) -> bytes:
         """
         2. Encrypt content data to 'message.data' with symmetric key
 
@@ -94,7 +94,7 @@ class InstantMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
     @abstractmethod
-    def encode_data(self, data: bytes, msg: InstantMessage[ID, KEY]) -> str:
+    def encode_data(self, data: bytes, msg: InstantMessage[IT, KT]) -> str:
         """
         3. Encode 'message.data' to String (Base64)
 
@@ -106,7 +106,7 @@ class InstantMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
 
     """ Encrypt Key """
 
-    def serialize_key(self, key: KEY, msg: InstantMessage[ID, KEY]) -> Optional[bytes]:
+    def serialize_key(self, key: KT, msg: InstantMessage[IT, KT]) -> Optional[bytes]:
         """
         4. Serialize message key to data (JsON / ProtoBuf / ...)
 
@@ -117,7 +117,7 @@ class InstantMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
     @abstractmethod
-    def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage[ID, KEY]) -> Optional[bytes]:
+    def encrypt_key(self, data: bytes, receiver: IT, msg: InstantMessage[IT, KT]) -> Optional[bytes]:
         """
         5. Encrypt key data to 'message.key' with receiver's public key
 
@@ -129,7 +129,7 @@ class InstantMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
     @abstractmethod
-    def encode_key(self, data: bytes, msg: InstantMessage[ID, KEY]) -> str:
+    def encode_key(self, data: bytes, msg: InstantMessage[IT, KT]) -> str:
         """
         6. Encode 'message.key' to String (Base64)
 
@@ -140,14 +140,14 @@ class InstantMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
 
-class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
+class SecureMessageDelegate(MessageDelegate[IT], Generic[IT, KT]):
 
     """ Delegate for SecureMessage """
 
     """ Decrypt Key """
 
     @abstractmethod
-    def decode_key(self, key: str, msg: SecureMessage[ID, KEY]) -> Optional[bytes]:
+    def decode_key(self, key: str, msg: SecureMessage[IT, KT]) -> Optional[bytes]:
         """
         1. Decode 'message.key' to encrypted symmetric key data
 
@@ -158,7 +158,7 @@ class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
     @abstractmethod
-    def decrypt_key(self, data: bytes, sender: ID, receiver: ID, msg: SecureMessage[ID, KEY]) -> Optional[bytes]:
+    def decrypt_key(self, data: bytes, sender: IT, receiver: IT, msg: SecureMessage[IT, KT]) -> Optional[bytes]:
         """
         2. Decrypt 'message.key' with receiver's private key
 
@@ -170,7 +170,7 @@ class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         """
         raise NotImplemented
 
-    def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID, msg: SecureMessage[ID, KEY]):  # KEY
+    def deserialize_key(self, data: Optional[bytes], sender: IT, receiver: IT, msg: SecureMessage[IT, KT]):  # KEY
         """
         3. Deserialize message key from data (JsON / ProtoBuf / ...)
 
@@ -185,7 +185,7 @@ class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
     """ Decrypt Content """
 
     @abstractmethod
-    def decode_data(self, data: str, msg: SecureMessage[ID, KEY]) -> Optional[bytes]:
+    def decode_data(self, data: str, msg: SecureMessage[IT, KT]) -> Optional[bytes]:
         """
         4. Decode 'message.data' to encrypted content data
 
@@ -196,7 +196,7 @@ class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
     @abstractmethod
-    def decrypt_content(self, data: bytes, key: KEY, msg: SecureMessage[ID, KEY]) -> Optional[bytes]:
+    def decrypt_content(self, data: bytes, key: KT, msg: SecureMessage[IT, KT]) -> Optional[bytes]:
         """
         5. Decrypt 'message.data' with symmetric key
 
@@ -207,7 +207,7 @@ class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         """
         raise NotImplemented
 
-    def deserialize_content(self, data: bytes, key: KEY, msg: SecureMessage[ID, KEY]) -> Optional[Content[ID]]:
+    def deserialize_content(self, data: bytes, key: KT, msg: SecureMessage[IT, KT]) -> Optional[Content[IT]]:
         """
         6. Deserialize message content from data (JsON / ProtoBuf / ...)
 
@@ -221,7 +221,7 @@ class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
     """ Signature """
 
     @abstractmethod
-    def sign_data(self, data: bytes, sender: ID, msg: SecureMessage[ID, KEY]) -> bytes:
+    def sign_data(self, data: bytes, sender: IT, msg: SecureMessage[IT, KT]) -> bytes:
         """
         1. Sign 'message.data' with sender's private key
 
@@ -233,7 +233,7 @@ class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
     @abstractmethod
-    def encode_signature(self, signature: bytes, msg: SecureMessage[ID, KEY]) -> str:
+    def encode_signature(self, signature: bytes, msg: SecureMessage[IT, KT]) -> str:
         """
         2. Encode 'message.signature' to String (Base64)
 
@@ -244,10 +244,10 @@ class SecureMessageDelegate(MessageDelegate[ID], Generic[ID, KEY]):
         raise NotImplemented
 
 
-class ReliableMessageDelegate(SecureMessageDelegate[ID, KEY], Generic[ID, KEY]):
+class ReliableMessageDelegate(SecureMessageDelegate[IT, KT], Generic[IT, KT]):
 
     @abstractmethod
-    def decode_signature(self, signature: str, msg: ReliableMessage[ID, KEY]) -> Optional[bytes]:
+    def decode_signature(self, signature: str, msg: ReliableMessage[IT, KT]) -> Optional[bytes]:
         """
         1. Decode 'message.signature' from String (Base64)
 
@@ -258,7 +258,7 @@ class ReliableMessageDelegate(SecureMessageDelegate[ID, KEY], Generic[ID, KEY]):
         raise NotImplemented
 
     @abstractmethod
-    def verify_data_signature(self, data: bytes, signature: bytes, sender: ID, msg: ReliableMessage[ID, KEY]) -> bool:
+    def verify_data_signature(self, data: bytes, signature: bytes, sender: IT, msg: ReliableMessage[IT, KT]) -> bool:
         """
         2. Verify the message data and signature with sender's public key
 

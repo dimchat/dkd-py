@@ -32,10 +32,10 @@ import time as time_lib
 import weakref
 from typing import Optional, Generic
 
-from .types import ID, Dictionary
+from .types import IT, Dictionary
 
 
-class Envelope(Dictionary, Generic[ID]):
+class Envelope(Dictionary, Generic[IT]):
     """This class is used to create a message envelope
     which contains 'sender', 'receiver' and 'time'
 
@@ -72,15 +72,15 @@ class Envelope(Dictionary, Generic[ID]):
         super().__init__(envelope)
         self.__delegate: weakref.ReferenceType = None
         # lazy
-        self.__sender: ID = None
-        self.__receiver: ID = None
+        self.__sender: IT = None
+        self.__receiver: IT = None
         self.__time: int = None
         # extra info
-        self.__group: ID = None
+        self.__group: IT = None
         self.__type: int = None
 
     @property
-    def delegate(self):  # Optional[MessageDelegate[ID]]:
+    def delegate(self):  # Optional[MessageDelegate[IT]]:
         if self.__delegate is not None:
             return self.__delegate()
 
@@ -92,13 +92,13 @@ class Envelope(Dictionary, Generic[ID]):
             self.__delegate = weakref.ref(value)
 
     @property
-    def sender(self) -> ID:
+    def sender(self) -> IT:
         if self.__sender is None:
             self.__sender = self.delegate.identifier(string=self['sender'])
         return self.__sender
 
     @property
-    def receiver(self) -> ID:
+    def receiver(self) -> IT:
         if self.__receiver is None:
             self.__receiver = self.delegate.identifier(string=self['receiver'])
         return self.__receiver
@@ -121,7 +121,7 @@ class Envelope(Dictionary, Generic[ID]):
         the group ID will be saved as 'group'.
     """
     @property
-    def group(self) -> Optional[ID]:
+    def group(self) -> Optional[IT]:
         if self.__group is None:
             self.__group = self.delegate.identifier(string=self.get('group'))
         return self.__group
