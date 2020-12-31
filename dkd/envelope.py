@@ -198,14 +198,25 @@ def envelope_set_type(envelope: dict, content_type: int):
 
 class MessageEnvelope(Dictionary, Envelope):
 
-    def __init__(self, envelope: dict, sender: Optional[ID]=None, receiver: Optional[ID]=None, time: Optional[int]=0):
-        super().__init__(envelope)
+    def __init__(self, envelope: Optional[dict]=None,
+                 sender: Optional[ID]=None, receiver: Optional[ID]=None, time: Optional[int]=0):
+        super().__init__(dictionary=envelope)
+        # pre-process
+        if envelope is None and time is 0:
+            time = int(time_lib.time())
+        # set values
         self.__sender = sender
         self.__receiver = receiver
         self.__time = time
-        # extra info
         self.__group = None
         self.__type = 0
+        # set values to inner dictionary
+        if sender is not None:
+            self['sender'] = sender
+        if receiver is not None:
+            self['receiver'] = receiver
+        if time > 0:
+            self['time'] = time
 
     @property
     def sender(self) -> ID:
@@ -281,15 +292,8 @@ class Factory:
 
 class EnvelopeFactory(Factory):
 
-    def create_envelope(self, sender: ID, receiver: ID, time: int = 0) -> Envelope:
-        if time == 0:
-            time = int(time_lib.time())
-        env = {
-            'sender': sender,
-            'receiver': receiver,
-            'time': time
-        }
-        return MessageEnvelope(envelope=env, sender=sender, receiver=receiver, time=time)
+    def create_envelope(self, sender: ID, receiver: ID, time: int=0) -> Envelope:
+        return MessageEnvelope(sender=sender, receiver=receiver, time=time)
 
     def parse_envelope(self, envelope: dict) -> Optional[Envelope]:
         return MessageEnvelope(envelope=envelope)

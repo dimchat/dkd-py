@@ -33,9 +33,9 @@ from typing import Optional
 
 from mkm import SOMap, ID
 
-from .message import Message, BaseMessage
-
 import dkd  # dkd.SecureMessageDelegate, dkd.InstantMessage, dkd.ReliableMessage
+
+from .message import Message, BaseMessage
 
 
 class SecureMessage(Message):
@@ -110,7 +110,7 @@ class SecureMessage(Message):
 class EncryptedMessage(BaseMessage, SecureMessage):
 
     def __init__(self, msg: dict):
-        super().__init__(msg)
+        super().__init__(msg=msg)
         # lazy
         self.__data = None
         self.__key = None

@@ -172,7 +172,7 @@ class SecureMessageDelegate(MessageDelegate):
         """
         raise NotImplemented
 
-    def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID, msg: SecureMessage):  # KEY
+    def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID, msg: SecureMessage) -> SymmetricKey:
         """
         3. Deserialize message key from data (JsON / ProtoBuf / ...)
 

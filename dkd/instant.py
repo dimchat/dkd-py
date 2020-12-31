@@ -33,11 +33,11 @@ from typing import Optional
 
 from mkm import SOMap, SymmetricKey, ID
 
+import dkd  # dkd.InstantMessageDelegate, dkd.SecureMessage
+
 from .envelope import Envelope
 from .content import Content
 from .message import Message, BaseMessage
-
-import dkd  # dkd.InstantMessageDelegate, dkd.SecureMessage
 
 
 class InstantMessage(Message):
@@ -108,13 +108,10 @@ def message_content(msg: dict) -> Content:
 class PlainMessage(BaseMessage, InstantMessage):
 
     def __init__(self, msg: Optional[dict]=None, head: Optional[Envelope]=None, body: Optional[Content]=None):
-        if msg is None:
-            assert head is not None, 'message envelope should not be empty'
-            msg = head.dictionary
-        super().__init__(msg)
+        super().__init__(msg=msg, head=head)
         self.__content = body
         if body is not None:
-            self['content'] = body
+            self['content'] = body.dictionary
 
     @property
     def content(self) -> Content:

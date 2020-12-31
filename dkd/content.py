@@ -166,23 +166,24 @@ def random_positive_integer():
 
 class BaseContent(Dictionary, Content):
 
-    def __init__(self, content: Optional[dict]=None, content_type: Union[ContentType, int, None]=None):
-        # check content_type
-        if content_type is None:
-            content_type = 0
-        elif isinstance(content_type, ContentType):
+    def __init__(self, content: Optional[dict]=None, content_type: Union[ContentType, int]=0):
+        super().__init__(dictionary=content)
+        if isinstance(content_type, ContentType):
             content_type = content_type.value
-        # check content info
-        if content is None:
-            content = {
-                'type': content_type,
-                'sn': random_positive_integer(),
-                'time': int(time_lib.time())
-            }
-        super().__init__(content)
-        self.__type = content_type
-        self.__sn: int = 0
-        self.__time: int = 0
+        if content_type > 0:
+            self.__type = content_type
+            self.__sn = random_positive_integer()
+            self.__time = int(time_lib.time())
+            self['type'] = self.__type
+            self['sn'] = self.__sn
+            self['time'] = self.__time
+        else:
+            assert isinstance(content, dict), 'content error: %s' % content
+            # lazy load
+            self.__type = 0
+            self.__sn = 0
+            self.__time = 0
+        # group ID
         self.__group = None
 
     # message content type: text, image, ...

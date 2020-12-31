@@ -32,9 +32,9 @@ from typing import Optional
 
 from mkm import SOMap, Meta, Visa, Document
 
-from .secure import SecureMessage, EncryptedMessage
-
 import dkd  # dkd.ReliableMessageDelegate
+
+from .secure import SecureMessage, EncryptedMessage
 
 
 class ReliableMessage(SecureMessage):
@@ -160,7 +160,7 @@ def message_set_visa(msg: dict, visa: Visa):
 class NetworkMessage(EncryptedMessage, ReliableMessage):
 
     def __init__(self, msg: dict):
-        super().__init__(msg)
+        super().__init__(msg=msg)
         # lazy
         self.__signature = None
 

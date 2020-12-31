@@ -36,7 +36,7 @@ from .message import Message
 from .instant import InstantMessage
 from .secure import SecureMessage
 from .reliable import ReliableMessage
-from .delegate import InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate
+from .delegate import MessageDelegate, InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate
 
 name = "DaoKeDao"
 
@@ -52,5 +52,6 @@ __all__ = [
     'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
+    'MessageDelegate',
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 ]

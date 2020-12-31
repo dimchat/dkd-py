@@ -79,28 +79,27 @@ class ContentType(IntEnum):
 
             (All above are just some advices to help choosing numbers :P)
     """
-    Unknown = 0x00
 
-    Text = 0x01        # 0000 0001
+    TEXT = 0x01           # 0000 0001
 
-    File = 0x10        # 0001 0000
-    Image = 0x12       # 0001 0010
-    Audio = 0x14       # 0001 0100
-    Video = 0x16       # 0001 0110
+    FILE = 0x10           # 0001 0000
+    IMAGE = 0x12          # 0001 0010
+    AUDIO = 0x14          # 0001 0100
+    VIDEO = 0x16          # 0001 0110
 
-    Page = 0x20        # 0010 0000
+    PAGE = 0x20           # 0010 0000
 
     # quote a message before and reply it with text
-    Quote = 0x37       # 0011 0111
+    QUOTE = 0x37          # 0011 0111
 
-    Money = 0x40         # 0100 0000
-    Transfer = 0x41      # 0100 0001
-    LuckyMoney = 0x42    # 0100 0010
-    ClaimPayment = 0x48  # 0100 1000 (Claim for payment)
-    SplitBill = 0x49     # 0100 1001 (Split the bill)
+    MONEY = 0x40          # 0100 0000
+    TRANSFER = 0x41       # 0100 0001
+    LUCKY_MONEY = 0x42    # 0100 0010
+    CLAIM_PAYMENT = 0x48  # 0100 1000 (Claim for payment)
+    SPLIT_BILL = 0x49     # 0100 1001 (Split the bill)
 
-    Command = 0x88     # 1000 1000
-    History = 0x89     # 1000 1001 (Entity history command)
+    COMMAND = 0x88        # 1000 1000
+    HISTORY = 0x89        # 1000 1001 (Entity history command)
 
     # top-secret message forward by proxy (Service Provider)
-    Forward = 0xFF  # 1111 1111
+    FORWARD = 0xFF  # 1111 1111

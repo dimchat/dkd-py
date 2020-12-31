@@ -53,8 +53,9 @@ from typing import Optional
 
 from mkm import SOMap, Dictionary, ID
 
+import dkd  # dkd.MessageDelegate
+
 from .envelope import Envelope
-from .delegate import MessageDelegate
 
 
 class Message(SOMap):
@@ -77,12 +78,12 @@ class Message(SOMap):
 
     @property
     @abstractmethod
-    def delegate(self) -> Optional[MessageDelegate]:
+    def delegate(self) -> Optional[dkd.MessageDelegate]:
         raise NotImplemented
 
     @delegate.setter
     @abstractmethod
-    def delegate(self, handler: MessageDelegate):
+    def delegate(self, handler: dkd.MessageDelegate):
         raise NotImplemented
 
     @property
@@ -124,17 +125,20 @@ def message_envelope(msg: dict) -> Envelope:
 
 class BaseMessage(Dictionary, Message):
 
-    def __init__(self, msg: dict):
-        super().__init__(msg)
+    def __init__(self, msg: Optional[dict]=None, head: Optional[Envelope]=None):
+        if msg is None:
+            assert head is not None, 'message envelope should not be empty'
+            msg = head.dictionary
+        super().__init__(dictionary=msg)
         self.__delegate = None
-        self.__envelope = None
+        self.__envelope = head
 
     @property
-    def delegate(self) -> Optional[MessageDelegate]:
+    def delegate(self) -> Optional[dkd.MessageDelegate]:
         return self.__delegate
 
     @delegate.setter
-    def delegate(self, value: MessageDelegate):
+    def delegate(self, value: dkd.MessageDelegate):
         self.__delegate = value
 
     @property
