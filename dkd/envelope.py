@@ -29,13 +29,15 @@
 # ==============================================================================
 
 import time as time_lib
-import weakref
-from typing import Optional, Generic
+from abc import abstractmethod
+from typing import Optional, Union
 
-from .types import IT, Dictionary
+from mkm import SOMap, Dictionary, ID
+
+from .types import ContentType
 
 
-class Envelope(Dictionary, Generic[IT]):
+class Envelope(SOMap):
     """This class is used to create a message envelope
     which contains 'sender', 'receiver' and 'time'
 
@@ -49,117 +51,237 @@ class Envelope(Dictionary, Generic[IT]):
         }
     """
 
-    def __new__(cls, env: dict):
+    @property
+    @abstractmethod
+    def sender(self) -> ID:
         """
-        Create message envelope
+        Get message sender
 
-        :param env: envelope info
-        :return: Envelope object
+        :return: sender ID
         """
-        if env is None:
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def receiver(self) -> ID:
+        """
+        Get message receiver
+
+        :return: receiver ID
+        """
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def time(self) -> int:
+        """
+        Get message time
+
+        :return: timestamp
+        """
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def group(self) -> Optional[ID]:
+        """
+            Group ID
+            ~~~~~~~~
+            when a group message was split/trimmed to a single message
+            the 'receiver' will be changed to a member ID, and
+            the group ID will be saved as 'group'.
+        """
+        raise NotImplemented
+
+    @group.setter
+    @abstractmethod
+    def group(self, value: ID):
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def type(self) -> Optional[int]:
+        """
+            Message Type
+            ~~~~~~~~~~~~
+            because the message content will be encrypted, so
+            the intermediate nodes(station) cannot recognize what kind of it.
+            we pick out the content type and set it in envelope
+            to let the station do its job.
+        """
+        raise NotImplemented
+
+    @type.setter
+    @abstractmethod
+    def type(self, value: Union[ContentType, int]):
+        raise NotImplemented
+
+    #
+    #  Factory methods
+    #
+    @classmethod
+    def create(cls, sender: ID, receiver: ID, time: int=0):  # -> Envelope:
+        factory = cls.factory()
+        assert isinstance(factory, Factory), 'envelope factory not ready'
+        return factory.create_envelope(sender=sender, receiver=receiver, time=time)
+
+    @classmethod
+    def parse(cls, envelope: dict):  # -> Envelope:
+        if envelope is None:
             return None
-        elif cls is Envelope:
-            if isinstance(env, Envelope):
-                # return Envelope object directly
-                return env
-        # new Envelope(dict)
-        return super().__new__(cls, env)
+        elif isinstance(envelope, Envelope):
+            return envelope
+        elif isinstance(envelope, SOMap):
+            envelope = envelope.dictionary
+        factory = cls.factory()
+        assert isinstance(factory, Factory), 'envelope factory not ready'
+        return factory.parse_envelope(envelope=envelope)
 
-    def __init__(self, envelope: dict):
-        if self is envelope:
-            # no need to init again
-            return
+    @classmethod
+    def factory(cls):  # -> Factory:
+        return cls.__factory
+
+    @classmethod
+    def register(cls, factory):
+        cls.__factory = factory
+
+    __factory = None
+
+
+"""
+    Implements
+    ~~~~~~~~~~
+"""
+
+
+def envelope_sender(envelope: dict) -> ID:
+    return ID.parse(identifier=envelope.get('sender'))
+
+
+def envelope_receiver(envelope: dict) -> ID:
+    return ID.parse(identifier=envelope.get('receiver'))
+
+
+def envelope_time(envelope: dict) -> int:
+    timestamp = envelope.get('time')
+    if timestamp is None:
+        return 0
+    else:
+        return int(timestamp)
+
+
+def envelope_group(envelope: dict) -> Optional[ID]:
+    group = envelope.get('group')
+    if group is not None:
+        return ID.parse(identifier=group)
+
+
+def envelope_set_group(envelope: dict, group: ID):
+    if group is None:
+        envelope.pop('group', None)
+    else:
+        envelope['group'] = group
+
+
+def envelope_type(envelope: dict) -> Optional[int]:
+    _type = envelope.get('type')
+    if _type is not None:
+        return int(_type)
+
+
+def envelope_set_type(envelope: dict, content_type: int):
+    if content_type is 0:
+        envelope.pop('type', None)
+    else:
+        envelope['type'] = content_type
+
+
+class MessageEnvelope(Dictionary, Envelope):
+
+    def __init__(self, envelope: dict, sender: Optional[ID]=None, receiver: Optional[ID]=None, time: Optional[int]=0):
         super().__init__(envelope)
-        self.__delegate: weakref.ReferenceType = None
-        # lazy
-        self.__sender: IT = None
-        self.__receiver: IT = None
-        self.__time: int = None
+        self.__sender = sender
+        self.__receiver = receiver
+        self.__time = time
         # extra info
-        self.__group: IT = None
-        self.__type: int = None
+        self.__group = None
+        self.__type = 0
 
     @property
-    def delegate(self):  # Optional[MessageDelegate[IT]]:
-        if self.__delegate is not None:
-            return self.__delegate()
-
-    @delegate.setter
-    def delegate(self, value):
-        if value is None:
-            self.__delegate = None
-        else:
-            self.__delegate = weakref.ref(value)
-
-    @property
-    def sender(self) -> IT:
+    def sender(self) -> ID:
         if self.__sender is None:
-            self.__sender = self.delegate.identifier(string=self['sender'])
+            self.__sender = envelope_sender(envelope=self.dictionary)
         return self.__sender
 
     @property
-    def receiver(self) -> IT:
+    def receiver(self) -> ID:
         if self.__receiver is None:
-            self.__receiver = self.delegate.identifier(string=self['receiver'])
+            self.__receiver = envelope_receiver(envelope=self.dictionary)
         return self.__receiver
 
     @property
     def time(self) -> int:
-        if self.__time is None:
-            time = self.get('time')
-            if time is None:
-                self.__time = 0
-            else:
-                self.__time = int(time)
+        if self.__time is 0:
+            self.__time = envelope_time(envelope=self.dictionary)
         return self.__time
 
-    """
-        Group ID
-        ~~~~~~~~
-        when a group message was split/trimmed to a single message
-        the 'receiver' will be changed to a member ID, and
-        the group ID will be saved as 'group'.
-    """
     @property
-    def group(self) -> Optional[IT]:
+    def group(self) -> Optional[ID]:
         if self.__group is None:
-            self.__group = self.delegate.identifier(string=self.get('group'))
+            self.__group = envelope_group(envelope=self.dictionary)
         return self.__group
 
     @group.setter
-    def group(self, value: str):
-        if value is None:
-            self.pop('group', None)
-        else:
-            self['group'] = value
-        # lazy load
-        self.__group = None
+    def group(self, value: ID):
+        envelope_set_group(envelope=self.dictionary, group=value)
+        self.__group = value
 
-    """
-        Message Type
-        ~~~~~~~~~~~~
-        because the message content will be encrypted, so
-        the intermediate nodes(station) cannot recognize what kind of it.
-        we pick out the content type and set it in envelope
-        to let the station do its job.
-    """
     @property
-    def type(self) -> int:
-        if self.__type is None:
-            number = self.get('type')
-            if number is None:
-                self.__type = 0
-            else:
-                self.__type = int(number)
+    def type(self) -> Optional[int]:
+        if self.__type is 0:
+            self.__type = envelope_type(envelope=self.dictionary)
         return self.__type
 
     @type.setter
     def type(self, value: int):
-        self['type'] = value
+        envelope_set_type(envelope=self.dictionary, content_type=value)
         self.__type = value
 
-    @classmethod
-    def new(cls, sender: str, receiver: str, time: int=0):
+
+"""
+    Envelope Factory
+    ~~~~~~~~~~~~~~~~
+"""
+
+
+class Factory:
+
+    @abstractmethod
+    def create_envelope(self, sender: ID, receiver: ID, time: int=0) -> Envelope:
+        """
+        Create envelope
+
+        :param sender:   sender ID
+        :param receiver: receiver ID
+        :param time:     message time
+        :return: Envelope
+        """
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_envelope(self, envelope: dict) -> Optional[Envelope]:
+        """
+        Parse map object to envelope
+
+        :param envelope: message head info
+        :return: Envelope
+        """
+        raise NotImplemented
+
+
+class EnvelopeFactory(Factory):
+
+    def create_envelope(self, sender: ID, receiver: ID, time: int = 0) -> Envelope:
         if time == 0:
             time = int(time_lib.time())
         env = {
@@ -167,4 +289,10 @@ class Envelope(Dictionary, Generic[IT]):
             'receiver': receiver,
             'time': time
         }
-        return cls(env)
+        return MessageEnvelope(envelope=env, sender=sender, receiver=receiver, time=time)
+
+    def parse_envelope(self, envelope: dict) -> Optional[Envelope]:
+        return MessageEnvelope(envelope=envelope)
+
+
+Envelope.register(factory=EnvelopeFactory())

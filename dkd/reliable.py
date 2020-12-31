@@ -27,16 +27,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # ==============================================================================
+from abc import abstractmethod
+from typing import Optional
 
-from typing import Optional, Generic
+from mkm import SOMap, Meta, Visa, Document
 
-from .types import IT, KT
-from .secure import SecureMessage
+from .secure import SecureMessage, EncryptedMessage
 
 import dkd  # dkd.ReliableMessageDelegate
 
 
-class ReliableMessage(SecureMessage[IT, KT], Generic[IT, KT]):
+class ReliableMessage(SecureMessage):
     """This class is used to sign the SecureMessage
     It contains a 'signature' field which signed with sender's private key
 
@@ -59,26 +60,106 @@ class ReliableMessage(SecureMessage[IT, KT], Generic[IT, KT]):
         }
     """
 
-    def __new__(cls, msg: dict):
-        """
-        Create reliable secure message
+    @property
+    @abstractmethod
+    def signature(self) -> bytes:
+        """ signature for encrypted data of message content """
+        raise NotImplemented
 
-        :param msg: message info
-        :return: ReliableMessage object
+    @property
+    @abstractmethod
+    def meta(self) -> Optional[Meta]:
         """
+            Sender's Meta
+            ~~~~~~~~~~~~~
+            Extends for the first message package of 'Handshake' protocol.
+        """
+        raise NotImplemented
+
+    @meta.setter
+    @abstractmethod
+    def meta(self, value: Meta):
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def visa(self) -> Optional[Visa]:
+        """
+            Sender's Visa Document
+            ~~~~~~~~~~~~~~~~~~~~~~
+            Extends for the first message package of 'Handshake' protocol.
+        """
+        raise NotImplemented
+
+    @visa.setter
+    @abstractmethod
+    def visa(self, value: Visa):
+        raise NotImplemented
+
+    #
+    #  Factory method
+    #
+    @classmethod
+    def parse(cls, msg: dict):  # -> ReliableMessage:
         if msg is None:
             return None
-        elif cls is ReliableMessage:
-            if isinstance(msg, ReliableMessage):
-                # return ReliableMessage object directly
-                return msg
-        # new ReliableMessage(dict)
-        return super().__new__(cls, msg)
+        elif isinstance(msg, ReliableMessage):
+            return msg
+        elif isinstance(msg, SOMap):
+            msg = msg.dictionary
+        factory = cls.factory()
+        assert isinstance(factory, Factory), 'reliable message factory not ready'
+        return factory.parse_reliable_message(msg=msg)
+
+    @classmethod
+    def factory(cls):  # -> Factory:
+        return cls.__factory
+
+    @classmethod
+    def register(cls, factory):
+        cls.__factory = factory
+
+    __factory = None
+
+
+"""
+    Implements
+    ~~~~~~~~~~
+"""
+
+
+def message_meta(msg: dict) -> Optional[Meta]:
+    meta = msg.get('meta')
+    if meta is not None:
+        return Meta.parse(meta=meta)
+
+
+def message_set_meta(msg: dict, meta: Meta):
+    if meta is None:
+        msg.pop('meta', None)
+    else:
+        msg['meta'] = meta
+
+
+def message_visa(msg: dict) -> Optional[Visa]:
+    visa = msg.get('visa')
+    if visa is None:
+        visa = msg.get('profile')
+    if visa is not None:
+        return Document.parse_document(document=visa)
+
+
+def message_set_visa(msg: dict, visa: Visa):
+    msg.pop('visa', None)
+    if visa is None:
+        msg.pop('profile', None)
+    else:
+        msg['profile'] = visa
+
+
+class NetworkMessage(EncryptedMessage, ReliableMessage):
 
     def __init__(self, msg: dict):
-        if self is msg:
-            # no need to init again
-            return
         super().__init__(msg)
         # lazy
         self.__signature = None
@@ -93,37 +174,21 @@ class ReliableMessage(SecureMessage[IT, KT], Generic[IT, KT]):
             self.__signature = delegate.decode_signature(signature=base64, msg=self)
         return self.__signature
 
-    """
-        Sender's Meta
-        ~~~~~~~~~~~~~
-        Extends for the first message package of 'Handshake' protocol.
-    """
     @property
-    def meta(self) -> Optional[dict]:
-        return self.get('meta')
+    def meta(self) -> Optional[Meta]:
+        return message_meta(msg=self.dictionary)
 
     @meta.setter
-    def meta(self, value: dict):
-        if value is None:
-            self.pop('meta', None)
-        else:
-            self['meta'] = value
+    def meta(self, value: Meta):
+        message_set_meta(msg=self.dictionary, meta=value)
 
-    """
-        Sender's Profile
-        ~~~~~~~~~~~~~
-        Extends for the first message package of 'Handshake' protocol.
-    """
     @property
-    def profile(self) -> Optional[dict]:
-        return self.get('profile')
+    def visa(self) -> Optional[Visa]:
+        return message_visa(msg=self.dictionary)
 
-    @profile.setter
-    def profile(self, value: dict):
-        if value is None:
-            self.pop('profile', None)
-        else:
-            self['profile'] = value
+    @visa.setter
+    def visa(self, value: Visa):
+        message_set_visa(msg=self.dictionary, visa=value)
 
     """
         Verify the Reliable Message to Secure Message
@@ -140,7 +205,7 @@ class ReliableMessage(SecureMessage[IT, KT], Generic[IT, KT]):
             +----------+
     """
 
-    def verify(self) -> Optional[SecureMessage[IT, KT]]:
+    def verify(self) -> Optional[SecureMessage]:
         """
         Verify the message.data with signature
 
@@ -157,8 +222,36 @@ class ReliableMessage(SecureMessage[IT, KT], Generic[IT, KT]):
         assert isinstance(delegate, dkd.ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
         if delegate.verify_data_signature(data=data, signature=signature, sender=self.sender, msg=self):
             # 2. pack message
-            msg = self.copy()
+            msg = self.copy_dictionary()
             msg.pop('signature')  # remove 'signature'
-            return SecureMessage[IT, KT](msg)
+            return SecureMessage.parse(msg=msg)
         # else:
         #     raise ValueError('Signature error: %s' % self)
+
+
+"""
+    SecureMessage Factory
+    ~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+
+class Factory:
+
+    @abstractmethod
+    def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
+        """
+        Parse map object to message
+
+        :param msg: message info
+        :return: ReliableMessage
+        """
+        raise NotImplemented
+
+
+class ReliableMessageFactory(Factory):
+
+    def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
+        return NetworkMessage(msg=msg)
+
+
+ReliableMessage.register(factory=ReliableMessageFactory())

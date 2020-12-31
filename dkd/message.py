@@ -48,15 +48,16 @@
             signature = sender.private_key.sign(data)
 """
 
-from typing import Generic
+from abc import abstractmethod
+from typing import Optional
 
-from .types import IT, KT
+from mkm import SOMap, Dictionary, ID
+
 from .envelope import Envelope
+from .delegate import MessageDelegate
 
-import dkd  # dkd.InstantMessage, dkd.ReliableMessage
 
-
-class Message(dict, Generic[IT, KT]):
+class Message(SOMap):
     """This class is used to create a message
     with the envelope fields, such as 'sender', 'receiver', and 'time'
 
@@ -74,63 +75,27 @@ class Message(dict, Generic[IT, KT]):
         }
     """
 
-    # noinspection PyTypeChecker
-    def __new__(cls, msg: dict):
-        """
-        Create message
-
-        :param msg: message info
-        :return: Message object
-        """
-        if msg is None:
-            return None
-        elif cls is Message:
-            if 'content' in msg:
-                # this should be an instant message
-                return dkd.InstantMessage.__new__(dkd.InstantMessage[IT, KT], msg)
-            if 'signature' in msg:
-                # this should be a reliable message
-                return dkd.ReliableMessage.__new__(dkd.ReliableMessage[IT, KT], msg)
-            if 'data' in msg:
-                # this should be a secure message
-                return dkd.SecureMessage.__new__(dkd.SecureMessage[IT, KT], msg)
-            if isinstance(msg, Message):
-                # return Message object directly
-                return msg
-        # subclass or default Message(dict)
-        return super().__new__(cls, msg)
-
-    def __init__(self, msg: dict):
-        if self is msg:
-            # no need to init again
-            return
-        super().__init__(msg)
-        # lazy
-        self.__envelope: Envelope[IT] = None
-
     @property
-    def envelope(self) -> Envelope[IT]:
-        if self.__envelope is None:
-            # let envelope share the same dictionary with message
-            self.__envelope = Envelope[IT](self)
-        return self.__envelope
-
-    @property
-    def delegate(self):  # Optional[MessageDelegate]
-        return self.envelope.delegate
+    @abstractmethod
+    def delegate(self) -> Optional[MessageDelegate]:
+        raise NotImplemented
 
     @delegate.setter
-    def delegate(self, value):
-        self.envelope.delegate = value
-
-    # --------
+    @abstractmethod
+    def delegate(self, handler: MessageDelegate):
+        raise NotImplemented
 
     @property
-    def sender(self) -> IT:
+    @abstractmethod
+    def envelope(self) -> Envelope:
+        raise NotImplemented
+
+    @property
+    def sender(self) -> ID:
         return self.envelope.sender
 
     @property
-    def receiver(self) -> IT:
+    def receiver(self) -> ID:
         return self.envelope.receiver
 
     @property
@@ -138,9 +103,42 @@ class Message(dict, Generic[IT, KT]):
         return self.envelope.time
 
     @property
-    def group(self) -> IT:
+    def group(self) -> Optional[ID]:
         return self.envelope.group
 
     @property
-    def type(self) -> int:
+    def type(self) -> Optional[int]:
         return self.envelope.type
+
+
+"""
+    Implements
+    ~~~~~~~~~~
+"""
+
+
+def message_envelope(msg: dict) -> Envelope:
+    # let envelope share the same dictionary with message
+    return Envelope.parse(envelope=msg)
+
+
+class BaseMessage(Dictionary, Message):
+
+    def __init__(self, msg: dict):
+        super().__init__(msg)
+        self.__delegate = None
+        self.__envelope = None
+
+    @property
+    def delegate(self) -> Optional[MessageDelegate]:
+        return self.__delegate
+
+    @delegate.setter
+    def delegate(self, value: MessageDelegate):
+        self.__delegate = value
+
+    @property
+    def envelope(self) -> Envelope:
+        if self.__envelope is None:
+            self.__envelope = message_envelope(msg=self.dictionary)
+        return self.__envelope

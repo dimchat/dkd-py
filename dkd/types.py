@@ -29,12 +29,6 @@
 # ==============================================================================
 
 from enum import IntEnum
-from typing import TypeVar, MutableMapping, Iterator
-
-
-# generics
-IT = TypeVar('IT', str, object)   # Identifier Type
-KT = TypeVar('KT', dict, object)  # Key Type
 
 
 class ContentType(IntEnum):
@@ -110,38 +104,3 @@ class ContentType(IntEnum):
 
     # top-secret message forward by proxy (Service Provider)
     Forward = 0xFF  # 1111 1111
-
-
-class Dictionary(MutableMapping):
-    """
-        A container sharing the same inner dictionary
-    """
-
-    def __init__(self, dictionary: dict):
-        super().__init__()
-        self.__dictionary = dictionary
-
-    @property
-    def dictionary(self) -> dict:
-        return self.__dictionary
-
-    def __iter__(self) -> Iterator:
-        return iter(self.__dictionary)
-
-    def __len__(self) -> int:
-        return len(self.__dictionary)
-
-    def __setitem__(self, key, value):
-        self.__dictionary[key] = value
-
-    def __getitem__(self, key):
-        return self.__dictionary[key]
-
-    def __delitem__(self, key) -> None:
-        del self.__dictionary[key]
-
-    def get(self, key):
-        return self.__dictionary.get(key)
-
-    def pop(self, key, default=None):
-        return self.__dictionary.pop(key, default)

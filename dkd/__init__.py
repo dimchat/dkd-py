@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from .types import ContentType
-from .content import Content
+from .content import Content, BaseContent, ContentFactory
 from .envelope import Envelope
 
 from .message import Message
@@ -44,16 +44,13 @@ __author__ = 'Albert Moky'
 
 __all__ = [
 
-    # content types
     'ContentType',
 
-    'Content',
+    'Content', 'BaseContent', 'ContentFactory',
     'Envelope',
 
-    # message
     'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
-    # delegate
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 ]

@@ -28,18 +28,19 @@
 # SOFTWARE.
 # ==============================================================================
 
-import weakref
-from typing import Union, Optional, Generic
+from abc import abstractmethod
+from typing import Optional
 
-from .types import IT, KT
+from mkm import SOMap, SymmetricKey, ID
+
 from .envelope import Envelope
 from .content import Content
-from .message import Message
+from .message import Message, BaseMessage
 
 import dkd  # dkd.InstantMessageDelegate, dkd.SecureMessage
 
 
-class InstantMessage(Message[IT, KT], Generic[IT, KT]):
+class InstantMessage(Message):
     """
         Instant Message
         ~~~~~~~~~~~~~~~
@@ -54,57 +55,82 @@ class InstantMessage(Message[IT, KT], Generic[IT, KT]):
         }
     """
 
-    def __new__(cls, msg: dict):
-        """
-        Create instant message
+    @property
+    @abstractmethod
+    def content(self) -> Content:
+        """ message content """
+        raise NotImplemented
 
-        :param msg: message info
-        :return: InstantMessage object
-        """
+    #
+    #  Factory methods
+    #
+    @classmethod
+    def create(cls, head: Envelope, body: Content):  # -> InstantMessage:
+        factory = cls.factory()
+        assert isinstance(factory, Factory), 'instant message factory not ready'
+        return factory.create_instant_message(head=head, body=body)
+
+    @classmethod
+    def parse(cls, msg: dict):  # -> InstantMessage:
         if msg is None:
             return None
-        elif cls is InstantMessage:
-            if isinstance(msg, InstantMessage):
-                # return InstantMessage object directly
-                return msg
-        # new InstantMessage(dict)
-        return super().__new__(cls, msg)
+        elif isinstance(msg, InstantMessage):
+            return msg
+        elif isinstance(msg, SOMap):
+            msg = msg.dictionary
+        factory = cls.factory()
+        assert isinstance(factory, Factory), 'instant message factory not ready'
+        return factory.parse_instant_message(msg=msg)
 
-    def __init__(self, msg: dict):
-        if self is msg:
-            # no need to init again
-            return
+    @classmethod
+    def factory(cls):  # -> Factory:
+        return cls.__factory
+
+    @classmethod
+    def register(cls, factory):
+        cls.__factory = factory
+
+    __factory = None
+
+
+"""
+    Implements
+    ~~~~~~~~~~
+"""
+
+
+def message_content(msg: dict) -> Content:
+    content = msg.get('content')
+    assert content is not None, 'message content not found: %s' % msg
+    return Content.parse(content=content)
+
+
+class PlainMessage(BaseMessage, InstantMessage):
+
+    def __init__(self, msg: Optional[dict]=None, head: Optional[Envelope]=None, body: Optional[Content]=None):
+        if msg is None:
+            assert head is not None, 'message envelope should not be empty'
+            msg = head.dictionary
         super().__init__(msg)
-        self.__delegate: weakref.ReferenceType = None
-        # lazy
-        self.__content: Content[IT] = None
+        self.__content = body
+        if body is not None:
+            self['content'] = body
 
     @property
-    def content(self) -> Content[IT]:
+    def content(self) -> Content:
         if self.__content is None:
-            delegate = self.delegate
-            assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
-            self.__content = delegate.content(self['content'])
+            self.__content = message_content(msg=self.dictionary)
         return self.__content
 
     @property
-    def delegate(self):  # Optional[InstantMessageDelegate]
-        return self.envelope.delegate
-
-    @delegate.setter
-    def delegate(self, value):
-        self.envelope.delegate = value
-        self.content.delegate = value
-
-    @property
-    def time(self) -> Optional[int]:
+    def time(self) -> int:
         value = self.content.time
         if value > 0:
             return value
         return self.envelope.time
 
     @property
-    def group(self) -> IT:
+    def group(self) -> Optional[ID]:
         return self.content.group
 
     @property
@@ -125,7 +151,7 @@ class InstantMessage(Message[IT, KT], Generic[IT, KT]):
                               +----------+
     """
 
-    def encrypt(self, password: KT, members: list=None):  # -> Optional[dkd.SecureMessage]:
+    def encrypt(self, password: SymmetricKey, members: list=None):  # -> Optional[dkd.SecureMessage]:
         """
         Encrypt message content with password(symmetric key)
 
@@ -145,9 +171,9 @@ class InstantMessage(Message[IT, KT], Generic[IT, KT]):
             msg = self.__encrypt_keys(password=password, members=members)
 
         # 3. pack message
-        return dkd.SecureMessage[IT, KT](msg)
+        return dkd.SecureMessage.parse(msg=msg)
 
-    def __encrypt_key(self, password: KT) -> Optional[dict]:
+    def __encrypt_key(self, password: SymmetricKey) -> Optional[dict]:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
@@ -172,7 +198,7 @@ class InstantMessage(Message[IT, KT], Generic[IT, KT]):
         msg['key'] = base64
         return msg
 
-    def __encrypt_keys(self, password: KT, members: list) -> dict:
+    def __encrypt_keys(self, password: SymmetricKey, members: list) -> dict:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
@@ -204,7 +230,7 @@ class InstantMessage(Message[IT, KT], Generic[IT, KT]):
             msg['keys'] = keys
         return msg
 
-    def __prepare_data(self, password: KT) -> dict:
+    def __prepare_data(self, password: SymmetricKey) -> dict:
         delegate = self.delegate
         assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
         # 1. serialize message content
@@ -217,24 +243,49 @@ class InstantMessage(Message[IT, KT], Generic[IT, KT]):
         base64 = delegate.encode_data(data=data, msg=self)
         assert base64 is not None, 'failed to encode content data: %s' % data
         # 4. replace 'content' with encrypted 'data'
-        msg = self.copy()
+        msg = self.copy_dictionary()
         msg.pop('content')  # remove 'content'
         msg['data'] = base64
         return msg
 
-    #
-    #  Factory
-    #
-    @classmethod
-    def new(cls, content: dict, envelope: Union[Envelope, dict]=None,
-            sender: str=None, receiver: str=None, time: int=0):  # InstantMessage
-        # message will share the same dictionary with envelope object
-        if isinstance(envelope, Envelope):
-            msg = envelope.dictionary
-        elif isinstance(envelope, dict):
-            msg = envelope
-        else:
-            envelope = Envelope.new(sender=sender, receiver=receiver, time=time)
-            msg = envelope.dictionary
-        msg['content'] = content
-        return cls(msg)
+
+"""
+    InstantMessage Factory
+    ~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+
+class Factory:
+
+    @abstractmethod
+    def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
+        """
+        Create instant message with envelope & content
+
+        :param head: message envelope
+        :param body: message content
+        :return: InstantMessage
+        """
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_instant_message(self, msg: dict) -> Optional[InstantMessage]:
+        """
+        Parse map object to message
+
+        :param msg: message info
+        :return: InstantMessage
+        """
+        raise NotImplemented
+
+
+class InstantMessageFactory(Factory):
+
+    def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
+        return PlainMessage(head=head, body=body)
+
+    def parse_instant_message(self, msg: dict) -> Optional[InstantMessage]:
+        return PlainMessage(msg=msg)
+
+
+InstantMessage.register(factory=InstantMessageFactory())

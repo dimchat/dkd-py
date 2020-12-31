@@ -28,15 +28,17 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Generic
+from abc import abstractmethod
+from typing import Optional
 
-from .types import IT, KT
-from .message import Message
+from mkm import SOMap, ID
+
+from .message import Message, BaseMessage
 
 import dkd  # dkd.SecureMessageDelegate, dkd.InstantMessage, dkd.ReliableMessage
 
 
-class SecureMessage(Message[IT, KT], Generic[IT, KT]):
+class SecureMessage(Message):
     """Instant Message encrypted by a symmetric key
 
         Secure Message
@@ -56,35 +58,63 @@ class SecureMessage(Message[IT, KT], Generic[IT, KT]):
         }
     """
 
-    def __new__(cls, msg: dict):
-        """
-        Create secure message
+    @property
+    @abstractmethod
+    def data(self) -> bytes:
+        """ encrypted message content """
+        raise NotImplemented
 
-        :param msg: message info
-        :return: SecureMessage object
-        """
+    @property
+    @abstractmethod
+    def encrypted_key(self) -> Optional[bytes]:
+        """ encrypted message key """
+        raise NotImplemented
+
+    @property
+    def encrypted_keys(self) -> Optional[dict]:
+        """ encrypted message keys """
+        raise NotImplemented
+
+    #
+    #  Factory method
+    #
+    @classmethod
+    def parse(cls, msg: dict):  # -> InstantMessage:
         if msg is None:
             return None
-        elif cls is SecureMessage:
-            if 'signature' in msg:
-                # this should be a reliable message
-                # noinspection PyTypeChecker
-                return dkd.ReliableMessage.__new__(dkd.ReliableMessage[IT, KT], msg)
-            elif isinstance(msg, SecureMessage):
-                # return SecureMessage object directly
-                return msg
-        # subclass or SecureMessage(dict)
-        return super().__new__(cls, msg)
+        elif isinstance(msg, SecureMessage):
+            return msg
+        elif isinstance(msg, SOMap):
+            msg = msg.dictionary
+        factory = cls.factory()
+        assert isinstance(factory, Factory), 'secure message factory not ready'
+        return factory.parse_secure_message(msg=msg)
+
+    @classmethod
+    def factory(cls):  # -> Factory:
+        return cls.__factory
+
+    @classmethod
+    def register(cls, factory):
+        cls.__factory = factory
+
+    __factory = None
+
+
+"""
+    Implements
+    ~~~~~~~~~~
+"""
+
+
+class EncryptedMessage(BaseMessage, SecureMessage):
 
     def __init__(self, msg: dict):
-        if self is msg:
-            # no need to init again
-            return
         super().__init__(msg)
         # lazy
-        self.__data: bytes = None
-        self.__key: bytes = None
-        self.__keys: dict = None
+        self.__data = None
+        self.__key = None
+        self.__keys = None
 
     @property
     def data(self) -> bytes:
@@ -131,7 +161,7 @@ class SecureMessage(Message[IT, KT], Generic[IT, KT]):
             +----------+
     """
 
-    def decrypt(self) -> Optional[dkd.InstantMessage[IT, KT]]:
+    def decrypt(self) -> Optional[dkd.InstantMessage]:
         """
         Decrypt message data to plaintext content
 
@@ -184,12 +214,12 @@ class SecureMessage(Message[IT, KT], Generic[IT, KT]):
         #      (do it in 'core' module)
 
         # 3. pack message
-        msg = self.copy()
+        msg = self.copy_dictionary()
         msg.pop('key', None)
         msg.pop('keys', None)
         msg.pop('data')
         msg['content'] = content
-        return dkd.InstantMessage[IT, KT](msg)
+        return dkd.InstantMessage.parse(msg=msg)
 
     """
         Sign the Secure Message to Reliable Message
@@ -222,9 +252,9 @@ class SecureMessage(Message[IT, KT], Generic[IT, KT]):
         base64 = delegate.encode_signature(signature=signature, msg=self)
         assert base64 is not None, 'failed to encode signature: %s' % signature
         # 3. pack message
-        msg = self.copy()
+        msg = self.copy_dictionary()
         msg['signature'] = base64
-        return dkd.ReliableMessage[IT, KT](msg)
+        return dkd.ReliableMessage.parse(msg=msg)
 
     """
         Split/Trim group message
@@ -240,7 +270,7 @@ class SecureMessage(Message[IT, KT], Generic[IT, KT]):
         :param members: All group members
         :return:        A list of SecureMessage objects for all group members
         """
-        msg = self.copy()
+        msg = self.copy_dictionary()
         # check 'keys'
         keys = msg.get('keys')
         if keys is None:
@@ -269,20 +299,20 @@ class SecureMessage(Message[IT, KT], Generic[IT, KT]):
                 msg['key'] = key
             # 4. pack message
             if reliable:
-                messages.append(dkd.ReliableMessage[IT, KT](msg))
+                messages.append(dkd.ReliableMessage.parse(msg=msg))
             else:
-                messages.append(SecureMessage[IT, KT](msg))
+                messages.append(SecureMessage.parse(msg=msg))
         # OK
         return messages
 
-    def trim(self, member: IT):  # -> SecureMessage
+    def trim(self, member: ID):  # -> SecureMessage
         """
         Trim the group message for a member
 
         :param member: Member ID
         :return:       A SecureMessage object drop all irrelevant keys to the member
         """
-        msg = self.copy()
+        msg = self.copy_dictionary()
         # check keys
         keys = msg.get('keys')
         if keys is not None:
@@ -302,6 +332,37 @@ class SecureMessage(Message[IT, KT], Generic[IT, KT]):
         msg['receiver'] = member
         # repack
         if 'signature' in msg:
-            return dkd.ReliableMessage[IT, KT](msg)
+            return dkd.ReliableMessage.parse(msg=msg)
         else:
-            return SecureMessage[IT, KT](msg)
+            return SecureMessage.parse(msg=msg)
+
+
+"""
+    SecureMessage Factory
+    ~~~~~~~~~~~~~~~~~~~~~~
+"""
+
+
+class Factory:
+
+    @abstractmethod
+    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
+        """
+        Parse map object to message
+
+        :param msg: message info
+        :return: SecureMessage
+        """
+        raise NotImplemented
+
+
+class SecureMessageFactory(Factory):
+
+    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
+        if 'signature' in msg:
+            from .reliable import NetworkMessage
+            return NetworkMessage(msg=msg)
+        return EncryptedMessage(msg=msg)
+
+
+SecureMessage.register(factory=SecureMessageFactory())

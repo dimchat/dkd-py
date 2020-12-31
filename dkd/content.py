@@ -28,13 +28,17 @@
 # SOFTWARE.
 # ==============================================================================
 
-import weakref
-from typing import Optional, Generic
+import random
+import time as time_lib
+from abc import abstractmethod
+from typing import Optional, Union
 
-from .types import IT
+from mkm import SOMap, Dictionary, ID
+
+from .types import ContentType
 
 
-class Content(dict, Generic[IT]):
+class Content(SOMap):
     """This class is for creating message content
 
         Message Content
@@ -53,67 +57,181 @@ class Content(dict, Generic[IT]):
         }
     """
 
-    def __init__(self, content: dict):
-        if self is content:
-            # no need to init again
-            return
-        super().__init__(content)
-        self.__delegate: weakref.ReferenceType = None
-        # lazy
-        self.__type: int = None
-        self.__sn: int = None
-        self.__time: int = None
-        self.__group = None
+    @property
+    @abstractmethod
+    def type(self) -> int:
+        """ content type """
+        raise NotImplemented
 
     @property
-    def delegate(self):  # Optional[MessageDelegate[IT]]:
-        if self.__delegate is not None:
-            return self.__delegate()
+    @abstractmethod
+    def serial_number(self) -> int:
+        """ serial number as message id """
+        raise NotImplemented
 
-    @delegate.setter
-    def delegate(self, value):
-        if value is None:
-            self.__delegate = None
-        else:
-            self.__delegate = weakref.ref(value)
+    @property
+    @abstractmethod
+    def time(self) -> Optional[int]:
+        """ message time """
+        raise NotImplemented
+
+    @property
+    @abstractmethod
+    def group(self) -> Optional[ID]:
+        """
+            Group ID/string for group message
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            if field 'group' exists, it means this is a group message
+        """
+        raise NotImplemented
+
+    @group.setter
+    @abstractmethod
+    def group(self, value: ID):
+        raise NotImplemented
+
+    #
+    #  Factory method
+    #
+    @classmethod
+    def parse(cls, content: dict):  # -> Content:
+        if content is None:
+            return None
+        elif isinstance(content, Content):
+            return content
+        elif isinstance(content, SOMap):
+            content = content.dictionary
+        _type = msg_type(content=content)
+        factory = cls.factory(content_type=_type)
+        if factory is None:
+            factory = cls.factory(content_type=0)  # unknown
+            # assert factory is not None, 'cannot parse content: %s' % content
+            if factory is None:
+                return BaseContent(content=content)
+        assert isinstance(factory, ContentFactory), 'content factory error: %d, %s' % (_type, factory)
+        return factory.parse_content(content=content)
+
+    @classmethod
+    def factory(cls, content_type: Union[ContentType, int]):  # -> ContentFactory:
+        if isinstance(content_type, ContentType):
+            content_type = content_type.value
+        return s_factories.get(content_type)
+
+    @classmethod
+    def register(cls, content_type: Union[ContentType, int], factory):
+        if isinstance(content_type, ContentType):
+            content_type = content_type.value
+        s_factories[content_type] = factory
+
+
+"""
+    Implements
+    ~~~~~~~~~~
+"""
+
+
+def msg_type(content: dict) -> int:
+    return int(content.get('type'))
+
+
+def msg_id(content: dict) -> int:
+    return int(content.get('sn'))
+
+
+def msg_time(content: dict) -> Optional[int]:
+    timestamp = content.get('time')
+    if timestamp is not None:
+        return int(timestamp)
+
+
+def content_group(content: dict) -> Optional[ID]:
+    group = content.get('group')
+    if group is not None:
+        return ID.parse(identifier=group)
+
+
+def content_set_group(content: dict, group: ID):
+    if group is None:
+        content.pop('group', None)
+    else:
+        content['group'] = group
+
+
+def random_positive_integer():
+    """
+    :return: random integer greater than 0
+    """
+    return random.randint(1, 2**32-1)
+
+
+class BaseContent(Dictionary, Content):
+
+    def __init__(self, content: Optional[dict]=None, content_type: Union[ContentType, int, None]=None):
+        # check content_type
+        if content_type is None:
+            content_type = 0
+        elif isinstance(content_type, ContentType):
+            content_type = content_type.value
+        # check content info
+        if content is None:
+            content = {
+                'type': content_type,
+                'sn': random_positive_integer(),
+                'time': int(time_lib.time())
+            }
+        super().__init__(content)
+        self.__type = content_type
+        self.__sn: int = 0
+        self.__time: int = 0
+        self.__group = None
 
     # message content type: text, image, ...
     @property
     def type(self) -> int:
-        if self.__type is None:
-            self.__type = int(self['type'])
+        if self.__type is 0:
+            self.__type = msg_type(content=self.dictionary)
         return self.__type
 
     # serial number: random number to identify message content
     @property
     def serial_number(self) -> int:
-        if self.__sn is None:
-            self.__sn = int(self['sn'])
+        if self.__sn is 0:
+            self.__sn = msg_id(content=self.dictionary)
         return self.__sn
 
     @property
-    def time(self) -> int:
-        if self.__time is None:
-            time = self.get('time')
-            if time is None:
-                self.__time = 0
-            else:
-                self.__time = int(time)
+    def time(self) -> Optional[int]:
+        if self.__time is 0:
+            self.__time = msg_time(content=self.dictionary)
         return self.__time
 
-    # Group ID/string for group message
-    #    if field 'group' exists, it means this is a group message
     @property
-    def group(self) -> Optional[IT]:
+    def group(self) -> Optional[ID]:
         if self.__group is None:
-            self.__group = self.delegate.identifier(string=self.get('group'))
+            self.__group = content_group(content=self.dictionary)
         return self.__group
 
     @group.setter
-    def group(self, value: str):
-        if value is None:
-            self.pop('group', None)
-        else:
-            self['group'] = value
-        # lazy load
-        self.__group = None
+    def group(self, value: ID):
+        content_set_group(content=self.dictionary, group=value)
+        self.__group = value
+
+
+"""
+    Content Factory
+    ~~~~~~~~~~~~~~~
+"""
+s_factories = {}
+
+
+class ContentFactory:
+
+    @abstractmethod
+    def parse_content(self, content: dict) -> Optional[Content]:
+        """
+        Parse map object to content
+
+        :param content: content info
+        :return: Content
+        """
+        raise NotImplemented
