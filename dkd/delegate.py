@@ -47,7 +47,7 @@ from .reliable import ReliableMessage
 class MessageDelegate:
 
     @abstractmethod
-    def overt_group(self, content: Content) -> ID:
+    def overt_group(self, content: Content) -> Optional[ID]:
         """
         Get group ID which should be exposed to public network
 
@@ -58,17 +58,6 @@ class MessageDelegate:
 
 
 class InstantMessageDelegate(MessageDelegate):
-
-    """ Delegate for InstantMessage """
-
-    def content(self, content: dict) -> Optional[Content]:
-        """
-        0. Convert Map object to Content object
-
-        :param content: message content info
-        :return: Content object
-        """
-        raise NotImplemented
 
     """ Encrypt Content """
 

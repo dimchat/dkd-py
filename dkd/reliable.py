@@ -96,6 +96,29 @@ class ReliableMessage(SecureMessage):
     def visa(self, value: Visa):
         raise NotImplemented
 
+    """
+        Verify the Reliable Message to Secure Message
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            +----------+      +----------+
+            | sender   |      | sender   |
+            | receiver |      | receiver |
+            | time     |  ->  | time     |
+            |          |      |          |
+            | data     |      | data     |  1. verify(data, signature, sender.PK)
+            | key/keys |      | key/keys |
+            | signature|      +----------+
+            +----------+
+    """
+
+    def verify(self) -> Optional[SecureMessage]:
+        """
+        Verify the message.data with signature
+
+        :return: SecureMessage object if signature matched
+        """
+        raise NotImplemented
+
     #
     #  Factory method
     #
@@ -190,27 +213,7 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
     def visa(self, value: Visa):
         message_set_visa(msg=self.dictionary, visa=value)
 
-    """
-        Verify the Reliable Message to Secure Message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            +----------+      +----------+
-            | sender   |      | sender   |
-            | receiver |      | receiver |
-            | time     |  ->  | time     |
-            |          |      |          |
-            | data     |      | data     |  1. verify(data, signature, sender.PK)
-            | key/keys |      | key/keys |
-            | signature|      +----------+
-            +----------+
-    """
-
     def verify(self) -> Optional[SecureMessage]:
-        """
-        Verify the message.data with signature
-
-        :return: SecureMessage object if signature matched
-        """
         data = self.data
         if data is None:
             raise ValueError('failed to decode content data: %s' % self)

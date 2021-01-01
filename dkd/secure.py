@@ -75,6 +75,77 @@ class SecureMessage(Message):
         """ encrypted message keys """
         raise NotImplemented
 
+    """
+        Decrypt the Secure Message to Instant Message
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            +----------+      +----------+
+            | sender   |      | sender   |
+            | receiver |      | receiver |
+            | time     |  ->  | time     |
+            |          |      |          |  1. PW      = decrypt(key, receiver.SK)
+            | data     |      | content  |  2. content = decrypt(data, PW)
+            | key/keys |      +----------+
+            +----------+
+    """
+
+    @abstractmethod
+    def decrypt(self) -> Optional[dkd.InstantMessage]:
+        """
+        Decrypt message data to plaintext content
+
+        :return: InstantMessage object
+        """
+        raise NotImplemented
+
+    """
+        Sign the Secure Message to Reliable Message
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            +----------+      +----------+
+            | sender   |      | sender   |
+            | receiver |      | receiver |
+            | time     |  ->  | time     |
+            |          |      |          |
+            | data     |      | data     |
+            | key/keys |      | key/keys |
+            +----------+      | signature|  1. signature = sign(data, sender.SK)
+                              +----------+
+    """
+
+    def sign(self):  # -> dkd.ReliableMessage:
+        """
+        Sign the message.data with sender's private key
+
+        :return: ReliableMessage object
+        """
+        raise NotImplemented
+
+    """
+        Split/Trim group message
+        ~~~~~~~~~~~~~~~~~~~~~~~~
+
+        for each members, get key from 'keys' and replace 'receiver' to member ID
+    """
+
+    def split(self, members: list) -> list:
+        """
+        Split the group message to single person messages
+
+        :param members: All group members
+        :return:        A list of SecureMessage objects for all group members
+        """
+        raise NotImplemented
+
+    def trim(self, member: ID):  # -> SecureMessage
+        """
+        Trim the group message for a member
+
+        :param member: Member ID
+        :return:       A SecureMessage object drop all irrelevant keys to the member
+        """
+        raise NotImplemented
+
     #
     #  Factory method
     #
@@ -147,26 +218,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
             self.__keys = self.get('keys')
         return self.__keys
 
-    """
-        Decrypt the Secure Message to Instant Message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            +----------+      +----------+
-            | sender   |      | sender   |
-            | receiver |      | receiver |
-            | time     |  ->  | time     |
-            |          |      |          |  1. PW      = decrypt(key, receiver.SK)
-            | data     |      | content  |  2. content = decrypt(data, PW)
-            | key/keys |      +----------+
-            +----------+
-    """
-
     def decrypt(self) -> Optional[dkd.InstantMessage]:
-        """
-        Decrypt message data to plaintext content
-
-        :return: InstantMessage object
-        """
         sender = self.sender
         group = self.group
         if group is None:
@@ -221,27 +273,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         msg['content'] = content
         return dkd.InstantMessage.parse(msg=msg)
 
-    """
-        Sign the Secure Message to Reliable Message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            +----------+      +----------+
-            | sender   |      | sender   |
-            | receiver |      | receiver |
-            | time     |  ->  | time     |
-            |          |      |          |
-            | data     |      | data     |
-            | key/keys |      | key/keys |
-            +----------+      | signature|  1. signature = sign(data, sender.SK)
-                              +----------+
-    """
-
     def sign(self):  # -> dkd.ReliableMessage:
-        """
-        Sign the message.data with sender's private key
-
-        :return: ReliableMessage object
-        """
         data = self.data
         delegate = self.delegate
         assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
@@ -256,20 +288,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         msg['signature'] = base64
         return dkd.ReliableMessage.parse(msg=msg)
 
-    """
-        Split/Trim group message
-        ~~~~~~~~~~~~~~~~~~~~~~~~
-        
-        for each members, get key from 'keys' and replace 'receiver' to member ID
-    """
-
     def split(self, members: list) -> list:
-        """
-        Split the group message to single person messages
-
-        :param members: All group members
-        :return:        A list of SecureMessage objects for all group members
-        """
         msg = self.copy_dictionary()
         # check 'keys'
         keys = msg.get('keys')
@@ -306,12 +325,6 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         return messages
 
     def trim(self, member: ID):  # -> SecureMessage
-        """
-        Trim the group message for a member
-
-        :param member: Member ID
-        :return:       A SecureMessage object drop all irrelevant keys to the member
-        """
         msg = self.copy_dictionary()
         # check keys
         keys = msg.get('keys')

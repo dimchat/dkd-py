@@ -61,6 +61,31 @@ class InstantMessage(Message):
         """ message content """
         raise NotImplemented
 
+    """
+        Encrypt the Instant Message to Secure Message
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            +----------+      +----------+
+            | sender   |      | sender   |
+            | receiver |      | receiver |
+            | time     |  ->  | time     |
+            |          |      |          |
+            | content  |      | data     |  1. data = encrypt(content, PW)
+            +----------+      | key/keys |  2. key  = encrypt(PW, receiver.PK)
+                              +----------+
+    """
+
+    @abstractmethod
+    def encrypt(self, password: SymmetricKey, members: list = None):  # -> Optional[dkd.SecureMessage]:
+        """
+        Encrypt message content with password(symmetric key)
+
+        :param password: A symmetric key for encrypting message content
+        :param members:  If this is a group message, get all members here
+        :return: SecureMessage object
+        """
+        raise NotImplemented
+
     #
     #  Factory methods
     #
@@ -134,28 +159,7 @@ class PlainMessage(BaseMessage, InstantMessage):
     def type(self) -> Optional[int]:
         return self.content.type
 
-    """
-        Encrypt the Instant Message to Secure Message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            +----------+      +----------+
-            | sender   |      | sender   |
-            | receiver |      | receiver |
-            | time     |  ->  | time     |
-            |          |      |          |
-            | content  |      | data     |  1. data = encrypt(content, PW)
-            +----------+      | key/keys |  2. key  = encrypt(PW, receiver.PK)
-                              +----------+
-    """
-
     def encrypt(self, password: SymmetricKey, members: list=None):  # -> Optional[dkd.SecureMessage]:
-        """
-        Encrypt message content with password(symmetric key)
-
-        :param password: A symmetric key for encrypting message content
-        :param members:  If this is a group message, get all members here
-        :return: SecureMessage object
-        """
         # 0. check attachment for File/Image/Audio/Video message content
         #    (do it in 'core' module)
 
