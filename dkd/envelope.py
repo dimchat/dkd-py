@@ -32,7 +32,8 @@ import time as time_lib
 from abc import abstractmethod
 from typing import Optional, Union
 
-from mkm import SOMap, Dictionary, ID
+from mkm.crypto import SOMap, Dictionary
+from mkm import ID
 
 from .types import ContentType
 

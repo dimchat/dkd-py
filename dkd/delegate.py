@@ -31,7 +31,8 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm import SymmetricKey, ID
+from mkm.crypto import SymmetricKey
+from mkm import ID
 
 from .content import Content
 from .instant import InstantMessage

@@ -31,7 +31,8 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm import SOMap, ID
+from mkm.crypto import SOMap
+from mkm import ID
 
 import dkd  # dkd.SecureMessageDelegate, dkd.InstantMessage, dkd.ReliableMessage
 

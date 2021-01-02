@@ -30,7 +30,8 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm import SOMap, Meta, Visa, Document
+from mkm.crypto import SOMap
+from mkm import Meta, Visa, Document
 
 import dkd  # dkd.ReliableMessageDelegate
 

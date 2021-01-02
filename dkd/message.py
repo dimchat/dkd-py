@@ -51,7 +51,8 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm import SOMap, Dictionary, ID
+from mkm.crypto import SOMap, Dictionary
+from mkm import ID
 
 import dkd  # dkd.MessageDelegate
 
