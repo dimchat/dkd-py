@@ -55,8 +55,6 @@ from typing import Optional
 from mkm.crypto import SOMap, Dictionary
 from mkm import ID
 
-import dkd  # dkd.MessageDelegate
-
 from .envelope import Envelope
 
 
@@ -80,12 +78,12 @@ class Message(SOMap):
 
     @property
     @abstractmethod
-    def delegate(self) -> Optional[dkd.MessageDelegate]:
+    def delegate(self):  # -> Optional[dkd.MessageDelegate]:
         raise NotImplemented
 
     @delegate.setter
     @abstractmethod
-    def delegate(self, handler: dkd.MessageDelegate):
+    def delegate(self, handler):
         raise NotImplemented
 
     @property
@@ -136,12 +134,12 @@ class BaseMessage(Dictionary, Message):
         self.__envelope: Envelope = head
 
     @property
-    def delegate(self) -> Optional[dkd.MessageDelegate]:
+    def delegate(self):  # -> Optional[dkd.MessageDelegate]:
         if self.__delegate is not None:
             return self.__delegate()
 
     @delegate.setter
-    def delegate(self, value: dkd.MessageDelegate):
+    def delegate(self, value):
         self.__delegate = weakref.ref(value)
 
     @property

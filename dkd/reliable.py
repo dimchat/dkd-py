@@ -170,7 +170,7 @@ def message_visa(msg: dict) -> Optional[Visa]:
     if visa is None:
         visa = msg.get('profile')
     if visa is not None:
-        return Document.parse_document(document=visa)
+        return Document.parse(document=visa)
 
 
 def message_set_visa(msg: dict, visa: Visa):
