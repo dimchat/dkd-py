@@ -181,7 +181,7 @@ def envelope_set_group(envelope: dict, group: ID):
     if group is None:
         envelope.pop('group', None)
     else:
-        envelope['group'] = group
+        envelope['group'] = str(group)
 
 
 def envelope_type(envelope: dict) -> Optional[int]:
@@ -190,7 +190,9 @@ def envelope_type(envelope: dict) -> Optional[int]:
         return int(_type)
 
 
-def envelope_set_type(envelope: dict, content_type: int):
+def envelope_set_type(envelope: dict, content_type: Union[ContentType, int]):
+    if isinstance(content_type, ContentType):
+        content_type = content_type.value
     if content_type is 0:
         envelope.pop('type', None)
     else:
@@ -213,9 +215,9 @@ class MessageEnvelope(Dictionary, Envelope):
         self.__type = 0
         # set values to inner dictionary
         if sender is not None:
-            self['sender'] = sender
+            self['sender'] = str(sender)
         if receiver is not None:
-            self['receiver'] = receiver
+            self['receiver'] = str(receiver)
         if time > 0:
             self['time'] = time
 
@@ -255,7 +257,7 @@ class MessageEnvelope(Dictionary, Envelope):
         return self.__type
 
     @type.setter
-    def type(self, value: int):
+    def type(self, value: Union[ContentType, int]):
         envelope_set_type(envelope=self.dictionary, content_type=value)
         self.__type = value
 

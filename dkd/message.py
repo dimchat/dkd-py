@@ -48,6 +48,7 @@
             signature = sender.private_key.sign(data)
 """
 
+import weakref
 from abc import abstractmethod
 from typing import Optional
 
@@ -131,16 +132,17 @@ class BaseMessage(Dictionary, Message):
             assert head is not None, 'message envelope should not be empty'
             msg = head.dictionary
         super().__init__(dictionary=msg)
-        self.__delegate = None
-        self.__envelope = head
+        self.__delegate: weakref.ReferenceType = None
+        self.__envelope: Envelope = head
 
     @property
     def delegate(self) -> Optional[dkd.MessageDelegate]:
-        return self.__delegate
+        if self.__delegate is not None:
+            return self.__delegate()
 
     @delegate.setter
     def delegate(self, value: dkd.MessageDelegate):
-        self.__delegate = value
+        self.__delegate = weakref.ref(value)
 
     @property
     def envelope(self) -> Envelope:

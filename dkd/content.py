@@ -155,7 +155,7 @@ def content_set_group(content: dict, group: ID):
     if group is None:
         content.pop('group', None)
     else:
-        content['group'] = group
+        content['group'] = str(group)
 
 
 def random_positive_integer():

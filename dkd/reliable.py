@@ -162,7 +162,7 @@ def message_set_meta(msg: dict, meta: Meta):
     if meta is None:
         msg.pop('meta', None)
     else:
-        msg['meta'] = meta
+        msg['meta'] = meta.dictionary
 
 
 def message_visa(msg: dict) -> Optional[Visa]:
@@ -178,7 +178,7 @@ def message_set_visa(msg: dict, visa: Visa):
     if visa is None:
         msg.pop('profile', None)
     else:
-        msg['profile'] = visa
+        msg['profile'] = visa.dictionary
 
 
 class NetworkMessage(EncryptedMessage, ReliableMessage):
@@ -187,12 +187,14 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
         super().__init__(msg=msg)
         # lazy
         self.__signature = None
+        self.__meta = None
+        self.__visa = None
 
     @property
     def signature(self) -> bytes:
         if self.__signature is None:
             base64 = self.get('signature')
-            assert base64 is not None, 'signature of reliable message cannot be empty: %s' % self
+            assert isinstance(base64, str), 'signature of reliable message cannot be empty: %s' % self
             delegate = self.delegate
             assert isinstance(delegate, dkd.ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
             self.__signature = delegate.decode_signature(signature=base64, msg=self)
@@ -200,19 +202,25 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
 
     @property
     def meta(self) -> Optional[Meta]:
-        return message_meta(msg=self.dictionary)
+        if self.__meta is None:
+            self.__meta = message_meta(msg=self.dictionary)
+        return self.__meta
 
     @meta.setter
     def meta(self, value: Meta):
         message_set_meta(msg=self.dictionary, meta=value)
+        self.__meta = value
 
     @property
     def visa(self) -> Optional[Visa]:
-        return message_visa(msg=self.dictionary)
+        if self.__visa is None:
+            self.__visa = message_visa(msg=self.dictionary)
+        return self.__visa
 
     @visa.setter
     def visa(self, value: Visa):
         message_set_visa(msg=self.dictionary, visa=value)
+        self.__visa = value
 
     def verify(self) -> Optional[SecureMessage]:
         data = self.data
