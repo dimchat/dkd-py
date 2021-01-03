@@ -52,13 +52,13 @@ import weakref
 from abc import abstractmethod
 from typing import Optional
 
-from mkm.crypto import SOMap, Dictionary
+from mkm.crypto import Map, Dictionary
 from mkm import ID
 
 from .envelope import Envelope
 
 
-class Message(SOMap):
+class Message(Map):
     """This class is used to create a message
     with the envelope fields, such as 'sender', 'receiver', and 'time'
 

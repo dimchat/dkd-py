@@ -30,7 +30,7 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm.crypto import SOMap
+from mkm.crypto import Map
 from mkm import Meta, Visa, Document
 
 import dkd  # dkd.ReliableMessageDelegate
@@ -129,7 +129,7 @@ class ReliableMessage(SecureMessage):
             return None
         elif isinstance(msg, ReliableMessage):
             return msg
-        elif isinstance(msg, SOMap):
+        elif isinstance(msg, Map):
             msg = msg.dictionary
         factory = cls.factory()
         assert isinstance(factory, Factory), 'reliable message factory not ready'
@@ -242,8 +242,8 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
 
 
 """
-    SecureMessage Factory
-    ~~~~~~~~~~~~~~~~~~~~~~
+    ReliableMessage Factory
+    ~~~~~~~~~~~~~~~~~~~~~~~
 """
 
 
@@ -266,4 +266,5 @@ class ReliableMessageFactory(Factory):
         return NetworkMessage(msg=msg)
 
 
+# register SecureMessage factory
 ReliableMessage.register(factory=ReliableMessageFactory())

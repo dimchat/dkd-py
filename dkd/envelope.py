@@ -32,13 +32,13 @@ import time as time_lib
 from abc import abstractmethod
 from typing import Optional, Union
 
-from mkm.crypto import SOMap, Dictionary
+from mkm.crypto import Map, Dictionary
 from mkm import ID
 
 from .types import ContentType
 
 
-class Envelope(SOMap):
+class Envelope(Map):
     """This class is used to create a message envelope
     which contains 'sender', 'receiver' and 'time'
 
@@ -132,7 +132,7 @@ class Envelope(SOMap):
             return None
         elif isinstance(envelope, Envelope):
             return envelope
-        elif isinstance(envelope, SOMap):
+        elif isinstance(envelope, Map):
             envelope = envelope.dictionary
         factory = cls.factory()
         assert isinstance(factory, Factory), 'envelope factory not ready'
@@ -302,4 +302,5 @@ class EnvelopeFactory(Factory):
         return MessageEnvelope(envelope=envelope)
 
 
+# register Envelope factory
 Envelope.register(factory=EnvelopeFactory())

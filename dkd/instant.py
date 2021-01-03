@@ -31,7 +31,7 @@
 from abc import abstractmethod
 from typing import Optional
 
-from mkm.crypto import SOMap, SymmetricKey
+from mkm.crypto import Map, SymmetricKey
 from mkm import ID
 
 import dkd  # dkd.InstantMessageDelegate, dkd.SecureMessage
@@ -102,7 +102,7 @@ class InstantMessage(Message):
             return None
         elif isinstance(msg, InstantMessage):
             return msg
-        elif isinstance(msg, SOMap):
+        elif isinstance(msg, Map):
             msg = msg.dictionary
         factory = cls.factory()
         assert isinstance(factory, Factory), 'instant message factory not ready'
@@ -290,4 +290,5 @@ class InstantMessageFactory(Factory):
         return PlainMessage(msg=msg)
 
 
+# register InstantMessage factory
 InstantMessage.register(factory=InstantMessageFactory())

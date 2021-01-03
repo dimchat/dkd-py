@@ -33,13 +33,13 @@ import time as time_lib
 from abc import abstractmethod
 from typing import Optional, Union
 
-from mkm.crypto import SOMap, Dictionary
+from mkm.crypto import Map, Dictionary
 from mkm import ID
 
 from .types import ContentType
 
 
-class Content(SOMap):
+class Content(Map):
     """This class is for creating message content
 
         Message Content
@@ -92,15 +92,41 @@ class Content(SOMap):
         raise NotImplemented
 
     #
-    #  Factory method
+    #  Factory for creating Content
     #
+    class Factory:
+
+        @abstractmethod
+        def parse_content(self, content: dict):  # -> Optional[Content]:
+            """
+            Parse map object to content
+
+            :param content: content info
+            :return: Content
+            """
+            raise NotImplemented
+
+    __factories = {}  # type -> factory
+
+    @classmethod
+    def register(cls, content_type: Union[ContentType, int], factory: Factory):
+        if isinstance(content_type, ContentType):
+            content_type = content_type.value
+        cls.__factories[content_type] = factory
+
+    @classmethod
+    def factory(cls, content_type: Union[ContentType, int]) -> Factory:
+        if isinstance(content_type, ContentType):
+            content_type = content_type.value
+        return cls.__factories.get(content_type)
+
     @classmethod
     def parse(cls, content: dict):  # -> Content:
         if content is None:
             return None
         elif isinstance(content, Content):
             return content
-        elif isinstance(content, SOMap):
+        elif isinstance(content, Map):
             content = content.dictionary
         _type = msg_type(content=content)
         factory = cls.factory(content_type=_type)
@@ -109,20 +135,8 @@ class Content(SOMap):
             # assert factory is not None, 'cannot parse content: %s' % content
             if factory is None:
                 return BaseContent(content=content)
-        assert isinstance(factory, ContentFactory), 'content factory error: %d, %s' % (_type, factory)
+        assert isinstance(factory, cls.Factory), 'content factory error: %d, %s' % (_type, factory)
         return factory.parse_content(content=content)
-
-    @classmethod
-    def factory(cls, content_type: Union[ContentType, int]):  # -> ContentFactory:
-        if isinstance(content_type, ContentType):
-            content_type = content_type.value
-        return s_factories.get(content_type)
-
-    @classmethod
-    def register(cls, content_type: Union[ContentType, int], factory):
-        if isinstance(content_type, ContentType):
-            content_type = content_type.value
-        s_factories[content_type] = factory
 
 
 """
@@ -217,23 +231,3 @@ class BaseContent(Dictionary, Content):
     def group(self, value: ID):
         content_set_group(content=self.dictionary, group=value)
         self.__group = value
-
-
-"""
-    Content Factory
-    ~~~~~~~~~~~~~~~
-"""
-s_factories = {}
-
-
-class ContentFactory:
-
-    @abstractmethod
-    def parse_content(self, content: dict) -> Optional[Content]:
-        """
-        Parse map object to content
-
-        :param content: content info
-        :return: Content
-        """
-        raise NotImplemented

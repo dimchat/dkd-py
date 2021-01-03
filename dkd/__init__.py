@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from .types import ContentType
-from .content import Content, BaseContent, ContentFactory
+from .content import Content, BaseContent
 from .envelope import Envelope
 
 from .message import Message
@@ -46,7 +46,7 @@ __all__ = [
 
     'ContentType',
 
-    'Content', 'BaseContent', 'ContentFactory',
+    'Content', 'BaseContent',
     'Envelope',
 
     'Message',
