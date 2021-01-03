@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from mkm.crypto import Map, SymmetricKey
 from mkm import ID
@@ -77,7 +77,7 @@ class InstantMessage(Message):
     """
 
     @abstractmethod
-    def encrypt(self, password: SymmetricKey, members: list = None):  # -> Optional[dkd.SecureMessage]:
+    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]]=None):  # -> Optional[dkd.SecureMessage]:
         """
         Encrypt message content with password(symmetric key)
 
@@ -88,12 +88,45 @@ class InstantMessage(Message):
         raise NotImplemented
 
     #
-    #  Factory methods
+    #   InstantMessage factory
     #
+    class Factory:
+
+        @abstractmethod
+        def create_instant_message(self, head: Envelope, body: Content):  # -> InstantMessage:
+            """
+            Create instant message with envelope & content
+
+            :param head: message envelope
+            :param body: message content
+            :return: InstantMessage
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def parse_instant_message(self, msg: dict):  # -> Optional[InstantMessage]:
+            """
+            Parse map object to message
+
+            :param msg: message info
+            :return: InstantMessage
+            """
+            raise NotImplemented
+
+    __factory = None
+
+    @classmethod
+    def register(cls, factory: Factory):
+        cls.__factory = factory
+
+    @classmethod
+    def factory(cls) -> Factory:
+        return cls.__factory
+
     @classmethod
     def create(cls, head: Envelope, body: Content):  # -> InstantMessage:
         factory = cls.factory()
-        assert isinstance(factory, Factory), 'instant message factory not ready'
+        assert factory is not None, 'instant message factory not ready'
         return factory.create_instant_message(head=head, body=body)
 
     @classmethod
@@ -105,18 +138,8 @@ class InstantMessage(Message):
         elif isinstance(msg, Map):
             msg = msg.dictionary
         factory = cls.factory()
-        assert isinstance(factory, Factory), 'instant message factory not ready'
+        assert factory is not None, 'instant message factory not ready'
         return factory.parse_instant_message(msg=msg)
-
-    @classmethod
-    def factory(cls):  # -> Factory:
-        return cls.__factory
-
-    @classmethod
-    def register(cls, factory):
-        cls.__factory = factory
-
-    __factory = None
 
 
 """
@@ -160,7 +183,7 @@ class PlainMessage(BaseMessage, InstantMessage):
     def type(self) -> Optional[int]:
         return self.content.type
 
-    def encrypt(self, password: SymmetricKey, members: list=None):  # -> Optional[dkd.SecureMessage]:
+    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]]=None):  # -> Optional[dkd.SecureMessage]:
         # 0. check attachment for File/Image/Audio/Video message content
         #    (do it in 'core' module)
 
@@ -200,7 +223,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         msg['key'] = base64
         return msg
 
-    def __encrypt_keys(self, password: SymmetricKey, members: list) -> dict:
+    def __encrypt_keys(self, password: SymmetricKey, members: List[ID]) -> dict:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
@@ -257,31 +280,7 @@ class PlainMessage(BaseMessage, InstantMessage):
 """
 
 
-class Factory:
-
-    @abstractmethod
-    def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
-        """
-        Create instant message with envelope & content
-
-        :param head: message envelope
-        :param body: message content
-        :return: InstantMessage
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def parse_instant_message(self, msg: dict) -> Optional[InstantMessage]:
-        """
-        Parse map object to message
-
-        :param msg: message info
-        :return: InstantMessage
-        """
-        raise NotImplemented
-
-
-class InstantMessageFactory(Factory):
+class InstantMessageFactory(InstantMessage.Factory):
 
     def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
         return PlainMessage(head=head, body=body)

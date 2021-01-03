@@ -92,7 +92,7 @@ class Content(Map):
         raise NotImplemented
 
     #
-    #  Factory for creating Content
+    #   Content factory
     #
     class Factory:
 
@@ -132,10 +132,7 @@ class Content(Map):
         factory = cls.factory(content_type=_type)
         if factory is None:
             factory = cls.factory(content_type=0)  # unknown
-            # assert factory is not None, 'cannot parse content: %s' % content
-            if factory is None:
-                return BaseContent(content=content)
-        assert isinstance(factory, cls.Factory), 'content factory error: %d, %s' % (_type, factory)
+            assert factory is not None, 'cannot parse content: %s' % content
         return factory.parse_content(content=content)
 
 

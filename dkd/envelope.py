@@ -118,12 +118,46 @@ class Envelope(Map):
         raise NotImplemented
 
     #
-    #  Factory methods
+    #   Envelope factory
     #
+    class Factory:
+
+        @abstractmethod
+        def create_envelope(self, sender: ID, receiver: ID, time: int=0):  # -> Envelope:
+            """
+            Create envelope
+
+            :param sender:   sender ID
+            :param receiver: receiver ID
+            :param time:     message time
+            :return: Envelope
+            """
+            raise NotImplemented
+
+        @abstractmethod
+        def parse_envelope(self, envelope: dict):  # -> Optional[Envelope]:
+            """
+            Parse map object to envelope
+
+            :param envelope: message head info
+            :return: Envelope
+            """
+            raise NotImplemented
+
+    __factory = None
+
+    @classmethod
+    def register(cls, factory: Factory):
+        cls.__factory = factory
+
+    @classmethod
+    def factory(cls) -> Factory:
+        return cls.__factory
+
     @classmethod
     def create(cls, sender: ID, receiver: ID, time: int=0):  # -> Envelope:
         factory = cls.factory()
-        assert isinstance(factory, Factory), 'envelope factory not ready'
+        assert factory is not None, 'envelope factory not ready'
         return factory.create_envelope(sender=sender, receiver=receiver, time=time)
 
     @classmethod
@@ -135,18 +169,8 @@ class Envelope(Map):
         elif isinstance(envelope, Map):
             envelope = envelope.dictionary
         factory = cls.factory()
-        assert isinstance(factory, Factory), 'envelope factory not ready'
+        assert factory is not None, 'envelope factory not ready'
         return factory.parse_envelope(envelope=envelope)
-
-    @classmethod
-    def factory(cls):  # -> Factory:
-        return cls.__factory
-
-    @classmethod
-    def register(cls, factory):
-        cls.__factory = factory
-
-    __factory = None
 
 
 """
@@ -268,32 +292,7 @@ class MessageEnvelope(Dictionary, Envelope):
 """
 
 
-class Factory:
-
-    @abstractmethod
-    def create_envelope(self, sender: ID, receiver: ID, time: int=0) -> Envelope:
-        """
-        Create envelope
-
-        :param sender:   sender ID
-        :param receiver: receiver ID
-        :param time:     message time
-        :return: Envelope
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def parse_envelope(self, envelope: dict) -> Optional[Envelope]:
-        """
-        Parse map object to envelope
-
-        :param envelope: message head info
-        :return: Envelope
-        """
-        raise NotImplemented
-
-
-class EnvelopeFactory(Factory):
+class EnvelopeFactory(Envelope.Factory):
 
     def create_envelope(self, sender: ID, receiver: ID, time: int=0) -> Envelope:
         return MessageEnvelope(sender=sender, receiver=receiver, time=time)

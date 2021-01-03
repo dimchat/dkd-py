@@ -121,8 +121,30 @@ class ReliableMessage(SecureMessage):
         raise NotImplemented
 
     #
-    #  Factory method
+    #   ReliableMessage factory
     #
+    class Factory:
+
+        @abstractmethod
+        def parse_reliable_message(self, msg: dict):  # -> Optional[ReliableMessage]:
+            """
+            Parse map object to message
+
+            :param msg: message info
+            :return: ReliableMessage
+            """
+            raise NotImplemented
+
+    __factory = None
+
+    @classmethod
+    def register(cls, factory: Factory):
+        cls.__factory = factory
+
+    @classmethod
+    def factory(cls) -> Factory:
+        return cls.__factory
+
     @classmethod
     def parse(cls, msg: dict):  # -> ReliableMessage:
         if msg is None:
@@ -132,18 +154,8 @@ class ReliableMessage(SecureMessage):
         elif isinstance(msg, Map):
             msg = msg.dictionary
         factory = cls.factory()
-        assert isinstance(factory, Factory), 'reliable message factory not ready'
+        assert factory is not None, 'reliable message factory not ready'
         return factory.parse_reliable_message(msg=msg)
-
-    @classmethod
-    def factory(cls):  # -> Factory:
-        return cls.__factory
-
-    @classmethod
-    def register(cls, factory):
-        cls.__factory = factory
-
-    __factory = None
 
 
 """
@@ -194,7 +206,7 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
     def signature(self) -> bytes:
         if self.__signature is None:
             base64 = self.get('signature')
-            assert isinstance(base64, str), 'signature of reliable message cannot be empty: %s' % self
+            assert base64 is not None, 'signature of reliable message cannot be empty: %s' % self
             delegate = self.delegate
             assert isinstance(delegate, dkd.ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
             self.__signature = delegate.decode_signature(signature=base64, msg=self)
@@ -247,20 +259,7 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
 """
 
 
-class Factory:
-
-    @abstractmethod
-    def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
-        """
-        Parse map object to message
-
-        :param msg: message info
-        :return: ReliableMessage
-        """
-        raise NotImplemented
-
-
-class ReliableMessageFactory(Factory):
+class ReliableMessageFactory(ReliableMessage.Factory):
 
     def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
         return NetworkMessage(msg=msg)

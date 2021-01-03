@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from mkm.crypto import Map
 from mkm import ID
@@ -148,8 +148,30 @@ class SecureMessage(Message):
         raise NotImplemented
 
     #
-    #  Factory method
+    #   SecureMessage factory
     #
+    class Factory:
+
+        @abstractmethod
+        def parse_secure_message(self, msg: dict):  # -> Optional[SecureMessage]:
+            """
+            Parse map object to message
+
+            :param msg: message info
+            :return: SecureMessage
+            """
+            raise NotImplemented
+
+    __factory = None
+
+    @classmethod
+    def register(cls, factory: Factory):
+        cls.__factory = factory
+
+    @classmethod
+    def factory(cls) -> Factory:
+        return cls.__factory
+
     @classmethod
     def parse(cls, msg: dict):  # -> InstantMessage:
         if msg is None:
@@ -159,18 +181,8 @@ class SecureMessage(Message):
         elif isinstance(msg, Map):
             msg = msg.dictionary
         factory = cls.factory()
-        assert isinstance(factory, Factory), 'secure message factory not ready'
+        assert factory is not None, 'secure message factory not ready'
         return factory.parse_secure_message(msg=msg)
-
-    @classmethod
-    def factory(cls):  # -> Factory:
-        return cls.__factory
-
-    @classmethod
-    def register(cls, factory):
-        cls.__factory = factory
-
-    __factory = None
 
 
 """
@@ -192,7 +204,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
     def data(self) -> bytes:
         if self.__data is None:
             base64 = self.get('data')
-            assert isinstance(base64, str), 'secure message data cannot be empty'
+            assert base64 is not None, 'secure message data cannot be empty'
             delegate = self.delegate
             assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
             self.__data = delegate.decode_data(data=base64, msg=self)
@@ -289,7 +301,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         msg['signature'] = base64
         return dkd.ReliableMessage.parse(msg=msg)
 
-    def split(self, members: list) -> list:
+    def split(self, members: List[ID]) -> list:
         msg = self.copy_dictionary()
         # check 'keys'
         keys = msg.get('keys')
@@ -357,20 +369,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
 """
 
 
-class Factory:
-
-    @abstractmethod
-    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
-        """
-        Parse map object to message
-
-        :param msg: message info
-        :return: SecureMessage
-        """
-        raise NotImplemented
-
-
-class SecureMessageFactory(Factory):
+class SecureMessageFactory(SecureMessage.Factory):
 
     def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
         if 'signature' in msg:
