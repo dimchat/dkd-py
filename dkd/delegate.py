@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm.crypto import SymmetricKey
@@ -45,23 +45,15 @@ from .reliable import ReliableMessage
 #
 
 
-class MessageDelegate:
-
-    @abstractmethod
-    def overt_group(self, content: Content) -> Optional[ID]:
-        """
-        Get group ID which should be exposed to public network
-
-        :param content: message content
-        :return: exposed group ID
-        """
-        raise NotImplemented
+class MessageDelegate(ABC):
+    pass
 
 
 class InstantMessageDelegate(MessageDelegate):
 
     """ Encrypt Content """
 
+    @abstractmethod
     def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
         """
         1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
@@ -98,6 +90,7 @@ class InstantMessageDelegate(MessageDelegate):
 
     """ Encrypt Key """
 
+    @abstractmethod
     def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
         """
         4. Serialize message key to data (JsON / ProtoBuf / ...)
@@ -162,6 +155,7 @@ class SecureMessageDelegate(MessageDelegate):
         """
         raise NotImplemented
 
+    @abstractmethod
     def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID, msg: SecureMessage) -> SymmetricKey:
         """
         3. Deserialize message key from data (JsON / ProtoBuf / ...)
@@ -199,6 +193,7 @@ class SecureMessageDelegate(MessageDelegate):
         """
         raise NotImplemented
 
+    @abstractmethod
     def deserialize_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
         """
         6. Deserialize message content from data (JsON / ProtoBuf / ...)
