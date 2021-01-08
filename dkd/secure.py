@@ -283,7 +283,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         msg.pop('key', None)
         msg.pop('keys', None)
         msg.pop('data')
-        msg['content'] = content
+        msg['content'] = content.dictionary
         return dkd.InstantMessage.parse(msg=msg)
 
     def sign(self):  # -> dkd.ReliableMessage:
@@ -317,12 +317,12 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         #    when the group message separated to multi-messages;
         #    if don't want the others know your membership,
         #    DON'T do this.
-        msg['group'] = self.receiver
+        msg['group'] = str(self.receiver)
 
         messages = []
         for member in members:
             # 2. change 'receiver' to each group member
-            msg['receiver'] = member
+            msg['receiver'] = str(member)
             # 3. get encrypted key
             key = keys.get(member)
             if key is None:
@@ -353,9 +353,9 @@ class EncryptedMessage(BaseMessage, SecureMessage):
             # if 'group' not exists, the 'receiver' must be a group ID here, and
             # it will not be equal to the member of course,
             # so move 'receiver' to 'group'
-            msg['group'] = self.receiver
+            msg['group'] = str(self.receiver)
         # replace receiver
-        msg['receiver'] = member
+        msg['receiver'] = str(member)
         # repack
         if 'signature' in msg:
             return dkd.ReliableMessage.parse(msg=msg)
