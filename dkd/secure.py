@@ -129,7 +129,7 @@ class SecureMessage(Message):
         for each members, get key from 'keys' and replace 'receiver' to member ID
     """
 
-    def split(self, members: list) -> list:
+    def split(self, members: List[ID]) -> list:  # List[SecureMessage]
         """
         Split the group message to single person messages
 
@@ -301,7 +301,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         msg['signature'] = base64
         return dkd.ReliableMessage.parse(msg=msg)
 
-    def split(self, members: List[ID]) -> list:
+    def split(self, members: List[ID]) -> list:  # List[SecureMessage]
         msg = self.copy_dictionary()
         # check 'keys'
         keys = msg.get('keys')
@@ -309,8 +309,6 @@ class EncryptedMessage(BaseMessage, SecureMessage):
             keys = {}
         else:
             msg.pop('keys')
-        # check 'signature'
-        reliable = 'signature' in msg
 
         # 1. move the receiver(group ID) to 'group'
         #    this will help the receiver knows the group ID
@@ -321,46 +319,44 @@ class EncryptedMessage(BaseMessage, SecureMessage):
 
         messages = []
         for member in members:
+            receiver = str(member)
             # 2. change 'receiver' to each group member
-            msg['receiver'] = str(member)
+            msg['receiver'] = receiver
             # 3. get encrypted key
-            key = keys.get(member)
+            key = keys.get(receiver)
             if key is None:
                 msg.pop('key', None)
             else:
                 msg['key'] = key
             # 4. pack message
-            if reliable:
-                messages.append(dkd.ReliableMessage.parse(msg=msg))
-            else:
-                messages.append(SecureMessage.parse(msg=msg))
+            item = SecureMessage.parse(msg=msg.copy())
+            if item is not None:
+                messages.append(item)
         # OK
         return messages
 
     def trim(self, member: ID):  # -> SecureMessage
         msg = self.copy_dictionary()
+        receiver = str(member)
         # check keys
         keys = msg.get('keys')
         if keys is not None:
             # move key data from 'keys' to 'key'
-            key = keys.get(member)
+            key = keys.get(receiver)
             if key is not None:
                 msg['key'] = key
             msg.pop('keys')
         # check 'group'
         group = self.group
         if group is None:
+            assert self.receiver.is_group, 'receiver is not a group ID: %s' % self.receiver
             # if 'group' not exists, the 'receiver' must be a group ID here, and
             # it will not be equal to the member of course,
             # so move 'receiver' to 'group'
             msg['group'] = str(self.receiver)
         # replace receiver
-        msg['receiver'] = str(member)
-        # repack
-        if 'signature' in msg:
-            return dkd.ReliableMessage.parse(msg=msg)
-        else:
-            return SecureMessage.parse(msg=msg)
+        msg['receiver'] = receiver
+        return SecureMessage.parse(msg=msg)
 
 
 """
