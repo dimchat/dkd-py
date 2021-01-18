@@ -49,13 +49,17 @@
 """
 
 import weakref
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm.crypto import Map, Dictionary
 from mkm import ID
 
 from .envelope import Envelope
+
+
+class MessageDelegate(ABC):
+    pass
 
 
 class Message(Map):
@@ -78,7 +82,7 @@ class Message(Map):
 
     @property
     @abstractmethod
-    def delegate(self):  # -> Optional[dkd.MessageDelegate]:
+    def delegate(self) -> Optional[MessageDelegate]:
         raise NotImplemented
 
     @delegate.setter
@@ -134,7 +138,7 @@ class BaseMessage(Dictionary, Message):
         self.__envelope: Envelope = head
 
     @property
-    def delegate(self):  # -> Optional[dkd.MessageDelegate]:
+    def delegate(self) -> Optional[MessageDelegate]:
         if self.__delegate is not None:
             return self.__delegate()
 

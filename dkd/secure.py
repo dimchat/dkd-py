@@ -31,12 +31,11 @@
 from abc import abstractmethod
 from typing import Optional, List
 
-from mkm.crypto import Map
+from mkm.crypto import Map, SymmetricKey
 from mkm import ID
 
-import dkd  # dkd.SecureMessageDelegate, dkd.InstantMessage, dkd.ReliableMessage
-
-from .message import Message, BaseMessage
+from .content import Content
+from .message import Message, MessageDelegate
 
 
 class SecureMessage(Message):
@@ -91,7 +90,7 @@ class SecureMessage(Message):
     """
 
     @abstractmethod
-    def decrypt(self) -> Optional[dkd.InstantMessage]:
+    def decrypt(self):  # -> Optional[InstantMessage]:
         """
         Decrypt message data to plaintext content
 
@@ -114,7 +113,7 @@ class SecureMessage(Message):
                               +----------+
     """
 
-    def sign(self):  # -> dkd.ReliableMessage:
+    def sign(self):  # -> ReliableMessage:
         """
         Sign the message.data with sender's private key
 
@@ -129,7 +128,7 @@ class SecureMessage(Message):
         for each members, get key from 'keys' and replace 'receiver' to member ID
     """
 
-    def split(self, members: List[ID]) -> list:  # List[SecureMessage]
+    def split(self, members: List[ID]):  # -> List[SecureMessage]:
         """
         Split the group message to single person messages
 
@@ -173,7 +172,7 @@ class SecureMessage(Message):
         return cls.__factory
 
     @classmethod
-    def parse(cls, msg: dict):  # -> InstantMessage:
+    def parse(cls, msg: dict):  # -> SecureMessage:
         if msg is None:
             return None
         elif isinstance(msg, SecureMessage):
@@ -185,194 +184,107 @@ class SecureMessage(Message):
         return factory.parse_secure_message(msg=msg)
 
 
-"""
-    Implements
-    ~~~~~~~~~~
-"""
+class SecureMessageDelegate(MessageDelegate):
 
+    """ Delegate for SecureMessage """
 
-class EncryptedMessage(BaseMessage, SecureMessage):
+    """ Decrypt Key """
 
-    def __init__(self, msg: dict):
-        super().__init__(msg=msg)
-        # lazy
-        self.__data = None
-        self.__key = None
-        self.__keys = None
+    @abstractmethod
+    def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
+        """
+        1. Decode 'message.key' to encrypted symmetric key data
 
-    @property
-    def data(self) -> bytes:
-        if self.__data is None:
-            base64 = self.get('data')
-            assert base64 is not None, 'secure message data cannot be empty'
-            delegate = self.delegate
-            assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
-            self.__data = delegate.decode_data(data=base64, msg=self)
-        return self.__data
+        :param key:      base64 string
+        :param msg:      secure message
+        :return:         encrypted symmetric key data
+        """
+        raise NotImplemented
 
-    @property
-    def encrypted_key(self) -> Optional[bytes]:
-        if self.__key is None:
-            base64 = self.get('key')
-            if base64 is None:
-                # check 'keys'
-                keys = self.encrypted_keys
-                if keys is not None:
-                    base64 = keys.get(self.receiver)
-            if isinstance(base64, str):
-                delegate = self.delegate
-                assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
-                self.__key = delegate.decode_key(key=base64, msg=self)
-        return self.__key
+    @abstractmethod
+    def decrypt_key(self, data: bytes, sender: ID, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
+        """
+        2. Decrypt 'message.key' with receiver's private key
 
-    @property
-    def encrypted_keys(self) -> Optional[dict]:
-        if self.__keys is None:
-            self.__keys = self.get('keys')
-        return self.__keys
+        :param data:     encrypted symmetric key data
+        :param sender:   sender/member ID
+        :param receiver: receiver/group ID
+        :param msg:      secure message
+        :return:         serialized data of symmetric key
+        """
+        raise NotImplemented
 
-    def decrypt(self) -> Optional[dkd.InstantMessage]:
-        sender = self.sender
-        group = self.group
-        if group is None:
-            # personal message
-            # not split group message
-            receiver = self.receiver
-        else:
-            # group message
-            receiver = group
+    @abstractmethod
+    def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID, msg: SecureMessage) -> SymmetricKey:
+        """
+        3. Deserialize message key from data (JsON / ProtoBuf / ...)
 
-        # 1. decrypt 'message.key' to symmetric key
-        delegate = self.delegate
-        assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
-        # 1.1. decode encrypted key data
-        key = self.encrypted_key
-        # 1.2. decrypt key data
-        if key is not None:
-            key = delegate.decrypt_key(data=key, sender=sender, receiver=receiver, msg=self)
-            if key is None:
-                raise AssertionError('failed to decrypt key in msg: %s' % self)
-        # 1.3. deserialize key
-        #      if key is empty, means it should be reused, get it from key cache
-        password = delegate.deserialize_key(data=key, sender=sender, receiver=receiver, msg=self)
-        if password is None:
-            raise ValueError('failed to get msg key: %s -> %s, %s' % (sender, receiver, key))
+        :param data:     serialized key data
+        :param sender:   sender/member ID
+        :param receiver: receiver/group ID
+        :param msg:      secure message
+        :return:         symmetric key
+        """
+        raise NotImplemented
 
-        # 2. decrypt 'message.data' to 'message.content'
-        # 2.1. decode encrypted content data
-        data = self.data
-        if data is None:
-            raise ValueError('failed to decode content data: %s' % self)
-        # 2.2. decrypt content data
-        plaintext = delegate.decrypt_content(data=data, key=password, msg=self)
-        if plaintext is None:
-            raise ValueError('failed to decrypt data with key: %s, %s' % (password, data))
-        # 2.3. deserialize content
-        content = delegate.deserialize_content(data=plaintext, key=password, msg=self)
-        if content is None:
-            raise ValueError('failed to deserialize content: %s' % plaintext)
-        # 2.4. check attachment for File/Image/Audio/Video message content
-        #      if file data not download yet,
-        #          decrypt file data with password;
-        #      else,
-        #          save password to 'message.content.password'.
-        #      (do it in 'core' module)
+    """ Decrypt Content """
 
-        # 3. pack message
-        msg = self.copy_dictionary()
-        msg.pop('key', None)
-        msg.pop('keys', None)
-        msg.pop('data')
-        msg['content'] = content.dictionary
-        return dkd.InstantMessage.parse(msg=msg)
+    @abstractmethod
+    def decode_data(self, data: str, msg: SecureMessage) -> Optional[bytes]:
+        """
+        4. Decode 'message.data' to encrypted content data
 
-    def sign(self):  # -> dkd.ReliableMessage:
-        data = self.data
-        delegate = self.delegate
-        assert isinstance(delegate, dkd.SecureMessageDelegate), 'secure delegate error: %s' % delegate
-        # 1. sign message.data
-        signature = delegate.sign_data(data=data, sender=self.sender, msg=self)
-        assert signature is not None, 'failed to sign message: %s' % self
-        # 2. encode signature
-        base64 = delegate.encode_signature(signature=signature, msg=self)
-        assert base64 is not None, 'failed to encode signature: %s' % signature
-        # 3. pack message
-        msg = self.copy_dictionary()
-        msg['signature'] = base64
-        return dkd.ReliableMessage.parse(msg=msg)
+        :param data:     base64 string
+        :param msg:      secure message
+        :return:         encrypted content data
+        """
+        raise NotImplemented
 
-    def split(self, members: List[ID]) -> list:  # List[SecureMessage]
-        msg = self.copy_dictionary()
-        # check 'keys'
-        keys = msg.get('keys')
-        if keys is None:
-            keys = {}
-        else:
-            msg.pop('keys')
+    @abstractmethod
+    def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[bytes]:
+        """
+        5. Decrypt 'message.data' with symmetric key
 
-        # 1. move the receiver(group ID) to 'group'
-        #    this will help the receiver knows the group ID
-        #    when the group message separated to multi-messages;
-        #    if don't want the others know your membership,
-        #    DON'T do this.
-        msg['group'] = str(self.receiver)
+        :param data:     encrypted content data
+        :param key:      symmetric key
+        :param msg:      secure message
+        :return:         serialized data of message content
+        """
+        raise NotImplemented
 
-        messages = []
-        for member in members:
-            receiver = str(member)
-            # 2. change 'receiver' to each group member
-            msg['receiver'] = receiver
-            # 3. get encrypted key
-            key = keys.get(receiver)
-            if key is None:
-                msg.pop('key', None)
-            else:
-                msg['key'] = key
-            # 4. pack message
-            item = SecureMessage.parse(msg=msg.copy())
-            if item is not None:
-                messages.append(item)
-        # OK
-        return messages
+    @abstractmethod
+    def deserialize_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
+        """
+        6. Deserialize message content from data (JsON / ProtoBuf / ...)
 
-    def trim(self, member: ID):  # -> SecureMessage
-        msg = self.copy_dictionary()
-        receiver = str(member)
-        # check keys
-        keys = msg.get('keys')
-        if keys is not None:
-            # move key data from 'keys' to 'key'
-            key = keys.get(receiver)
-            if key is not None:
-                msg['key'] = key
-            msg.pop('keys')
-        # check 'group'
-        group = self.group
-        if group is None:
-            assert self.receiver.is_group, 'receiver is not a group ID: %s' % self.receiver
-            # if 'group' not exists, the 'receiver' must be a group ID here, and
-            # it will not be equal to the member of course,
-            # so move 'receiver' to 'group'
-            msg['group'] = str(self.receiver)
-        # replace receiver
-        msg['receiver'] = receiver
-        return SecureMessage.parse(msg=msg)
+        :param data:     serialized content data
+        :param key:      symmetric key
+        :param msg:      secure message
+        :return:         message content
+        """
+        raise NotImplemented
 
+    """ Signature """
 
-"""
-    SecureMessage Factory
-    ~~~~~~~~~~~~~~~~~~~~~~
-"""
+    @abstractmethod
+    def sign_data(self, data: bytes, sender: ID, msg: SecureMessage) -> bytes:
+        """
+        1. Sign 'message.data' with sender's private key
 
+        :param data:      encrypted message data
+        :param sender:    sender ID
+        :param msg:       secure message
+        :return:          signature of encrypted message data
+        """
+        raise NotImplemented
 
-class SecureMessageFactory(SecureMessage.Factory):
+    @abstractmethod
+    def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
+        """
+        2. Encode 'message.signature' to String (Base64)
 
-    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
-        if 'signature' in msg:
-            from .reliable import NetworkMessage
-            return NetworkMessage(msg=msg)
-        return EncryptedMessage(msg=msg)
-
-
-# register SecureMessage factory
-SecureMessage.register(factory=SecureMessageFactory())
+        :param signature: signature of message.data
+        :param msg:       secure message
+        :return:          string
+        """
+        raise NotImplemented

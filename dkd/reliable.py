@@ -31,11 +31,9 @@ from abc import abstractmethod
 from typing import Optional
 
 from mkm.crypto import Map
-from mkm import Meta, Visa, Document
+from mkm import ID, Meta, Visa, Document
 
-import dkd  # dkd.ReliableMessageDelegate
-
-from .secure import SecureMessage, EncryptedMessage
+from .secure import SecureMessage, SecureMessageDelegate
 
 
 class ReliableMessage(SecureMessage):
@@ -158,6 +156,33 @@ class ReliableMessage(SecureMessage):
         return factory.parse_reliable_message(msg=msg)
 
 
+class ReliableMessageDelegate(SecureMessageDelegate):
+
+    @abstractmethod
+    def decode_signature(self, signature: str, msg: ReliableMessage) -> Optional[bytes]:
+        """
+        1. Decode 'message.signature' from String (Base64)
+
+        :param signature: base64 string
+        :param msg:       reliable message
+        :return:          signature data
+        """
+        raise NotImplemented
+
+    @abstractmethod
+    def verify_data_signature(self, data: bytes, signature: bytes, sender: ID, msg: ReliableMessage) -> bool:
+        """
+        2. Verify the message data and signature with sender's public key
+
+        :param data:      message content(encrypted) data
+        :param signature: signature of message content(encrypted) data
+        :param sender:    sender ID
+        :param msg:       reliable message
+        :return:          True on signature matched
+        """
+        raise NotImplemented
+
+
 """
     Implements
     ~~~~~~~~~~
@@ -166,8 +191,7 @@ class ReliableMessage(SecureMessage):
 
 def message_meta(msg: dict) -> Optional[Meta]:
     meta = msg.get('meta')
-    if meta is not None:
-        return Meta.parse(meta=meta)
+    return Meta.parse(meta=meta)
 
 
 def message_set_meta(msg: dict, meta: Meta):
@@ -181,89 +205,12 @@ def message_visa(msg: dict) -> Optional[Visa]:
     visa = msg.get('visa')
     if visa is None:
         visa = msg.get('profile')
-    if visa is not None:
-        return Document.parse(document=visa)
+    return Document.parse(document=visa)
 
 
 def message_set_visa(msg: dict, visa: Visa):
-    msg.pop('visa', None)
+    msg.pop('profile', None)
     if visa is None:
-        msg.pop('profile', None)
+        msg.pop('visa', None)
     else:
-        msg['profile'] = visa.dictionary
-
-
-class NetworkMessage(EncryptedMessage, ReliableMessage):
-
-    def __init__(self, msg: dict):
-        super().__init__(msg=msg)
-        # lazy
-        self.__signature = None
-        self.__meta = None
-        self.__visa = None
-
-    @property
-    def signature(self) -> bytes:
-        if self.__signature is None:
-            base64 = self.get('signature')
-            assert base64 is not None, 'signature of reliable message cannot be empty: %s' % self
-            delegate = self.delegate
-            assert isinstance(delegate, dkd.ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
-            self.__signature = delegate.decode_signature(signature=base64, msg=self)
-        return self.__signature
-
-    @property
-    def meta(self) -> Optional[Meta]:
-        if self.__meta is None:
-            self.__meta = message_meta(msg=self.dictionary)
-        return self.__meta
-
-    @meta.setter
-    def meta(self, value: Meta):
-        message_set_meta(msg=self.dictionary, meta=value)
-        self.__meta = value
-
-    @property
-    def visa(self) -> Optional[Visa]:
-        if self.__visa is None:
-            self.__visa = message_visa(msg=self.dictionary)
-        return self.__visa
-
-    @visa.setter
-    def visa(self, value: Visa):
-        message_set_visa(msg=self.dictionary, visa=value)
-        self.__visa = value
-
-    def verify(self) -> Optional[SecureMessage]:
-        data = self.data
-        if data is None:
-            raise ValueError('failed to decode content data: %s' % self)
-        signature = self.signature
-        if signature is None:
-            raise ValueError('failed to decode message signature: %s' % self)
-        # 1. verify data signature
-        delegate = self.delegate
-        assert isinstance(delegate, dkd.ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
-        if delegate.verify_data_signature(data=data, signature=signature, sender=self.sender, msg=self):
-            # 2. pack message
-            msg = self.copy_dictionary()
-            msg.pop('signature')  # remove 'signature'
-            return SecureMessage.parse(msg=msg)
-        # else:
-        #     raise ValueError('Signature error: %s' % self)
-
-
-"""
-    ReliableMessage Factory
-    ~~~~~~~~~~~~~~~~~~~~~~~
-"""
-
-
-class ReliableMessageFactory(ReliableMessage.Factory):
-
-    def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
-        return NetworkMessage(msg=msg)
-
-
-# register SecureMessage factory
-ReliableMessage.register(factory=ReliableMessageFactory())
+        msg['visa'] = visa.dictionary

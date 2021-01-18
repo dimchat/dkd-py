@@ -32,11 +32,14 @@ from .types import ContentType
 from .content import Content, BaseContent
 from .envelope import Envelope
 
-from .message import Message
-from .instant import InstantMessage
-from .secure import SecureMessage
-from .reliable import ReliableMessage
-from .delegate import MessageDelegate, InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate
+from .message import Message, MessageDelegate
+from .instant import InstantMessage, InstantMessageDelegate
+from .secure import SecureMessage, SecureMessageDelegate
+from .reliable import ReliableMessage, ReliableMessageDelegate
+
+from .instant_factory import *
+from .secure_factory import *
+from .reliable_factory import *
 
 name = "DaoKeDao"
 
@@ -49,9 +52,8 @@ __all__ = [
     'Content', 'BaseContent',
     'Envelope',
 
-    'Message',
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
-
-    'MessageDelegate',
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
+    'Message', 'MessageDelegate',
+    'InstantMessage', 'InstantMessageDelegate',
+    'SecureMessage', 'SecureMessageDelegate',
+    'ReliableMessage', 'ReliableMessageDelegate',
 ]

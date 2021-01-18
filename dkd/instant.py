@@ -34,11 +34,10 @@ from typing import Optional, List
 from mkm.crypto import Map, SymmetricKey
 from mkm import ID
 
-import dkd  # dkd.InstantMessageDelegate, dkd.SecureMessage
-
 from .envelope import Envelope
 from .content import Content
-from .message import Message, BaseMessage
+from .message import Message, MessageDelegate
+from .secure import SecureMessage
 
 
 class InstantMessage(Message):
@@ -77,7 +76,7 @@ class InstantMessage(Message):
     """
 
     @abstractmethod
-    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]]=None):  # -> Optional[dkd.SecureMessage]:
+    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]]=None) -> Optional[SecureMessage]:
         """
         Encrypt message content with password(symmetric key)
 
@@ -142,6 +141,82 @@ class InstantMessage(Message):
         return factory.parse_instant_message(msg=msg)
 
 
+class InstantMessageDelegate(MessageDelegate):
+
+    """ Encrypt Content """
+
+    @abstractmethod
+    def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
+        """
+        1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
+
+        :param content:  message content
+        :param key:      symmetric key
+        :param msg:      instant message
+        :return:         serialized content data
+        """
+        raise NotImplemented
+
+    @abstractmethod
+    def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
+        """
+        2. Encrypt content data to 'message.data' with symmetric key
+
+        :param data:     serialized data of message.content
+        :param key:      symmetric key
+        :param msg:      instant message
+        :return:         encrypted message content data
+        """
+        raise NotImplemented
+
+    @abstractmethod
+    def encode_data(self, data: bytes, msg: InstantMessage) -> str:
+        """
+        3. Encode 'message.data' to String (Base64)
+
+        :param data:     encrypted content data
+        :param msg:      instant message
+        :return:         string
+        """
+        raise NotImplemented
+
+    """ Encrypt Key """
+
+    @abstractmethod
+    def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
+        """
+        4. Serialize message key to data (JsON / ProtoBuf / ...)
+
+        :param key:      symmetric key to be encrypted
+        :param msg:      instant message
+        :return:         serialized key data
+        """
+        raise NotImplemented
+
+    @abstractmethod
+    def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
+        """
+        5. Encrypt key data to 'message.key' with receiver's public key
+
+        :param data:     serialized data of symmetric key
+        :param receiver: receiver ID
+        :param msg:      instant message
+        :return:         encrypted key data
+        """
+        raise NotImplemented
+
+    @abstractmethod
+    def encode_key(self, data: bytes, msg: InstantMessage) -> str:
+        """
+        6. Encode 'message.key' to String (Base64)
+
+        :param data:     encrypted key data
+        :param msg:      instant message
+        :return:         base64 string
+        """
+        raise NotImplemented
+
+
 """
     Implements
     ~~~~~~~~~~
@@ -152,142 +227,3 @@ def message_content(msg: dict) -> Content:
     content = msg.get('content')
     assert content is not None, 'message content not found: %s' % msg
     return Content.parse(content=content)
-
-
-class PlainMessage(BaseMessage, InstantMessage):
-
-    def __init__(self, msg: Optional[dict]=None, head: Optional[Envelope]=None, body: Optional[Content]=None):
-        super().__init__(msg=msg, head=head)
-        self.__content = body
-        if body is not None:
-            self['content'] = body.dictionary
-
-    @property
-    def content(self) -> Content:
-        if self.__content is None:
-            self.__content = message_content(msg=self.dictionary)
-        return self.__content
-
-    @property
-    def time(self) -> int:
-        value = self.content.time
-        if value > 0:
-            return value
-        return self.envelope.time
-
-    @property
-    def group(self) -> Optional[ID]:
-        return self.content.group
-
-    @property
-    def type(self) -> Optional[int]:
-        return self.content.type
-
-    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]]=None):  # -> Optional[dkd.SecureMessage]:
-        # 0. check attachment for File/Image/Audio/Video message content
-        #    (do it in 'core' module)
-
-        # 1., 2.
-        if members is None:
-            # personal message
-            msg = self.__encrypt_key(password=password)
-        else:
-            # group message
-            msg = self.__encrypt_keys(password=password, members=members)
-
-        # 3. pack message
-        return dkd.SecureMessage.parse(msg=msg)
-
-    def __encrypt_key(self, password: SymmetricKey) -> Optional[dict]:
-        # 1. encrypt 'message.content' to 'message.data'
-        msg = self.__prepare_data(password=password)
-        # 2. encrypt symmetric key(password) to 'message.key'
-        delegate = self.delegate
-        assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
-        # 2.1. serialize symmetric key
-        key = delegate.serialize_key(key=password, msg=self)
-        if key is None:
-            # A) broadcast message has no key
-            # B) reused key
-            return msg
-        # 2.2. encrypt symmetric key data
-        data = delegate.encrypt_key(data=key, receiver=self.receiver, msg=self)
-        if data is None:
-            # public key for encryption not found
-            # TODO: suspend this message for waiting receiver's meta
-            return None
-        # 2.3. encode encrypted key data
-        base64 = delegate.encode_key(data=data, msg=self)
-        assert base64 is not None, 'failed to encode key data: %s' % data
-        # 2.4. insert as 'key'
-        msg['key'] = base64
-        return msg
-
-    def __encrypt_keys(self, password: SymmetricKey, members: List[ID]) -> dict:
-        # 1. encrypt 'message.content' to 'message.data'
-        msg = self.__prepare_data(password=password)
-        # 2. encrypt symmetric key(password) to 'message.key'
-        delegate = self.delegate
-        assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
-        # 2.1. serialize symmetric key
-        key = delegate.serialize_key(key=password, msg=self)
-        if key is None:
-            # A) broadcast message has no key
-            # B) reused key
-            return msg
-        # encrypt key data to 'message.keys'
-        keys = {}
-        count = 0
-        for member in members:
-            # 2.2. encrypt symmetric key data
-            data = delegate.encrypt_key(data=key, receiver=member, msg=self)
-            if data is None:
-                # public key for encryption not found
-                # TODO: suspend this message for waiting receiver's meta
-                continue
-            # 2.3. encode encrypted key data
-            base64 = delegate.encode_key(data=data, msg=self)
-            assert base64 is not None, 'failed to encode key data: %s' % data
-            # 2.4. insert to 'message.keys' with member ID
-            keys[member] = base64
-            count += 1
-        if count > 0:
-            msg['keys'] = keys
-        return msg
-
-    def __prepare_data(self, password: SymmetricKey) -> dict:
-        delegate = self.delegate
-        assert isinstance(delegate, dkd.InstantMessageDelegate), 'instant delegate error: %s' % delegate
-        # 1. serialize message content
-        data = delegate.serialize_content(content=self.content, key=password, msg=self)
-        assert data is not None, 'failed to serialize content: %s' % self.content
-        # 2. encrypt content data with password
-        data = delegate.encrypt_content(data=data, key=password, msg=self)
-        assert data is not None, 'failed to encrypt content with key: %s' % password
-        # 3. encode encrypted data
-        base64 = delegate.encode_data(data=data, msg=self)
-        assert base64 is not None, 'failed to encode content data: %s' % data
-        # 4. replace 'content' with encrypted 'data'
-        msg = self.copy_dictionary()
-        msg.pop('content')  # remove 'content'
-        msg['data'] = base64
-        return msg
-
-
-"""
-    InstantMessage Factory
-    ~~~~~~~~~~~~~~~~~~~~~~
-"""
-
-
-class InstantMessageFactory(InstantMessage.Factory):
-
-    def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
-        return PlainMessage(head=head, body=body)
-
-    def parse_instant_message(self, msg: dict) -> Optional[InstantMessage]:
-        return PlainMessage(msg=msg)
-
-
-# register InstantMessage factory
-InstantMessage.register(factory=InstantMessageFactory())
