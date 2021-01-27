@@ -129,12 +129,12 @@ def message_envelope(msg: dict) -> Envelope:
 
 class BaseMessage(Dictionary, Message):
 
-    def __init__(self, msg: Optional[dict]=None, head: Optional[Envelope]=None):
+    def __init__(self, msg: Optional[dict] = None, head: Optional[Envelope] = None):
         if msg is None:
             assert head is not None, 'message envelope should not be empty'
             msg = head.dictionary
         super().__init__(dictionary=msg)
-        self.__delegate: weakref.ReferenceType = None
+        self.__delegate: Optional[weakref.ReferenceType] = None
         self.__envelope: Envelope = head
 
     @property

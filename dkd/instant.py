@@ -76,7 +76,7 @@ class InstantMessage(Message):
     """
 
     @abstractmethod
-    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]]=None) -> Optional[SecureMessage]:
+    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]] = None) -> Optional[SecureMessage]:
         """
         Encrypt message content with password(symmetric key)
 

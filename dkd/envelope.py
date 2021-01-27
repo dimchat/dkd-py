@@ -123,7 +123,7 @@ class Envelope(Map):
     class Factory:
 
         @abstractmethod
-        def create_envelope(self, sender: ID, receiver: ID, time: int=0):  # -> Envelope:
+        def create_envelope(self, sender: ID, receiver: ID, time: int = 0):  # -> Envelope:
             """
             Create envelope
 
@@ -155,7 +155,7 @@ class Envelope(Map):
         return cls.__factory
 
     @classmethod
-    def create(cls, sender: ID, receiver: ID, time: int=0):  # -> Envelope:
+    def create(cls, sender: ID, receiver: ID, time: int = 0):  # -> Envelope:
         factory = cls.factory()
         assert factory is not None, 'envelope factory not ready'
         return factory.create_envelope(sender=sender, receiver=receiver, time=time)
@@ -225,8 +225,8 @@ def envelope_set_type(envelope: dict, content_type: Union[ContentType, int]):
 
 class MessageEnvelope(Dictionary, Envelope):
 
-    def __init__(self, envelope: Optional[dict]=None,
-                 sender: Optional[ID]=None, receiver: Optional[ID]=None, time: Optional[int]=0):
+    def __init__(self, envelope: Optional[dict] = None,
+                 sender: Optional[ID] = None, receiver: Optional[ID] = None, time: Optional[int] = 0):
         super().__init__(dictionary=envelope)
         # pre-process
         if envelope is None and time is 0:
@@ -294,7 +294,7 @@ class MessageEnvelope(Dictionary, Envelope):
 
 class EnvelopeFactory(Envelope.Factory):
 
-    def create_envelope(self, sender: ID, receiver: ID, time: int=0) -> Envelope:
+    def create_envelope(self, sender: ID, receiver: ID, time: int = 0) -> Envelope:
         return MessageEnvelope(sender=sender, receiver=receiver, time=time)
 
     def parse_envelope(self, envelope: dict) -> Optional[Envelope]:

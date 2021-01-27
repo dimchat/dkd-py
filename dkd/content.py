@@ -178,7 +178,7 @@ def random_positive_integer():
 
 class BaseContent(Dictionary, Content):
 
-    def __init__(self, content: Optional[dict]=None, content_type: Union[ContentType, int]=0):
+    def __init__(self, content: Optional[dict] = None, content_type: Union[ContentType, int] = 0):
         super().__init__(dictionary=content)
         if isinstance(content_type, ContentType):
             content_type = content_type.value

@@ -72,7 +72,7 @@ InstantMessage.register(factory=InstantMessageFactory())
 
 class PlainMessage(BaseMessage, InstantMessage):
 
-    def __init__(self, msg: Optional[dict]=None, head: Optional[Envelope]=None, body: Optional[Content]=None):
+    def __init__(self, msg: Optional[dict] = None, head: Optional[Envelope] = None, body: Optional[Content] = None):
         super().__init__(msg=msg, head=head)
         self.__content = body
         if body is not None:
@@ -99,7 +99,7 @@ class PlainMessage(BaseMessage, InstantMessage):
     def type(self) -> Optional[int]:
         return self.content.type
 
-    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]]=None) -> Optional[SecureMessage]:
+    def encrypt(self, password: SymmetricKey, members: Optional[List[ID]] = None) -> Optional[SecureMessage]:
         # 0. check attachment for File/Image/Audio/Video message content
         #    (do it in 'core' module)
 
