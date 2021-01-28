@@ -201,20 +201,20 @@ class BaseContent(Dictionary, Content):
     # message content type: text, image, ...
     @property
     def type(self) -> int:
-        if self.__type is 0:
+        if self.__type == 0:
             self.__type = msg_type(content=self.dictionary)
         return self.__type
 
     # serial number: random number to identify message content
     @property
     def serial_number(self) -> int:
-        if self.__sn is 0:
+        if self.__sn == 0:
             self.__sn = msg_id(content=self.dictionary)
         return self.__sn
 
     @property
     def time(self) -> Optional[int]:
-        if self.__time is 0:
+        if self.__time == 0:
             self.__time = msg_time(content=self.dictionary)
         return self.__time
 

@@ -217,7 +217,7 @@ def envelope_type(envelope: dict) -> Optional[int]:
 def envelope_set_type(envelope: dict, content_type: Union[ContentType, int]):
     if isinstance(content_type, ContentType):
         content_type = content_type.value
-    if content_type is 0:
+    if content_type == 0:
         envelope.pop('type', None)
     else:
         envelope['type'] = content_type
@@ -229,7 +229,7 @@ class MessageEnvelope(Dictionary, Envelope):
                  sender: Optional[ID] = None, receiver: Optional[ID] = None, time: Optional[int] = 0):
         super().__init__(dictionary=envelope)
         # pre-process
-        if envelope is None and time is 0:
+        if envelope is None and time == 0:
             time = int(time_lib.time())
         # set values
         self.__sender = sender
@@ -259,7 +259,7 @@ class MessageEnvelope(Dictionary, Envelope):
 
     @property
     def time(self) -> int:
-        if self.__time is 0:
+        if self.__time == 0:
             self.__time = envelope_time(envelope=self.dictionary)
         return self.__time
 
@@ -276,7 +276,7 @@ class MessageEnvelope(Dictionary, Envelope):
 
     @property
     def type(self) -> Optional[int]:
-        if self.__type is 0:
+        if self.__type == 0:
             self.__type = envelope_type(envelope=self.dictionary)
         return self.__type
 

@@ -87,7 +87,7 @@ class Message(Map):
 
     @delegate.setter
     @abstractmethod
-    def delegate(self, handler):
+    def delegate(self, handler: MessageDelegate):
         raise NotImplemented
 
     @property
@@ -143,8 +143,8 @@ class BaseMessage(Dictionary, Message):
             return self.__delegate()
 
     @delegate.setter
-    def delegate(self, value):
-        self.__delegate = weakref.ref(value)
+    def delegate(self, handler: MessageDelegate):
+        self.__delegate = weakref.ref(handler)
 
     @property
     def envelope(self) -> Envelope:
