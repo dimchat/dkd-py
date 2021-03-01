@@ -165,7 +165,7 @@ class PlainMessage(BaseMessage, InstantMessage):
             base64 = delegate.encode_key(data=data, msg=self)
             assert base64 is not None, 'failed to encode key data: %s' % data
             # 2.4. insert to 'message.keys' with member ID
-            keys[member] = base64
+            keys[str(member)] = base64
             count += 1
         if count > 0:
             msg['keys'] = keys
