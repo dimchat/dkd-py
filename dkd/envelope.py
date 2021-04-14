@@ -33,7 +33,7 @@ from abc import abstractmethod
 from typing import Optional, Union
 
 from mkm.crypto import Map, Dictionary
-from mkm import ID
+from mkm import ID, ANYONE
 
 from .types import ContentType
 
@@ -254,7 +254,11 @@ class MessageEnvelope(Dictionary, Envelope):
     @property
     def receiver(self) -> ID:
         if self.__receiver is None:
-            self.__receiver = envelope_receiver(envelope=self.dictionary)
+            receiver = envelope_receiver(envelope=self.dictionary)
+            if receiver is None:
+                self.__receiver = ANYONE
+            else:
+                self.__receiver = receiver
         return self.__receiver
 
     @property
@@ -298,7 +302,9 @@ class EnvelopeFactory(Envelope.Factory):
         return MessageEnvelope(sender=sender, receiver=receiver, time=time)
 
     def parse_envelope(self, envelope: dict) -> Optional[Envelope]:
-        return MessageEnvelope(envelope=envelope)
+        # env.sender should not empty
+        if envelope.get('sender') is not None:
+            return MessageEnvelope(envelope=envelope)
 
 
 # register Envelope factory

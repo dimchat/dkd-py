@@ -47,7 +47,11 @@ from .reliable import message_meta, message_set_visa, message_visa, message_set_
 class ReliableMessageFactory(ReliableMessage.Factory):
 
     def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
-        return NetworkMessage(msg=msg)
+        # msg.sender should not be empty
+        # msg.data should not be empty
+        # msg.signature should not be empty
+        if msg.get('sender') is not None and msg.get('data') is not None and msg.get('signature') is not None:
+            return NetworkMessage(msg=msg)
 
 
 # register SecureMessage factory
