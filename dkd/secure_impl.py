@@ -34,36 +34,15 @@ from mkm import ID
 
 from .message import BaseMessage
 from .instant import InstantMessage
-from .secure import SecureMessage, SecureMessageDelegate
+from .secure import SecureMessage, SecureMessageFactory, SecureMessageDelegate
 from .reliable import ReliableMessage
-
-
-"""
-    SecureMessage Factory
-    ~~~~~~~~~~~~~~~~~~~~~~
-    
-    Implementations of SecureMessage.Factory
-"""
-
-
-class SecureMessageFactory(SecureMessage.Factory):
-
-    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
-        if 'signature' in msg:
-            from .reliable_factory import NetworkMessage
-            return NetworkMessage(msg=msg)
-        return EncryptedMessage(msg=msg)
-
-
-# register SecureMessage factory
-SecureMessage.register(factory=SecureMessageFactory())
 
 
 """
     Encrypted Message
     ~~~~~~~~~~~~~~~~~
     
-    Implementations of SecureMessage
+    Implementations for SecureMessage
 """
 
 
@@ -76,7 +55,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         self.__key = None
         self.__keys = None
 
-    @property
+    @property  # Override
     def data(self) -> bytes:
         if self.__data is None:
             base64 = self.get('data')
@@ -86,7 +65,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
             self.__data = delegate.decode_data(data=base64, msg=self)
         return self.__data
 
-    @property
+    @property  # Override
     def encrypted_key(self) -> Optional[bytes]:
         if self.__key is None:
             base64 = self.get('key')
@@ -101,12 +80,13 @@ class EncryptedMessage(BaseMessage, SecureMessage):
                 self.__key = delegate.decode_key(key=base64, msg=self)
         return self.__key
 
-    @property
+    @property  # Override
     def encrypted_keys(self) -> Optional[dict]:
         if self.__keys is None:
             self.__keys = self.get('keys')
         return self.__keys
 
+    # Override
     def decrypt(self) -> Optional[InstantMessage]:
         sender = self.sender
         group = self.group
@@ -162,6 +142,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         msg['content'] = content.dictionary
         return InstantMessage.parse(msg=msg)
 
+    # Override
     def sign(self) -> ReliableMessage:
         data = self.data
         delegate = self.delegate
@@ -177,6 +158,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         msg['signature'] = base64
         return ReliableMessage.parse(msg=msg)
 
+    # Override
     def split(self, members: List[ID]) -> List[SecureMessage]:
         msg = self.copy_dictionary()
         # check 'keys'
@@ -211,6 +193,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         # OK
         return messages
 
+    # Override
     def trim(self, member: ID) -> SecureMessage:
         msg = self.copy_dictionary()
         receiver = str(member)
@@ -233,3 +216,17 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         # replace receiver
         msg['receiver'] = receiver
         return SecureMessage.parse(msg=msg)
+
+
+class EncryptedMessageFactory(SecureMessageFactory):
+
+    # Override
+    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
+        if 'signature' in msg:
+            from .reliable_impl import NetworkMessage
+            return NetworkMessage(msg=msg)
+        return EncryptedMessage(msg=msg)
+
+
+# register SecureMessage factory
+SecureMessage.register(factory=EncryptedMessageFactory())

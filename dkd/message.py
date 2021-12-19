@@ -49,7 +49,7 @@
 """
 
 import weakref
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Optional
 
 from mkm.crypto import Map, Dictionary
@@ -58,11 +58,7 @@ from mkm import ID
 from .envelope import Envelope
 
 
-class MessageDelegate(ABC):
-    pass
-
-
-class Message(Map):
+class Message(Map, ABC):
     """This class is used to create a message
     with the envelope fields, such as 'sender', 'receiver', and 'time'
 
@@ -81,50 +77,42 @@ class Message(Map):
     """
 
     @property
-    @abstractmethod
-    def delegate(self) -> Optional[MessageDelegate]:
+    def delegate(self):  # -> Optional[Delegate]:
         raise NotImplemented
 
     @delegate.setter
-    @abstractmethod
-    def delegate(self, handler: MessageDelegate):
+    def delegate(self, handler):
         raise NotImplemented
 
     @property
-    @abstractmethod
     def envelope(self) -> Envelope:
         raise NotImplemented
 
     @property
     def sender(self) -> ID:
-        return self.envelope.sender
+        raise NotImplemented
 
     @property
     def receiver(self) -> ID:
-        return self.envelope.receiver
+        raise NotImplemented
 
     @property
     def time(self) -> int:
-        return self.envelope.time
+        raise NotImplemented
 
     @property
     def group(self) -> Optional[ID]:
-        return self.envelope.group
+        raise NotImplemented
 
     @property
     def type(self) -> Optional[int]:
-        return self.envelope.type
+        raise NotImplemented
 
 
 """
     Implements
     ~~~~~~~~~~
 """
-
-
-def message_envelope(msg: dict) -> Envelope:
-    # let envelope share the same dictionary with message
-    return Envelope.parse(envelope=msg)
 
 
 class BaseMessage(Dictionary, Message):
@@ -134,20 +122,41 @@ class BaseMessage(Dictionary, Message):
             assert head is not None, 'message envelope should not be empty'
             msg = head.dictionary
         super().__init__(dictionary=msg)
-        self.__delegate: Optional[weakref.ReferenceType] = None
-        self.__envelope: Envelope = head
+        self.__envelope = head
+        self.__delegate = None
 
-    @property
-    def delegate(self) -> Optional[MessageDelegate]:
+    @property  # Override
+    def delegate(self):  # -> Optional[Delegate]:
         if self.__delegate is not None:
             return self.__delegate()
 
-    @delegate.setter
-    def delegate(self, handler: MessageDelegate):
+    @delegate.setter  # Override
+    def delegate(self, handler):
         self.__delegate = weakref.ref(handler)
 
-    @property
+    @property  # Override
     def envelope(self) -> Envelope:
         if self.__envelope is None:
-            self.__envelope = message_envelope(msg=self.dictionary)
+            # let envelope share the same dictionary with message
+            self.__envelope = Envelope.parse(envelope=self.dictionary)
         return self.__envelope
+
+    @property  # Override
+    def sender(self) -> ID:
+        return self.envelope.sender
+
+    @property  # Override
+    def receiver(self) -> ID:
+        return self.envelope.receiver
+
+    @property  # Override
+    def time(self) -> int:
+        return self.envelope.time
+
+    @property  # Override
+    def group(self) -> Optional[ID]:
+        return self.envelope.group
+
+    @property  # Override
+    def type(self) -> Optional[int]:
+        return self.envelope.type

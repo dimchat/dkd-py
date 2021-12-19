@@ -28,17 +28,18 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from mkm.crypto import Map, SymmetricKey
 from mkm import ID
 
 from .content import Content
-from .message import Message, MessageDelegate
+from .message import Message
+from .factories import Factories
 
 
-class SecureMessage(Message):
+class SecureMessage(Message, ABC):
     """Instant Message encrypted by a symmetric key
 
         Secure Message
@@ -59,13 +60,11 @@ class SecureMessage(Message):
     """
 
     @property
-    @abstractmethod
     def data(self) -> bytes:
         """ encrypted message content """
         raise NotImplemented
 
     @property
-    @abstractmethod
     def encrypted_key(self) -> Optional[bytes]:
         """ encrypted message key """
         raise NotImplemented
@@ -113,6 +112,7 @@ class SecureMessage(Message):
                               +----------+
     """
 
+    @abstractmethod
     def sign(self):  # -> ReliableMessage:
         """
         Sign the message.data with sender's private key
@@ -128,6 +128,7 @@ class SecureMessage(Message):
         for each members, get key from 'keys' and replace 'receiver' to member ID
     """
 
+    @abstractmethod
     def split(self, members: List[ID]):  # -> List[SecureMessage]:
         """
         Split the group message to single person messages
@@ -137,6 +138,7 @@ class SecureMessage(Message):
         """
         raise NotImplemented
 
+    @abstractmethod
     def trim(self, member: ID):  # -> SecureMessage
         """
         Trim the group message for a member
@@ -147,29 +149,8 @@ class SecureMessage(Message):
         raise NotImplemented
 
     #
-    #   SecureMessage factory
+    #   Factory method
     #
-    class Factory:
-
-        @abstractmethod
-        def parse_secure_message(self, msg: dict):  # -> Optional[SecureMessage]:
-            """
-            Parse map object to message
-
-            :param msg: message info
-            :return: SecureMessage
-            """
-            raise NotImplemented
-
-    __factory = None
-
-    @classmethod
-    def register(cls, factory: Factory):
-        cls.__factory = factory
-
-    @classmethod
-    def factory(cls) -> Factory:
-        return cls.__factory
 
     @classmethod
     def parse(cls, msg: dict):  # -> SecureMessage:
@@ -180,11 +161,35 @@ class SecureMessage(Message):
         elif isinstance(msg, Map):
             msg = msg.dictionary
         factory = cls.factory()
-        assert factory is not None, 'secure message factory not ready'
+        assert isinstance(factory, SecureMessageFactory), 'secure message factory error: %s' % factory
         return factory.parse_secure_message(msg=msg)
 
+    @classmethod
+    def factory(cls):  # -> SecureMessageFactory:
+        return Factories.secure_message_factory
 
-class SecureMessageDelegate(MessageDelegate):
+    @classmethod
+    def register(cls, factory):
+        Factories.secure_message_factory = factory
+
+
+#
+#   SecureMessage factory
+#
+class SecureMessageFactory(ABC):
+
+    @abstractmethod
+    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
+        """
+        Parse map object to message
+
+        :param msg: message info
+        :return: SecureMessage
+        """
+        raise NotImplemented
+
+
+class SecureMessageDelegate(ABC):
 
     """ Delegate for SecureMessage """
 

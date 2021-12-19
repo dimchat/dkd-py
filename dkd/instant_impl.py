@@ -36,37 +36,15 @@ from mkm import ID
 from .envelope import Envelope
 from .content import Content
 from .message import BaseMessage
-from .instant import InstantMessage, InstantMessageDelegate
-from .instant import message_content
+from .instant import InstantMessage, InstantMessageFactory, InstantMessageDelegate
 from .secure import SecureMessage
-
-
-"""
-    InstantMessage Factory
-    ~~~~~~~~~~~~~~~~~~~~~~
-    
-    Implementations of InstantMessage.Factory
-"""
-
-
-class InstantMessageFactory(InstantMessage.Factory):
-
-    def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
-        return PlainMessage(head=head, body=body)
-
-    def parse_instant_message(self, msg: dict) -> Optional[InstantMessage]:
-        return PlainMessage(msg=msg)
-
-
-# register InstantMessage factory
-InstantMessage.register(factory=InstantMessageFactory())
 
 
 """
     Plain Message
     ~~~~~~~~~~~~~
     
-    Implementations of InstantMessage
+    Implementations for InstantMessage
 """
 
 
@@ -78,27 +56,30 @@ class PlainMessage(BaseMessage, InstantMessage):
         if body is not None:
             self['content'] = body.dictionary
 
-    @property
+    @property  # Override
     def content(self) -> Content:
         if self.__content is None:
-            self.__content = message_content(msg=self.dictionary)
+            content = self.get('content')
+            assert content is not None, 'message content not found: %s' % self
+            self.__content = Content.parse(content=content)
         return self.__content
 
-    @property
+    @property  # Override
     def time(self) -> int:
         value = self.content.time
         if value > 0:
             return value
         return self.envelope.time
 
-    @property
+    @property  # Override
     def group(self) -> Optional[ID]:
         return self.content.group
 
-    @property
+    @property  # Override
     def type(self) -> Optional[int]:
         return self.content.type
 
+    # Override
     def encrypt(self, password: SymmetricKey, members: Optional[List[ID]] = None) -> Optional[SecureMessage]:
         # 0. check attachment for File/Image/Audio/Video message content
         #    (do it in 'core' module)
@@ -188,3 +169,18 @@ class PlainMessage(BaseMessage, InstantMessage):
         msg.pop('content')  # remove 'content'
         msg['data'] = base64
         return msg
+
+
+class PlainMessageFactory(InstantMessageFactory):
+
+    # Override
+    def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
+        return PlainMessage(head=head, body=body)
+
+    # Override
+    def parse_instant_message(self, msg: dict) -> Optional[InstantMessage]:
+        return PlainMessage(msg=msg)
+
+
+# register InstantMessage factory
+InstantMessage.register(factory=PlainMessageFactory())

@@ -28,18 +28,17 @@
 # SOFTWARE.
 # ==============================================================================
 
-import random
-import time as time_lib
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional, Union
 
-from mkm.crypto import Map, Dictionary
+from mkm.crypto import Map
 from mkm import ID
 
 from .types import ContentType
+from .factories import Factories
 
 
-class Content(Map):
+class Content(Map, ABC):
     """This class is for creating message content
 
         Message Content
@@ -59,25 +58,21 @@ class Content(Map):
     """
 
     @property
-    @abstractmethod
     def type(self) -> int:
         """ content type """
         raise NotImplemented
 
     @property
-    @abstractmethod
-    def serial_number(self) -> int:
+    def sn(self) -> int:
         """ serial number as message id """
         raise NotImplemented
 
     @property
-    @abstractmethod
     def time(self) -> Optional[int]:
         """ message time """
         raise NotImplemented
 
     @property
-    @abstractmethod
     def group(self) -> Optional[ID]:
         """
             Group ID/string for group message
@@ -87,38 +82,12 @@ class Content(Map):
         raise NotImplemented
 
     @group.setter
-    @abstractmethod
     def group(self, value: ID):
         raise NotImplemented
 
     #
-    #   Content factory
+    #   Factory method
     #
-    class Factory:
-
-        @abstractmethod
-        def parse_content(self, content: dict):  # -> Optional[Content]:
-            """
-            Parse map object to content
-
-            :param content: content info
-            :return: Content
-            """
-            raise NotImplemented
-
-    __factories = {}  # type -> factory
-
-    @classmethod
-    def register(cls, content_type: Union[ContentType, int], factory: Factory):
-        if isinstance(content_type, ContentType):
-            content_type = content_type.value
-        cls.__factories[content_type] = factory
-
-    @classmethod
-    def factory(cls, content_type: Union[ContentType, int]) -> Factory:
-        if isinstance(content_type, ContentType):
-            content_type = content_type.value
-        return cls.__factories.get(content_type)
 
     @classmethod
     def parse(cls, content: dict):  # -> Content:
@@ -133,98 +102,34 @@ class Content(Map):
         if factory is None:
             factory = cls.factory(content_type=0)  # unknown
             assert factory is not None, 'cannot parse content: %s' % content
+        assert isinstance(factory, ContentFactory), 'content factory error: %s' % factory
         return factory.parse_content(content=content)
 
+    @classmethod
+    def factory(cls, content_type: Union[ContentType, int]):  # -> Optional[ContentFactory]:
+        if isinstance(content_type, ContentType):
+            content_type = content_type.value
+        return Factories.content_factories.get(content_type)
 
-"""
-    Implements
-    ~~~~~~~~~~
-"""
+    @classmethod
+    def register(cls, content_type: Union[ContentType, int], factory):
+        if isinstance(content_type, ContentType):
+            content_type = content_type.value
+        Factories.content_factories[content_type] = factory
 
 
 def msg_type(content: dict) -> int:
     return int(content.get('type'))
 
 
-def msg_id(content: dict) -> int:
-    return int(content.get('sn'))
+class ContentFactory(ABC):
 
+    @abstractmethod
+    def parse_content(self, content: dict) -> Optional[Content]:
+        """
+        Parse map object to content
 
-def msg_time(content: dict) -> Optional[int]:
-    timestamp = content.get('time')
-    if timestamp is not None:
-        return int(timestamp)
-
-
-def content_group(content: dict) -> Optional[ID]:
-    group = content.get('group')
-    if group is not None:
-        return ID.parse(identifier=group)
-
-
-def content_set_group(content: dict, group: ID):
-    if group is None:
-        content.pop('group', None)
-    else:
-        content['group'] = str(group)
-
-
-def random_positive_integer():
-    """
-    :return: random integer greater than 0
-    """
-    return random.randint(1, 2**32-1)
-
-
-class BaseContent(Dictionary, Content):
-
-    def __init__(self, content: Optional[dict] = None, content_type: Union[ContentType, int] = 0):
-        super().__init__(dictionary=content)
-        if isinstance(content_type, ContentType):
-            content_type = content_type.value
-        if content_type > 0:
-            self.__type = content_type
-            self.__sn = random_positive_integer()
-            self.__time = int(time_lib.time())
-            self['type'] = self.__type
-            self['sn'] = self.__sn
-            self['time'] = self.__time
-        else:
-            assert isinstance(content, dict), 'content error: %s' % content
-            # lazy load
-            self.__type = 0
-            self.__sn = 0
-            self.__time = 0
-        # group ID
-        self.__group = None
-
-    # message content type: text, image, ...
-    @property
-    def type(self) -> int:
-        if self.__type == 0:
-            self.__type = msg_type(content=self.dictionary)
-        return self.__type
-
-    # serial number: random number to identify message content
-    @property
-    def serial_number(self) -> int:
-        if self.__sn == 0:
-            self.__sn = msg_id(content=self.dictionary)
-        return self.__sn
-
-    @property
-    def time(self) -> Optional[int]:
-        if self.__time == 0:
-            self.__time = msg_time(content=self.dictionary)
-        return self.__time
-
-    @property
-    def group(self) -> Optional[ID]:
-        if self.__group is None:
-            self.__group = content_group(content=self.dictionary)
-        return self.__group
-
-    @group.setter
-    def group(self, value: ID):
-        content_set_group(content=self.dictionary, group=value)
-        self.__group = value
+        :param content: content info
+        :return: Content
+        """
+        raise NotImplemented

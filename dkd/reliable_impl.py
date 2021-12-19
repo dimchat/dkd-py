@@ -30,32 +30,19 @@
 
 from typing import Optional
 
-from mkm import Meta, Visa
+from mkm import Meta, Document, Visa
 
 from .secure import SecureMessage
-from .secure_factory import EncryptedMessage
-from .reliable import ReliableMessage, ReliableMessageDelegate
-from .reliable import message_meta, message_set_visa, message_visa, message_set_meta
+from .secure_impl import EncryptedMessage
+from .reliable import ReliableMessage, ReliableMessageFactory, ReliableMessageDelegate
 
 
 """
-    ReliableMessage Factory
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    Network Message
+    ~~~~~~~~~~~~~~~
+    
+    Implementations for ReliableMessage
 """
-
-
-class ReliableMessageFactory(ReliableMessage.Factory):
-
-    def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
-        # msg.sender should not be empty
-        # msg.data should not be empty
-        # msg.signature should not be empty
-        if msg.get('sender') is not None and msg.get('data') is not None and msg.get('signature') is not None:
-            return NetworkMessage(msg=msg)
-
-
-# register SecureMessage factory
-ReliableMessage.register(factory=ReliableMessageFactory())
 
 
 class NetworkMessage(EncryptedMessage, ReliableMessage):
@@ -67,7 +54,7 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
         self.__meta = None
         self.__visa = None
 
-    @property
+    @property  # Override
     def signature(self) -> bytes:
         if self.__signature is None:
             base64 = self.get('signature')
@@ -77,28 +64,41 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
             self.__signature = delegate.decode_signature(signature=base64, msg=self)
         return self.__signature
 
-    @property
+    @property  # Override
     def meta(self) -> Optional[Meta]:
         if self.__meta is None:
-            self.__meta = message_meta(msg=self.dictionary)
+            info = self.get('meta')
+            self.__meta = Meta.parse(meta=info)
         return self.__meta
 
-    @meta.setter
-    def meta(self, value: Meta):
-        message_set_meta(msg=self.dictionary, meta=value)
-        self.__meta = value
+    @meta.setter  # Override
+    def meta(self, info: Meta):
+        if info is None:
+            self.pop('meta', None)
+        else:
+            self['meta'] = info.dictionary
+        self.__meta = info
 
-    @property
+    @property  # Override
     def visa(self) -> Optional[Visa]:
         if self.__visa is None:
-            self.__visa = message_visa(msg=self.dictionary)
+            info = self.get('visa')
+            if info is None:
+                # compatible with v1.0
+                info = self.get('profile')
+            self.__visa = Document.parse(document=info)
         return self.__visa
 
-    @visa.setter
-    def visa(self, value: Visa):
-        message_set_visa(msg=self.dictionary, visa=value)
-        self.__visa = value
+    @visa.setter  # Override
+    def visa(self, info: Visa):
+        if info is None:
+            self.pop('profile', None)
+            self.pop('visa', None)
+        else:
+            self['visa'] = info.dictionary
+        self.__visa = info
 
+    # Override
     def verify(self) -> Optional[SecureMessage]:
         data = self.data
         if data is None:
@@ -116,3 +116,18 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
             return SecureMessage.parse(msg=msg)
         # else:
         #     raise ValueError('Signature error: %s' % self)
+
+
+class NetworkMessageFactory(ReliableMessageFactory):
+
+    # Override
+    def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
+        # msg.sender should not be empty
+        # msg.data should not be empty
+        # msg.signature should not be empty
+        if msg.get('sender') is not None and msg.get('data') is not None and msg.get('signature') is not None:
+            return NetworkMessage(msg=msg)
+
+
+# register SecureMessage factory
+ReliableMessage.register(factory=NetworkMessageFactory())

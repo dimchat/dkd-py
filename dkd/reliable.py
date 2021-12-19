@@ -27,16 +27,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # ==============================================================================
-from abc import abstractmethod
+
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm.crypto import Map
-from mkm import ID, Meta, Visa, Document
+from mkm import ID, Meta, Visa
 
 from .secure import SecureMessage, SecureMessageDelegate
+from .factories import Factories
 
 
-class ReliableMessage(SecureMessage):
+class ReliableMessage(SecureMessage, ABC):
     """This class is used to sign the SecureMessage
     It contains a 'signature' field which signed with sender's private key
 
@@ -60,13 +62,11 @@ class ReliableMessage(SecureMessage):
     """
 
     @property
-    @abstractmethod
     def signature(self) -> bytes:
         """ signature for encrypted data of message content """
         raise NotImplemented
 
     @property
-    @abstractmethod
     def meta(self) -> Optional[Meta]:
         """
             Sender's Meta
@@ -76,12 +76,10 @@ class ReliableMessage(SecureMessage):
         raise NotImplemented
 
     @meta.setter
-    @abstractmethod
     def meta(self, value: Meta):
         raise NotImplemented
 
     @property
-    @abstractmethod
     def visa(self) -> Optional[Visa]:
         """
             Sender's Visa Document
@@ -91,7 +89,6 @@ class ReliableMessage(SecureMessage):
         raise NotImplemented
 
     @visa.setter
-    @abstractmethod
     def visa(self, value: Visa):
         raise NotImplemented
 
@@ -110,6 +107,7 @@ class ReliableMessage(SecureMessage):
             +----------+
     """
 
+    @abstractmethod
     def verify(self) -> Optional[SecureMessage]:
         """
         Verify the message.data with signature
@@ -119,29 +117,8 @@ class ReliableMessage(SecureMessage):
         raise NotImplemented
 
     #
-    #   ReliableMessage factory
+    #   Factory method
     #
-    class Factory:
-
-        @abstractmethod
-        def parse_reliable_message(self, msg: dict):  # -> Optional[ReliableMessage]:
-            """
-            Parse map object to message
-
-            :param msg: message info
-            :return: ReliableMessage
-            """
-            raise NotImplemented
-
-    __factory = None
-
-    @classmethod
-    def register(cls, factory: Factory):
-        cls.__factory = factory
-
-    @classmethod
-    def factory(cls) -> Factory:
-        return cls.__factory
 
     @classmethod
     def parse(cls, msg: dict):  # -> ReliableMessage:
@@ -152,11 +129,32 @@ class ReliableMessage(SecureMessage):
         elif isinstance(msg, Map):
             msg = msg.dictionary
         factory = cls.factory()
-        assert factory is not None, 'reliable message factory not ready'
+        assert isinstance(factory, ReliableMessageFactory), 'reliable message factory error: %s' % factory
         return factory.parse_reliable_message(msg=msg)
 
+    @classmethod
+    def factory(cls):  # -> ReliableMessageFactory:
+        return Factories.reliable_message_factory
 
-class ReliableMessageDelegate(SecureMessageDelegate):
+    @classmethod
+    def register(cls, factory):
+        Factories.reliable_message_factory = factory
+
+
+class ReliableMessageFactory(ABC):
+
+    @abstractmethod
+    def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
+        """
+        Parse map object to message
+
+        :param msg: message info
+        :return: ReliableMessage
+        """
+        raise NotImplemented
+
+
+class ReliableMessageDelegate(SecureMessageDelegate, ABC):
 
     @abstractmethod
     def decode_signature(self, signature: str, msg: ReliableMessage) -> Optional[bytes]:
@@ -181,36 +179,3 @@ class ReliableMessageDelegate(SecureMessageDelegate):
         :return:          True on signature matched
         """
         raise NotImplemented
-
-
-"""
-    Implements
-    ~~~~~~~~~~
-"""
-
-
-def message_meta(msg: dict) -> Optional[Meta]:
-    meta = msg.get('meta')
-    return Meta.parse(meta=meta)
-
-
-def message_set_meta(msg: dict, meta: Meta):
-    if meta is None:
-        msg.pop('meta', None)
-    else:
-        msg['meta'] = meta.dictionary
-
-
-def message_visa(msg: dict) -> Optional[Visa]:
-    visa = msg.get('visa')
-    if visa is None:
-        visa = msg.get('profile')
-    return Document.parse(document=visa)
-
-
-def message_set_visa(msg: dict, visa: Visa):
-    msg.pop('profile', None)
-    if visa is None:
-        msg.pop('visa', None)
-    else:
-        msg['visa'] = visa.dictionary

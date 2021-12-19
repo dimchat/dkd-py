@@ -2,12 +2,12 @@
 #
 #   Dao-Ke-Dao: Universal Message Module
 #
-#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#                                Written in 2021 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2019 Albert Moky
+# Copyright (c) 2021 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,34 +28,13 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .types import ContentType
-from .content import Content, ContentFactory
-from .envelope import Envelope
 
-from .message import Message
-from .instant import InstantMessage, InstantMessageDelegate
-from .secure import SecureMessage, SecureMessageDelegate
-from .reliable import ReliableMessage, ReliableMessageDelegate
+class Factories:
 
-from .content_impl import BaseContent
-from .envelope_impl import *
-from .instant_impl import *
-from .secure_impl import *
-from .reliable_impl import *
+    content_factories = {}           # int(type) -> ContentFactory
 
-name = "DaoKeDao"
+    envelope_factory = None          # EnvelopeFactory
 
-__author__ = 'Albert Moky'
-
-__all__ = [
-
-    'ContentType',
-
-    'Content', 'ContentFactory', 'BaseContent',
-    'Envelope',
-
-    'Message',
-    'InstantMessage', 'InstantMessageDelegate',
-    'SecureMessage', 'SecureMessageDelegate',
-    'ReliableMessage', 'ReliableMessageDelegate',
-]
+    instant_message_factory = None   # InstantMessageFactory
+    secure_message_factory = None    # SecureMessageFactory
+    reliable_message_factory = None  # ReliableMessageFactory
