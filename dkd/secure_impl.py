@@ -59,7 +59,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
     def data(self) -> bytes:
         if self.__data is None:
             base64 = self.get('data')
-            assert base64 is not None, 'secure message data cannot be empty'
+            assert base64 is not None, 'secure message data cannot be empty: %s' % self
             delegate = self.delegate
             assert isinstance(delegate, SecureMessageDelegate), 'secure delegate error: %s' % delegate
             self.__data = delegate.decode_data(data=base64, msg=self)

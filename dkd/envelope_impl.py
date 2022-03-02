@@ -99,8 +99,7 @@ class MessageEnvelope(Dictionary, Envelope):
     def group(self) -> Optional[ID]:
         if self.__group is None:
             identifier = self.get('group')
-            if identifier is not None:
-                self.__group = ID.parse(identifier=identifier)
+            self.__group = ID.parse(identifier=identifier)
         return self.__group
 
     @group.setter  # Override
