@@ -29,9 +29,10 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, Any
 
-from mkm.crypto import Map, SymmetricKey
+from mkm.wrappers import MapWrapper
+from mkm.crypto import SymmetricKey
 from mkm import ID
 
 from .content import Content
@@ -153,12 +154,12 @@ class SecureMessage(Message, ABC):
     #
 
     @classmethod
-    def parse(cls, msg: dict):  # -> SecureMessage:
+    def parse(cls, msg: Any):  # -> SecureMessage:
         if msg is None:
             return None
         elif isinstance(msg, SecureMessage):
             return msg
-        elif isinstance(msg, Map):
+        elif isinstance(msg, MapWrapper):
             msg = msg.dictionary
         factory = cls.factory()
         assert isinstance(factory, SecureMessageFactory), 'secure message factory error: %s' % factory

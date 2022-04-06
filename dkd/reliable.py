@@ -29,9 +29,9 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Any
 
-from mkm.crypto import Map
+from mkm.wrappers import MapWrapper
 from mkm import ID, Meta, Visa
 
 from .secure import SecureMessage, SecureMessageDelegate
@@ -121,12 +121,12 @@ class ReliableMessage(SecureMessage, ABC):
     #
 
     @classmethod
-    def parse(cls, msg: dict):  # -> ReliableMessage:
+    def parse(cls, msg: Any):  # -> ReliableMessage:
         if msg is None:
             return None
         elif isinstance(msg, ReliableMessage):
             return msg
-        elif isinstance(msg, Map):
+        elif isinstance(msg, MapWrapper):
             msg = msg.dictionary
         factory = cls.factory()
         assert isinstance(factory, ReliableMessageFactory), 'reliable message factory error: %s' % factory

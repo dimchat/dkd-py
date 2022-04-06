@@ -29,16 +29,16 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
-from mkm.crypto import Map
+from mkm.wrappers import MapWrapper
 from mkm import ID
 
 from .types import ContentType
 from .factories import Factories
 
 
-class Envelope(Map, ABC):
+class Envelope(MapWrapper, ABC):
     """ This class is used to create a message envelope
     which contains 'sender', 'receiver' and 'time'
 
@@ -71,7 +71,7 @@ class Envelope(Map, ABC):
         raise NotImplemented
 
     @property
-    def time(self) -> int:
+    def time(self) -> float:
         """
         Get message time
 
@@ -115,18 +115,18 @@ class Envelope(Map, ABC):
     #
 
     @classmethod
-    def create(cls, sender: ID, receiver: ID, time: int = 0):  # -> Envelope:
+    def create(cls, sender: ID, receiver: ID, time: float = 0):  # -> Envelope:
         factory = cls.factory()
         assert isinstance(factory, EnvelopeFactory), 'envelope factory error: %s' % factory
         return factory.create_envelope(sender=sender, receiver=receiver, time=time)
 
     @classmethod
-    def parse(cls, envelope: dict):  # -> Envelope:
+    def parse(cls, envelope: Any):  # -> Envelope:
         if envelope is None:
             return None
         elif isinstance(envelope, Envelope):
             return envelope
-        elif isinstance(envelope, Map):
+        elif isinstance(envelope, MapWrapper):
             envelope = envelope.dictionary
         factory = cls.factory()
         assert isinstance(factory, EnvelopeFactory), 'envelope factory error: %s' % factory
@@ -144,7 +144,7 @@ class Envelope(Map, ABC):
 class EnvelopeFactory(ABC):
 
     @abstractmethod
-    def create_envelope(self, sender: ID, receiver: ID, time: int) -> Envelope:
+    def create_envelope(self, sender: ID, receiver: ID, time: float) -> Envelope:
         """
         Create envelope
 

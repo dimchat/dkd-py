@@ -8,13 +8,15 @@
     Common Message Module for decentralized instant messaging
 """
 
+import io
+
 from setuptools import setup, find_packages
 
-__version__ = '0.11.2'
+__version__ = '0.11.3'
 __author__ = 'Albert Moky'
 __contact__ = 'albert.moky@gmail.com'
 
-with open('README.md', 'r') as fh:
+with io.open('README.md', 'r', encoding='utf-8') as fh:
     readme = fh.read()
 
 setup(
@@ -34,6 +36,6 @@ setup(
         'Operating System :: OS Independent',
     ],
     install_requires=[
-        'mkm>=0.11.2',
+        'mkm>=0.11.3',
     ]
 )

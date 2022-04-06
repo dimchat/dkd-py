@@ -52,13 +52,13 @@ import weakref
 from abc import ABC
 from typing import Optional
 
-from mkm.crypto import Map, Dictionary
+from mkm.wrappers import MapWrapper, Dictionary
 from mkm import ID
 
 from .envelope import Envelope
 
 
-class Message(Map, ABC):
+class Message(MapWrapper, ABC):
     """This class is used to create a message
     with the envelope fields, such as 'sender', 'receiver', and 'time'
 
@@ -97,7 +97,7 @@ class Message(Map, ABC):
         raise NotImplemented
 
     @property
-    def time(self) -> int:
+    def time(self) -> float:
         raise NotImplemented
 
     @property
@@ -150,7 +150,7 @@ class BaseMessage(Dictionary, Message):
         return self.envelope.receiver
 
     @property  # Override
-    def time(self) -> int:
+    def time(self) -> float:
         return self.envelope.time
 
     @property  # Override

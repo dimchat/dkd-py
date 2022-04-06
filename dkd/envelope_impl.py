@@ -31,7 +31,7 @@
 import time as time_lib
 from typing import Optional, Union
 
-from mkm.crypto import Dictionary
+from mkm.wrappers import Dictionary
 from mkm import ID, ANYONE
 
 from .types import ContentType
@@ -49,13 +49,13 @@ from .envelope import Envelope, EnvelopeFactory
 class MessageEnvelope(Dictionary, Envelope):
 
     def __init__(self, envelope: Optional[dict] = None,
-                 sender: Optional[ID] = None, receiver: Optional[ID] = None, time: Optional[int] = 0):
+                 sender: Optional[ID] = None, receiver: Optional[ID] = None, time: Optional[float] = 0):
         if envelope is None:
             assert sender is not None, 'sender should not be empty'
             if receiver is None:
                 receiver = ANYONE
             if time == 0:
-                time = int(time_lib.time())
+                time = time_lib.time()
             envelope = {
                 'sender': str(sender),
                 'receiver': str(receiver),
@@ -88,11 +88,11 @@ class MessageEnvelope(Dictionary, Envelope):
         return self.__receiver
 
     @property  # Override
-    def time(self) -> int:
+    def time(self) -> float:
         if self.__time == 0:
             timestamp = self.get('time')
             if timestamp is not None:
-                self.__time = int(timestamp)
+                self.__time = float(timestamp)
         return self.__time
 
     @property  # Override
@@ -132,7 +132,7 @@ class MessageEnvelope(Dictionary, Envelope):
 class MessageEnvelopeFactory(EnvelopeFactory):
 
     # Override
-    def create_envelope(self, sender: ID, receiver: ID, time: int) -> Envelope:
+    def create_envelope(self, sender: ID, receiver: ID, time: float) -> Envelope:
         return MessageEnvelope(sender=sender, receiver=receiver, time=time)
 
     # Override

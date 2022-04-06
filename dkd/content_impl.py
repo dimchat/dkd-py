@@ -28,16 +28,16 @@
 # SOFTWARE.
 # ==============================================================================
 
-import random
-import time
+import time as time_lib
 from typing import Optional, Union
 
-from mkm.crypto import Dictionary
+from mkm.wrappers import Dictionary
 from mkm import ID
 
 from .types import ContentType
 from .content import Content
 from .content import msg_type
+from .instant import InstantMessage
 
 
 """
@@ -55,22 +55,22 @@ class BaseContent(Dictionary, Content):
             if isinstance(content_type, ContentType):
                 content_type = content_type.value
             assert content_type > 0, 'content type error: %d' % content_type
-            sn = random_positive_integer()
-            timestamp = int(time.time())
+            time = time_lib.time()
+            sn = InstantMessage.generate_serial_number(content_type=content_type, time=time)
             content = {
                 'type': content_type,
                 'sn': sn,
-                'time': timestamp,
+                'time': time,
             }
         else:
             sn = 0
-            timestamp = 0
+            time = 0
         # initialize with content info
         super().__init__(dictionary=content)
         # lazy load
         self.__type = content_type
         self.__sn = sn
-        self.__time = timestamp
+        self.__time = time
         self.__group = None
 
     @property  # Override
@@ -88,11 +88,11 @@ class BaseContent(Dictionary, Content):
         return self.__sn
 
     @property  # Override
-    def time(self) -> Optional[int]:
+    def time(self) -> Optional[float]:
         if self.__time == 0:
             timestamp = self.get('time')
             if timestamp is not None:
-                self.__time = int(timestamp)
+                self.__time = float(timestamp)
         return self.__time
 
     @property  # Override
@@ -109,10 +109,3 @@ class BaseContent(Dictionary, Content):
         else:
             self['group'] = str(identifier)
         self.__group = identifier
-
-
-def random_positive_integer():
-    """
-    :return: random integer greater than 0
-    """
-    return random.randint(1, 2**32-1)

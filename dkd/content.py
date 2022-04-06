@@ -29,16 +29,16 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
-from mkm.crypto import Map
+from mkm.wrappers import MapWrapper
 from mkm import ID
 
 from .types import ContentType
 from .factories import Factories
 
 
-class Content(Map, ABC):
+class Content(MapWrapper, ABC):
     """This class is for creating message content
 
         Message Content
@@ -68,7 +68,7 @@ class Content(Map, ABC):
         raise NotImplemented
 
     @property
-    def time(self) -> Optional[int]:
+    def time(self) -> Optional[float]:
         """ message time """
         raise NotImplemented
 
@@ -90,12 +90,12 @@ class Content(Map, ABC):
     #
 
     @classmethod
-    def parse(cls, content: dict):  # -> Content:
+    def parse(cls, content: Any):  # -> Content:
         if content is None:
             return None
         elif isinstance(content, Content):
             return content
-        elif isinstance(content, Map):
+        elif isinstance(content, MapWrapper):
             content = content.dictionary
         _type = msg_type(content=content)
         factory = cls.factory(content_type=_type)

@@ -29,13 +29,15 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, Union, List, Any
 
-from mkm.crypto import Map, SymmetricKey
+from mkm.wrappers import MapWrapper
+from mkm.crypto import SymmetricKey
 from mkm import ID
 
-from .envelope import Envelope
+from .types import ContentType
 from .content import Content
+from .envelope import Envelope
 from .message import Message
 from .secure import SecureMessage
 from .factories import Factories
@@ -97,16 +99,22 @@ class InstantMessage(Message, ABC):
         return factory.create_instant_message(head=head, body=body)
 
     @classmethod
-    def parse(cls, msg: dict):  # -> InstantMessage:
+    def parse(cls, msg: Any):  # -> InstantMessage:
         if msg is None:
             return None
         elif isinstance(msg, InstantMessage):
             return msg
-        elif isinstance(msg, Map):
+        elif isinstance(msg, MapWrapper):
             msg = msg.dictionary
         factory = cls.factory()
         assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
         return factory.parse_instant_message(msg=msg)
+
+    @classmethod
+    def generate_serial_number(cls, content_type: Union[ContentType, int], time: float) -> int:
+        factory = cls.factory()
+        assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
+        return factory.generate_serial_number(content_type=content_type, time=time)
 
     @classmethod
     def factory(cls):  # -> InstantMessageFactory:
@@ -118,6 +126,17 @@ class InstantMessage(Message, ABC):
 
 
 class InstantMessageFactory(ABC):
+
+    @abstractmethod
+    def generate_serial_number(self, content_type: Union[ContentType, int], time: float) -> int:
+        """
+        Generate SN for message content
+
+        :param content_type: message type
+        :param time:         message time
+        :return: SN (uint64, serial number as msg id)
+        """
+        raise NotImplemented
 
     @abstractmethod
     def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:

@@ -28,11 +28,13 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, List
+import random
+from typing import Optional, List, Union
 
 from mkm.crypto import SymmetricKey
 from mkm import ID
 
+from . import ContentType
 from .envelope import Envelope
 from .content import Content
 from .message import BaseMessage
@@ -65,7 +67,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         return self.__content
 
     @property  # Override
-    def time(self) -> int:
+    def time(self) -> float:
         value = self.content.time
         if value > 0:
             return value
@@ -172,6 +174,13 @@ class PlainMessage(BaseMessage, InstantMessage):
 
 
 class PlainMessageFactory(InstantMessageFactory):
+
+    # Override
+    def generate_serial_number(self, content_type: Union[ContentType, int], time: float) -> int:
+        # because we must make sure all messages in a same chat box won't have
+        # same serial numbers, so we can't use time-related numbers, therefore
+        # the best choice is a totally random number, maybe.
+        return random.randint(1, 2**32-1)  # uint32 -> uint64
 
     # Override
     def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
