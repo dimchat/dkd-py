@@ -119,7 +119,7 @@ class MessageEnvelope(Dictionary, Envelope):
         return self.__type
 
     @type.setter  # Override
-    def type(self, value: Union[ContentType, int]):
+    def type(self, value: Union[int, ContentType]):
         if isinstance(value, ContentType):
             value = value.value
         if value == 0:

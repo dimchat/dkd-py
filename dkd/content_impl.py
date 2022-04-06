@@ -36,7 +36,7 @@ from mkm import ID
 
 from .types import ContentType
 from .content import Content
-from .content import msg_type
+from .content import content_type
 from .instant import InstantMessage
 
 
@@ -50,15 +50,15 @@ from .instant import InstantMessage
 
 class BaseContent(Dictionary, Content):
 
-    def __init__(self, content: Optional[dict] = None, content_type: Union[ContentType, int] = 0):
+    def __init__(self, content: Optional[dict] = None, msg_type: Union[int, ContentType] = 0):
         if content is None:
-            if isinstance(content_type, ContentType):
-                content_type = content_type.value
-            assert content_type > 0, 'content type error: %d' % content_type
+            if isinstance(msg_type, ContentType):
+                msg_type = msg_type.value
+            assert msg_type > 0, 'content type error: %d' % msg_type
             time = time_lib.time()
-            sn = InstantMessage.generate_serial_number(content_type=content_type, time=time)
+            sn = InstantMessage.generate_serial_number(msg_type=msg_type, time=time)
             content = {
-                'type': content_type,
+                'type': msg_type,
                 'sn': sn,
                 'time': time,
             }
@@ -68,7 +68,7 @@ class BaseContent(Dictionary, Content):
         # initialize with content info
         super().__init__(dictionary=content)
         # lazy load
-        self.__type = content_type
+        self.__type = msg_type
         self.__sn = sn
         self.__time = time
         self.__group = None
@@ -77,7 +77,7 @@ class BaseContent(Dictionary, Content):
     def type(self) -> int:
         """ message content type: text, image, ... """
         if self.__type == 0:
-            self.__type = msg_type(content=self.dictionary)
+            self.__type = content_type(content=self.dictionary)
         return self.__type
 
     @property  # Override

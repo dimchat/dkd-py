@@ -107,7 +107,7 @@ class Envelope(MapWrapper, ABC):
         raise NotImplemented
 
     @type.setter
-    def type(self, value: Union[ContentType, int]):
+    def type(self, value: Union[int, ContentType]):
         raise NotImplemented
 
     #

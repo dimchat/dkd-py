@@ -111,10 +111,10 @@ class InstantMessage(Message, ABC):
         return factory.parse_instant_message(msg=msg)
 
     @classmethod
-    def generate_serial_number(cls, content_type: Union[ContentType, int], time: float) -> int:
+    def generate_serial_number(cls, msg_type: Union[int, ContentType], time: float) -> int:
         factory = cls.factory()
         assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
-        return factory.generate_serial_number(content_type=content_type, time=time)
+        return factory.generate_serial_number(msg_type=msg_type, time=time)
 
     @classmethod
     def factory(cls):  # -> InstantMessageFactory:
@@ -128,12 +128,12 @@ class InstantMessage(Message, ABC):
 class InstantMessageFactory(ABC):
 
     @abstractmethod
-    def generate_serial_number(self, content_type: Union[ContentType, int], time: float) -> int:
+    def generate_serial_number(self, msg_type: Union[int, ContentType], time: float) -> int:
         """
         Generate SN for message content
 
-        :param content_type: message type
-        :param time:         message time
+        :param msg_type: content type
+        :param time:     message time
         :return: SN (uint64, serial number as msg id)
         """
         raise NotImplemented

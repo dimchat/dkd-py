@@ -176,7 +176,7 @@ class PlainMessage(BaseMessage, InstantMessage):
 class PlainMessageFactory(InstantMessageFactory):
 
     # Override
-    def generate_serial_number(self, content_type: Union[ContentType, int], time: float) -> int:
+    def generate_serial_number(self, msg_type: Union[int, ContentType], time: float) -> int:
         # because we must make sure all messages in a same chat box won't have
         # same serial numbers, so we can't use time-related numbers, therefore
         # the best choice is a totally random number, maybe.

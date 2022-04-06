@@ -97,28 +97,28 @@ class Content(MapWrapper, ABC):
             return content
         elif isinstance(content, MapWrapper):
             content = content.dictionary
-        _type = msg_type(content=content)
-        factory = cls.factory(content_type=_type)
+        msg_type = content_type(content=content)
+        factory = cls.factory(msg_type=msg_type)
         if factory is None:
-            factory = cls.factory(content_type=0)  # unknown
+            factory = cls.factory(msg_type=0)  # unknown
             assert factory is not None, 'cannot parse content: %s' % content
         assert isinstance(factory, ContentFactory), 'content factory error: %s' % factory
         return factory.parse_content(content=content)
 
     @classmethod
-    def factory(cls, content_type: Union[ContentType, int]):  # -> Optional[ContentFactory]:
-        if isinstance(content_type, ContentType):
-            content_type = content_type.value
-        return Factories.content_factories.get(content_type)
+    def factory(cls, msg_type: Union[int, ContentType]):  # -> Optional[ContentFactory]:
+        if isinstance(msg_type, ContentType):
+            msg_type = msg_type.value
+        return Factories.content_factories.get(msg_type)
 
     @classmethod
-    def register(cls, content_type: Union[ContentType, int], factory):
-        if isinstance(content_type, ContentType):
-            content_type = content_type.value
-        Factories.content_factories[content_type] = factory
+    def register(cls, msg_type: Union[int, ContentType], factory):
+        if isinstance(msg_type, ContentType):
+            msg_type = msg_type.value
+        Factories.content_factories[msg_type] = factory
 
 
-def msg_type(content: dict) -> int:
+def content_type(content: dict) -> int:
     return int(content.get('type'))
 
 
