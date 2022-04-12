@@ -83,16 +83,12 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
     def visa(self) -> Optional[Visa]:
         if self.__visa is None:
             info = self.get('visa')
-            if info is None:
-                # compatible with v1.0
-                info = self.get('profile')
             self.__visa = Document.parse(document=info)
         return self.__visa
 
     @visa.setter  # Override
     def visa(self, info: Visa):
         if info is None:
-            self.pop('profile', None)
             self.pop('visa', None)
         else:
             self['visa'] = info.dictionary
