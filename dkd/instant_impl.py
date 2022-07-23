@@ -29,7 +29,7 @@
 # ==============================================================================
 
 import random
-from typing import Optional, List, Union
+from typing import Optional, Union, Any, Dict, List
 
 from mkm.crypto import SymmetricKey
 from mkm import ID
@@ -52,7 +52,8 @@ from .secure import SecureMessage
 
 class PlainMessage(BaseMessage, InstantMessage):
 
-    def __init__(self, msg: Optional[dict] = None, head: Optional[Envelope] = None, body: Optional[Content] = None):
+    def __init__(self, msg: Optional[Dict[str, Any]] = None,
+                 head: Optional[Envelope] = None, body: Optional[Content] = None):
         super().__init__(msg=msg, head=head)
         self.__content = body
         if body is not None:
@@ -62,7 +63,7 @@ class PlainMessage(BaseMessage, InstantMessage):
     def content(self) -> Content:
         if self.__content is None:
             content = self.get('content')
-            assert content is not None, 'message content not found: %s' % self
+            # assert content is not None, 'message content not found: %s' % self
             self.__content = Content.parse(content=content)
         return self.__content
 
@@ -97,7 +98,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         # 3. pack message
         return SecureMessage.parse(msg=msg)
 
-    def __encrypt_key(self, password: SymmetricKey) -> Optional[dict]:
+    def __encrypt_key(self, password: SymmetricKey) -> Optional[Dict[str, Any]]:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
@@ -122,7 +123,7 @@ class PlainMessage(BaseMessage, InstantMessage):
         msg['key'] = base64
         return msg
 
-    def __encrypt_keys(self, password: SymmetricKey, members: List[ID]) -> dict:
+    def __encrypt_keys(self, password: SymmetricKey, members: List[ID]) -> Dict[str, Any]:
         # 1. encrypt 'message.content' to 'message.data'
         msg = self.__prepare_data(password=password)
         # 2. encrypt symmetric key(password) to 'message.key'
@@ -154,7 +155,7 @@ class PlainMessage(BaseMessage, InstantMessage):
             msg['keys'] = keys
         return msg
 
-    def __prepare_data(self, password: SymmetricKey) -> dict:
+    def __prepare_data(self, password: SymmetricKey) -> Dict[str, Any]:
         delegate = self.delegate
         assert isinstance(delegate, InstantMessageDelegate), 'instant delegate error: %s' % delegate
         # 1. serialize message content
@@ -187,9 +188,12 @@ class PlainMessageFactory(InstantMessageFactory):
         return PlainMessage(head=head, body=body)
 
     # Override
-    def parse_instant_message(self, msg: dict) -> Optional[InstantMessage]:
+    def parse_instant_message(self, msg: Dict[str, Any]) -> Optional[InstantMessage]:
+        # check 'sender', 'content'
+        sender = msg.get('sender')
+        content = msg.get('content')
+        if sender is None or content is None:
+            # msg.sender should not be empty
+            # msg.content should not be empty
+            return None
         return PlainMessage(msg=msg)
-
-
-# register InstantMessage factory
-InstantMessage.register(factory=PlainMessageFactory())

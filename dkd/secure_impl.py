@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, List
+from typing import Optional, Any, Dict, List
 
 from mkm import ID
 
@@ -48,7 +48,7 @@ from .reliable import ReliableMessage
 
 class EncryptedMessage(BaseMessage, SecureMessage):
 
-    def __init__(self, msg: dict):
+    def __init__(self, msg: Dict[str, Any]):
         super().__init__(msg=msg)
         # lazy
         self.__data = None
@@ -59,7 +59,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
     def data(self) -> bytes:
         if self.__data is None:
             base64 = self.get('data')
-            assert base64 is not None, 'secure message data cannot be empty: %s' % self
+            # assert base64 is not None, 'secure message data cannot be empty: %s' % self
             delegate = self.delegate
             assert isinstance(delegate, SecureMessageDelegate), 'secure delegate error: %s' % delegate
             self.__data = delegate.decode_data(data=base64, msg=self)
@@ -73,7 +73,8 @@ class EncryptedMessage(BaseMessage, SecureMessage):
                 # check 'keys'
                 keys = self.encrypted_keys
                 if keys is not None:
-                    base64 = keys.get(self.receiver)
+                    receiver = str(self.receiver)
+                    base64 = keys.get(receiver)
             if isinstance(base64, str):
                 delegate = self.delegate
                 assert isinstance(delegate, SecureMessageDelegate), 'secure delegate error: %s' % delegate
@@ -81,7 +82,7 @@ class EncryptedMessage(BaseMessage, SecureMessage):
         return self.__key
 
     @property  # Override
-    def encrypted_keys(self) -> Optional[dict]:
+    def encrypted_keys(self) -> Optional[Dict[str, Any]]:
         if self.__keys is None:
             self.__keys = self.get('keys')
         return self.__keys
@@ -221,12 +222,17 @@ class EncryptedMessage(BaseMessage, SecureMessage):
 class EncryptedMessageFactory(SecureMessageFactory):
 
     # Override
-    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
-        if 'signature' in msg:
+    def parse_secure_message(self, msg: Dict[str, Any]) -> Optional[SecureMessage]:
+        # check 'signature'
+        signature = msg.get('signature')
+        if signature is not None:
             from .reliable_impl import NetworkMessage
             return NetworkMessage(msg=msg)
+        # check 'sender', 'data'
+        sender = msg.get('sender')
+        data = msg.get('data')
+        if sender is None or data is None:
+            # msg.sender should not be empty
+            # msg.data should not be empty
+            return None
         return EncryptedMessage(msg=msg)
-
-
-# register SecureMessage factory
-SecureMessage.register(factory=EncryptedMessageFactory())

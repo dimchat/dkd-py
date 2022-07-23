@@ -29,9 +29,9 @@
 # ==============================================================================
 
 import time as time_lib
-from typing import Optional, Union
+from typing import Optional, Union, Any, Dict
 
-from mkm.wrappers import Dictionary
+from mkm.types import Dictionary
 from mkm import ID
 
 from .types import ContentType
@@ -50,7 +50,8 @@ from .instant import InstantMessage
 
 class BaseContent(Dictionary, Content):
 
-    def __init__(self, content: Optional[dict] = None, msg_type: Union[int, ContentType] = 0):
+    def __init__(self, content: Optional[Dict[str, Any]] = None,
+                 msg_type: Union[int, ContentType] = 0):
         if content is None:
             if isinstance(msg_type, ContentType):
                 msg_type = msg_type.value
@@ -84,7 +85,9 @@ class BaseContent(Dictionary, Content):
     def sn(self) -> int:
         """ serial number: random number to identify message content """
         if self.__sn == 0:
-            self.__sn = int(self.get('sn'))
+            value = self.get('sn')
+            if value is not None:
+                self.__sn = int(value)
         return self.__sn
 
     @property  # Override

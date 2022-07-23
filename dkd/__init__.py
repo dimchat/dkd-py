@@ -59,3 +59,10 @@ __all__ = [
     'SecureMessage', 'SecureMessageDelegate',
     'ReliableMessage', 'ReliableMessageDelegate',
 ]
+
+
+# Register core factories
+Envelope.register(factory=MessageEnvelopeFactory())
+InstantMessage.register(factory=PlainMessageFactory())
+SecureMessage.register(factory=EncryptedMessageFactory())
+ReliableMessage.register(factory=NetworkMessageFactory())

@@ -29,9 +29,9 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, List, Any
+from typing import Optional, Union, Any, Dict, List
 
-from mkm.wrappers import MapWrapper
+from mkm.types import Wrapper
 from mkm.crypto import SymmetricKey
 from mkm import ID
 
@@ -95,7 +95,7 @@ class InstantMessage(Message, ABC):
     @classmethod
     def create(cls, head: Envelope, body: Content):  # -> InstantMessage:
         factory = cls.factory()
-        assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
+        # assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
         return factory.create_instant_message(head=head, body=body)
 
     @classmethod
@@ -104,16 +104,16 @@ class InstantMessage(Message, ABC):
             return None
         elif isinstance(msg, InstantMessage):
             return msg
-        elif isinstance(msg, MapWrapper):
-            msg = msg.dictionary
+        info = Wrapper.get_dictionary(msg)
+        # assert info is not None, 'instant message error: %s' % msg
         factory = cls.factory()
-        assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
-        return factory.parse_instant_message(msg=msg)
+        # assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
+        return factory.parse_instant_message(msg=info)
 
     @classmethod
     def generate_serial_number(cls, msg_type: Union[int, ContentType], time: float) -> int:
         factory = cls.factory()
-        assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
+        # assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
         return factory.generate_serial_number(msg_type=msg_type, time=time)
 
     @classmethod
@@ -150,7 +150,7 @@ class InstantMessageFactory(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def parse_instant_message(self, msg: dict) -> Optional[InstantMessage]:
+    def parse_instant_message(self, msg: Dict[str, Any]) -> Optional[InstantMessage]:
         """
         Parse map object to message
 

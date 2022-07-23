@@ -28,7 +28,7 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from mkm import Meta, Document, Visa
 
@@ -47,7 +47,7 @@ from .reliable import ReliableMessage, ReliableMessageFactory, ReliableMessageDe
 
 class NetworkMessage(EncryptedMessage, ReliableMessage):
 
-    def __init__(self, msg: dict):
+    def __init__(self, msg: Dict[str, Any]):
         super().__init__(msg=msg)
         # lazy
         self.__signature = None
@@ -58,7 +58,7 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
     def signature(self) -> bytes:
         if self.__signature is None:
             base64 = self.get('signature')
-            assert base64 is not None, 'signature of reliable message cannot be empty: %s' % self
+            # assert base64 is not None, 'signature of reliable message cannot be empty: %s' % self
             delegate = self.delegate
             assert isinstance(delegate, ReliableMessageDelegate), 'reliable delegate error: %s' % delegate
             self.__signature = delegate.decode_signature(signature=base64, msg=self)
@@ -117,13 +117,14 @@ class NetworkMessage(EncryptedMessage, ReliableMessage):
 class NetworkMessageFactory(ReliableMessageFactory):
 
     # Override
-    def parse_reliable_message(self, msg: dict) -> Optional[ReliableMessage]:
-        # msg.sender should not be empty
-        # msg.data should not be empty
-        # msg.signature should not be empty
-        if msg.get('sender') is not None and msg.get('data') is not None and msg.get('signature') is not None:
-            return NetworkMessage(msg=msg)
-
-
-# register SecureMessage factory
-ReliableMessage.register(factory=NetworkMessageFactory())
+    def parse_reliable_message(self, msg: Dict[str, Any]) -> Optional[ReliableMessage]:
+        # check 'sender', 'data', 'signature'
+        sender = msg.get('sender')
+        data = msg.get('data')
+        signature = msg.get('signature')
+        if sender is None or data is None or signature is None:
+            # msg.sender should not be empty
+            # msg.data should not be empty
+            # msg.signature should not be empty
+            return None
+        return NetworkMessage(msg=msg)

@@ -29,16 +29,16 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Any
+from typing import Optional, Union, Any, Dict
 
-from mkm.wrappers import MapWrapper
+from mkm.types import Mapper, Wrapper
 from mkm import ID
 
 from .types import ContentType
 from .factories import Factories
 
 
-class Content(MapWrapper, ABC):
+class Content(Mapper, ABC):
     """This class is for creating message content
 
         Message Content
@@ -52,7 +52,7 @@ class Content(MapWrapper, ABC):
 
             //-- message info
             'text'    : 'text',          // for text message
-            'command' : 'Command Name',  // for system command
+            'cmd'     : 'Command Name',  // for system command
             //...
         }
     """
@@ -95,15 +95,14 @@ class Content(MapWrapper, ABC):
             return None
         elif isinstance(content, Content):
             return content
-        elif isinstance(content, MapWrapper):
-            content = content.dictionary
-        msg_type = content_type(content=content)
+        info = Wrapper.get_dictionary(content)
+        # assert info is not None, 'message content error: %s' % content
+        msg_type = content_type(content=info)
         factory = cls.factory(msg_type=msg_type)
         if factory is None:
             factory = cls.factory(msg_type=0)  # unknown
-            assert factory is not None, 'cannot parse content: %s' % content
-        assert isinstance(factory, ContentFactory), 'content factory error: %s' % factory
-        return factory.parse_content(content=content)
+        # assert isinstance(factory, ContentFactory), 'content factory error: %s' % factory
+        return factory.parse_content(content=info)
 
     @classmethod
     def factory(cls, msg_type: Union[int, ContentType]):  # -> Optional[ContentFactory]:
@@ -118,14 +117,15 @@ class Content(MapWrapper, ABC):
         Factories.content_factories[msg_type] = factory
 
 
-def content_type(content: dict) -> int:
-    return int(content.get('type'))
+def content_type(content: Dict[str, Any]) -> int:
+    msg_type = content.get('type')
+    return 0 if msg_type is None else int(msg_type)
 
 
 class ContentFactory(ABC):
 
     @abstractmethod
-    def parse_content(self, content: dict) -> Optional[Content]:
+    def parse_content(self, content: Dict[str, Any]) -> Optional[Content]:
         """
         Parse map object to content
 

@@ -29,9 +29,9 @@
 # ==============================================================================
 
 import time as time_lib
-from typing import Optional, Union
+from typing import Optional, Union, Any, Dict
 
-from mkm.wrappers import Dictionary
+from mkm.types import Dictionary
 from mkm import ID, ANYONE
 
 from .types import ContentType
@@ -48,7 +48,7 @@ from .envelope import Envelope, EnvelopeFactory
 
 class MessageEnvelope(Dictionary, Envelope):
 
-    def __init__(self, envelope: Optional[dict] = None,
+    def __init__(self, envelope: Optional[Dict[str, Any]] = None,
                  sender: Optional[ID] = None, receiver: Optional[ID] = None, time: Optional[float] = 0):
         if envelope is None:
             assert sender is not None, 'sender should not be empty'
@@ -136,11 +136,10 @@ class MessageEnvelopeFactory(EnvelopeFactory):
         return MessageEnvelope(sender=sender, receiver=receiver, time=time)
 
     # Override
-    def parse_envelope(self, envelope: dict) -> Optional[Envelope]:
-        # env.sender should not empty
-        if envelope.get('sender') is not None:
-            return MessageEnvelope(envelope=envelope)
-
-
-# register Envelope factory
-Envelope.register(factory=MessageEnvelopeFactory())
+    def parse_envelope(self, envelope: Dict[str, Any]) -> Optional[Envelope]:
+        # check 'sender'
+        sender = envelope.get('sender')
+        if sender is None:
+            # env.sender should not be empty
+            return None
+        return MessageEnvelope(envelope=envelope)

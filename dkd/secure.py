@@ -29,9 +29,9 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Any
+from typing import Optional, Any, Dict, List
 
-from mkm.wrappers import MapWrapper
+from mkm.types import Wrapper
 from mkm.crypto import SymmetricKey
 from mkm import ID
 
@@ -71,7 +71,7 @@ class SecureMessage(Message, ABC):
         raise NotImplemented
 
     @property
-    def encrypted_keys(self) -> Optional[dict]:
+    def encrypted_keys(self) -> Optional[Dict[str, Any]]:
         """ encrypted message keys """
         raise NotImplemented
 
@@ -159,11 +159,11 @@ class SecureMessage(Message, ABC):
             return None
         elif isinstance(msg, SecureMessage):
             return msg
-        elif isinstance(msg, MapWrapper):
-            msg = msg.dictionary
+        info = Wrapper.get_dictionary(msg)
+        # assert info is not None, 'secure message error: %s' % msg
         factory = cls.factory()
-        assert isinstance(factory, SecureMessageFactory), 'secure message factory error: %s' % factory
-        return factory.parse_secure_message(msg=msg)
+        # assert isinstance(factory, SecureMessageFactory), 'secure message factory error: %s' % factory
+        return factory.parse_secure_message(msg=info)
 
     @classmethod
     def factory(cls):  # -> SecureMessageFactory:
@@ -180,7 +180,7 @@ class SecureMessage(Message, ABC):
 class SecureMessageFactory(ABC):
 
     @abstractmethod
-    def parse_secure_message(self, msg: dict) -> Optional[SecureMessage]:
+    def parse_secure_message(self, msg: Dict[str, Any]) -> Optional[SecureMessage]:
         """
         Parse map object to message
 

@@ -29,16 +29,16 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Any
+from typing import Optional, Union, Any, Dict
 
-from mkm.wrappers import MapWrapper
+from mkm.types import Mapper, Wrapper
 from mkm import ID
 
 from .types import ContentType
 from .factories import Factories
 
 
-class Envelope(MapWrapper, ABC):
+class Envelope(Mapper, ABC):
     """ This class is used to create a message envelope
     which contains 'sender', 'receiver' and 'time'
 
@@ -117,7 +117,7 @@ class Envelope(MapWrapper, ABC):
     @classmethod
     def create(cls, sender: ID, receiver: ID, time: float = 0):  # -> Envelope:
         factory = cls.factory()
-        assert isinstance(factory, EnvelopeFactory), 'envelope factory error: %s' % factory
+        # assert isinstance(factory, EnvelopeFactory), 'envelope factory error: %s' % factory
         return factory.create_envelope(sender=sender, receiver=receiver, time=time)
 
     @classmethod
@@ -126,11 +126,11 @@ class Envelope(MapWrapper, ABC):
             return None
         elif isinstance(envelope, Envelope):
             return envelope
-        elif isinstance(envelope, MapWrapper):
-            envelope = envelope.dictionary
+        info = Wrapper.get_dictionary(envelope)
+        # assert info is not None, 'message envelope error: %s' % envelope
         factory = cls.factory()
-        assert isinstance(factory, EnvelopeFactory), 'envelope factory error: %s' % factory
-        return factory.parse_envelope(envelope=envelope)
+        # assert isinstance(factory, EnvelopeFactory), 'envelope factory error: %s' % factory
+        return factory.parse_envelope(envelope=info)
 
     @classmethod
     def factory(cls):  # -> EnvelopeFactory:
@@ -156,7 +156,7 @@ class EnvelopeFactory(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def parse_envelope(self, envelope: dict) -> Optional[Envelope]:
+    def parse_envelope(self, envelope: Dict[str, Any]) -> Optional[Envelope]:
         """
         Parse map object to envelope
 

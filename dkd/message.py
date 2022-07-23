@@ -50,15 +50,15 @@
 
 import weakref
 from abc import ABC
-from typing import Optional
+from typing import Optional, Any, Dict
 
-from mkm.wrappers import MapWrapper, Dictionary
+from mkm.types import Mapper, Dictionary
 from mkm import ID
 
 from .envelope import Envelope
 
 
-class Message(MapWrapper, ABC):
+class Message(Mapper, ABC):
     """This class is used to create a message
     with the envelope fields, such as 'sender', 'receiver', and 'time'
 
@@ -117,7 +117,8 @@ class Message(MapWrapper, ABC):
 
 class BaseMessage(Dictionary, Message):
 
-    def __init__(self, msg: Optional[dict] = None, head: Optional[Envelope] = None):
+    def __init__(self, msg: Optional[Dict[str, Any]] = None,
+                 head: Optional[Envelope] = None):
         if msg is None:
             assert head is not None, 'message envelope should not be empty'
             msg = head.dictionary
