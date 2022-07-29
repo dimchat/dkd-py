@@ -34,12 +34,12 @@ from typing import Optional, Union, Any, Dict, List
 from mkm.crypto import SymmetricKey
 from mkm import ID
 
-from . import ContentType
-from .envelope import Envelope
-from .content import Content
+from ..protocol import ContentType, Content
+from ..protocol import Envelope
+from ..protocol import InstantMessage, SecureMessage
+from ..protocol import InstantMessageFactory, InstantMessageDelegate
+
 from .message import BaseMessage
-from .instant import InstantMessage, InstantMessageFactory, InstantMessageDelegate
-from .secure import SecureMessage
 
 
 """

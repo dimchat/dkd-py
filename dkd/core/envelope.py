@@ -34,8 +34,8 @@ from typing import Optional, Union, Any, Dict
 from mkm.types import Dictionary
 from mkm import ID, ANYONE
 
-from .types import ContentType
-from .envelope import Envelope, EnvelopeFactory
+from ..protocol import ContentType
+from ..protocol import Envelope, EnvelopeFactory
 
 
 """

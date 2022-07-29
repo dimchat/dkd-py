@@ -34,10 +34,8 @@ from typing import Optional, Union, Any, Dict
 from mkm.types import Dictionary
 from mkm import ID
 
-from .types import ContentType
-from .content import Content
-from .content import content_type
-from .instant import InstantMessage
+from ..protocol import Content, ContentType, content_type
+from ..protocol import InstantMessage
 
 
 """

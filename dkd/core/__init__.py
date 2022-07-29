@@ -28,41 +28,21 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .protocol import *
-from .core import *
+from .content import BaseContent
+from .envelope import MessageEnvelope, MessageEnvelopeFactory
 
-name = "DaoKeDao"
-
-__author__ = 'Albert Moky'
+from .message import BaseMessage
+from .instant import PlainMessage, PlainMessageFactory
+from .secure import EncryptedMessage, EncryptedMessageFactory
+from .reliable import NetworkMessage, NetworkMessageFactory
 
 __all__ = [
 
-    #
-    #   Protocol
-    #
-    'ContentType', 'Content', 'ContentFactory',
-    'Envelope', 'EnvelopeFactory',
-    'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
-
-    #
-    #   Core
-    #
     'BaseContent',
     'MessageEnvelope', 'MessageEnvelopeFactory',
+
     'BaseMessage',
     'PlainMessage', 'PlainMessageFactory',
     'EncryptedMessage', 'EncryptedMessageFactory',
     'NetworkMessage', 'NetworkMessageFactory',
 ]
-
-
-def register_core_factories():
-    Envelope.register(factory=MessageEnvelopeFactory())
-    InstantMessage.register(factory=PlainMessageFactory())
-    SecureMessage.register(factory=EncryptedMessageFactory())
-    ReliableMessage.register(factory=NetworkMessageFactory())
-
-
-register_core_factories()

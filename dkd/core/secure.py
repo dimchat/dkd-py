@@ -32,10 +32,10 @@ from typing import Optional, Any, Dict, List
 
 from mkm import ID
 
+from ..protocol import InstantMessage, SecureMessage, ReliableMessage
+from ..protocol import SecureMessageFactory, SecureMessageDelegate
+
 from .message import BaseMessage
-from .instant import InstantMessage
-from .secure import SecureMessage, SecureMessageFactory, SecureMessageDelegate
-from .reliable import ReliableMessage
 
 
 """
@@ -226,7 +226,7 @@ class EncryptedMessageFactory(SecureMessageFactory):
         # check 'signature'
         signature = msg.get('signature')
         if signature is not None:
-            from .reliable_impl import NetworkMessage
+            from .reliable import NetworkMessage
             return NetworkMessage(msg=msg)
         # check 'sender', 'data'
         sender = msg.get('sender')

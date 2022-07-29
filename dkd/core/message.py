@@ -49,70 +49,12 @@
 """
 
 import weakref
-from abc import ABC
 from typing import Optional, Any, Dict
 
-from mkm.types import Mapper, Dictionary
+from mkm.types import Dictionary
 from mkm import ID
 
-from .envelope import Envelope
-
-
-class Message(Mapper, ABC):
-    """This class is used to create a message
-    with the envelope fields, such as 'sender', 'receiver', and 'time'
-
-        Message with Envelope
-        ~~~~~~~~~~~~~~~~~~~~~
-        Base classes for messages
-
-        data format: {
-            //-- envelope
-            sender   : "moki@xxx",
-            receiver : "hulk@yyy",
-            time     : 123,
-            //-- body
-            ...
-        }
-    """
-
-    @property
-    def delegate(self):  # -> Optional[Delegate]:
-        raise NotImplemented
-
-    @delegate.setter
-    def delegate(self, handler):
-        raise NotImplemented
-
-    @property
-    def envelope(self) -> Envelope:
-        raise NotImplemented
-
-    @property
-    def sender(self) -> ID:
-        raise NotImplemented
-
-    @property
-    def receiver(self) -> ID:
-        raise NotImplemented
-
-    @property
-    def time(self) -> float:
-        raise NotImplemented
-
-    @property
-    def group(self) -> Optional[ID]:
-        raise NotImplemented
-
-    @property
-    def type(self) -> Optional[int]:
-        raise NotImplemented
-
-
-"""
-    Implements
-    ~~~~~~~~~~
-"""
+from ..protocol import Envelope, Message
 
 
 class BaseMessage(Dictionary, Message):

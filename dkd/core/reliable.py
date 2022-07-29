@@ -32,9 +32,10 @@ from typing import Optional, Any, Dict
 
 from mkm import Meta, Document, Visa
 
-from .secure import SecureMessage
-from .secure_impl import EncryptedMessage
-from .reliable import ReliableMessage, ReliableMessageFactory, ReliableMessageDelegate
+from ..protocol import SecureMessage, ReliableMessage
+from ..protocol import ReliableMessageFactory, ReliableMessageDelegate
+
+from .secure import EncryptedMessage
 
 
 """
