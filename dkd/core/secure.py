@@ -223,11 +223,6 @@ class EncryptedMessageFactory(SecureMessageFactory):
 
     # Override
     def parse_secure_message(self, msg: Dict[str, Any]) -> Optional[SecureMessage]:
-        # check 'signature'
-        signature = msg.get('signature')
-        if signature is not None:
-            from .reliable import NetworkMessage
-            return NetworkMessage(msg=msg)
         # check 'sender', 'data'
         sender = msg.get('sender')
         data = msg.get('data')
@@ -235,4 +230,9 @@ class EncryptedMessageFactory(SecureMessageFactory):
             # msg.sender should not be empty
             # msg.data should not be empty
             return None
+        # check 'signature'
+        signature = msg.get('signature')
+        if signature is not None:
+            from .reliable import NetworkMessage
+            return NetworkMessage(msg=msg)
         return EncryptedMessage(msg=msg)
