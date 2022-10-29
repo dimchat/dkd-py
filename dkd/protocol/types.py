@@ -70,7 +70,7 @@ class ContentType(IntEnum):
             0000 0001 - this message contains plaintext you can read.
             0000 0010 - this is a message you can see.
             0000 0100 - this is a message you can hear.
-            0000 1000 - this is a message for the robot, not for human.
+            0000 1000 - this is a message for the bot, not for human.
 
             0001 0000 - this message's main part is in somewhere else.
             0010 0000 - this message contains the 3rd party content.
@@ -80,18 +80,18 @@ class ContentType(IntEnum):
             (All above are just some advices to help choosing numbers :P)
     """
 
-    TEXT = 0x01           # 0000 0001
+    TEXT = 0x01     # 0000 0001
 
-    FILE = 0x10           # 0001 0000
-    IMAGE = 0x12          # 0001 0010
-    AUDIO = 0x14          # 0001 0100
-    VIDEO = 0x16          # 0001 0110
+    FILE = 0x10     # 0001 0000
+    IMAGE = 0x12    # 0001 0010
+    AUDIO = 0x14    # 0001 0100
+    VIDEO = 0x16    # 0001 0110
 
     # Web Page
-    PAGE = 0x20           # 0010 0000
+    PAGE = 0x20     # 0010 0000
 
     # Quote a message before and reply it with text
-    QUOTE = 0x37          # 0011 0111
+    QUOTE = 0x37    # 0011 0111
 
     MONEY = 0x40          # 0100 0000
     TRANSFER = 0x41       # 0100 0001
@@ -99,11 +99,11 @@ class ContentType(IntEnum):
     CLAIM_PAYMENT = 0x48  # 0100 1000 (Claim for Payment)
     SPLIT_BILL = 0x49     # 0100 1001 (Split the Bill)
 
-    COMMAND = 0x88        # 1000 1000
-    HISTORY = 0x89        # 1000 1001 (Entity History Command)
+    COMMAND = 0x88  # 1000 1000
+    HISTORY = 0x89  # 1000 1001 (Entity History Command)
 
     # Application Customized
-    APPLICATION = 0xA0     # 1010 0000 (Application 0nly, Reserved)
+    APPLICATION = 0xA0       # 1010 0000 (Application 0nly, Reserved)
     # APPLICATION_1 = 0xA1   # 1010 0001 (Reserved)
     # ...                    # 1010 ???? (Reserved)
     # APPLICATION_15 = 0xAF  # 1010 1111 (Reserved)
@@ -111,9 +111,9 @@ class ContentType(IntEnum):
     # CUSTOMIZED_0 = 0xC0    # 1100 0000 (Reserved)
     # CUSTOMIZED_1 = 0xC1    # 1100 0001 (Reserved)
     # ...                    # 1100 ???? (Reserved)
-    ARRAY = 0xCA           # 1100 1010 (Content Array)
+    ARRAY = 0xCA             # 1100 1010 (Content Array)
     # ...                    # 1100 ???? (Reserved)
-    CUSTOMIZED = 0xCC      # 1100 1100 (Customized Content)
+    CUSTOMIZED = 0xCC        # 1100 1100 (Customized Content)
     # ...                    # 1100 ???? (Reserved)
     # CUSTOMIZED_15 = 0xCF   # 1100 1111 (Reserved)
 
