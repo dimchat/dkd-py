@@ -62,11 +62,13 @@ class ReliableMessage(SecureMessage, ABC):
     """
 
     @property
+    @abstractmethod
     def signature(self) -> bytes:
         """ signature for encrypted data of message content """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def meta(self) -> Optional[Meta]:
         """
             Sender's Meta
@@ -76,10 +78,12 @@ class ReliableMessage(SecureMessage, ABC):
         raise NotImplemented
 
     @meta.setter
+    @abstractmethod
     def meta(self, value: Meta):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def visa(self) -> Optional[Visa]:
         """
             Sender's Visa Document
@@ -89,6 +93,7 @@ class ReliableMessage(SecureMessage, ABC):
         raise NotImplemented
 
     @visa.setter
+    @abstractmethod
     def visa(self, value: Visa):
         raise NotImplemented
 

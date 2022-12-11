@@ -53,6 +53,7 @@ class Envelope(Mapper, ABC):
     """
 
     @property
+    @abstractmethod
     def sender(self) -> ID:
         """
         Get message sender
@@ -62,6 +63,7 @@ class Envelope(Mapper, ABC):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def receiver(self) -> ID:
         """
         Get message receiver
@@ -71,6 +73,7 @@ class Envelope(Mapper, ABC):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def time(self) -> float:
         """
         Get message time
@@ -80,6 +83,7 @@ class Envelope(Mapper, ABC):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def group(self) -> Optional[ID]:
         """
             Group ID
@@ -91,10 +95,12 @@ class Envelope(Mapper, ABC):
         raise NotImplemented
 
     @group.setter
+    @abstractmethod
     def group(self, value: ID):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def type(self) -> Optional[int]:
         """
             Message Type
@@ -107,6 +113,7 @@ class Envelope(Mapper, ABC):
         raise NotImplemented
 
     @type.setter
+    @abstractmethod
     def type(self, value: Union[int, ContentType]):
         raise NotImplemented
 

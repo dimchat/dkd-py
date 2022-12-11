@@ -58,21 +58,25 @@ class Content(Mapper, ABC):
     """
 
     @property
+    @abstractmethod
     def type(self) -> int:
         """ content type """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def sn(self) -> int:
         """ serial number as message id """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def time(self) -> Optional[float]:
         """ message time """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def group(self) -> Optional[ID]:
         """
             Group ID/string for group message
@@ -82,6 +86,7 @@ class Content(Mapper, ABC):
         raise NotImplemented
 
     @group.setter
+    @abstractmethod
     def group(self, value: ID):
         raise NotImplemented
 

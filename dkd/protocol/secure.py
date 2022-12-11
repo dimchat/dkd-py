@@ -61,16 +61,19 @@ class SecureMessage(Message, ABC):
     """
 
     @property
+    @abstractmethod
     def data(self) -> bytes:
         """ encrypted message content """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def encrypted_key(self) -> Optional[bytes]:
         """ encrypted message key """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def encrypted_keys(self) -> Optional[Dict[str, Any]]:
         """ encrypted message keys """
         raise NotImplemented

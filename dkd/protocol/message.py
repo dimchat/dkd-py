@@ -48,7 +48,7 @@
             signature = sender.private_key.sign(data)
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional
 
 from mkm.types import Mapper
@@ -76,33 +76,46 @@ class Message(Mapper, ABC):
     """
 
     @property
+    @abstractmethod
     def delegate(self):  # -> Optional[Delegate]:
         raise NotImplemented
 
     @delegate.setter
+    @abstractmethod
     def delegate(self, handler):
         raise NotImplemented
 
     @property
+    @abstractmethod
     def envelope(self) -> Envelope:
         raise NotImplemented
 
     @property
+    @abstractmethod
     def sender(self) -> ID:
+        """ envelope.sender """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def receiver(self) -> ID:
+        """ envelope.receiver """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def time(self) -> float:
+        """ content.time or envelope.time """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def group(self) -> Optional[ID]:
+        """ content.group or envelope.group """
         raise NotImplemented
 
     @property
+    @abstractmethod
     def type(self) -> Optional[int]:
+        """ content.type or envelope.type """
         raise NotImplemented

@@ -59,6 +59,7 @@ class InstantMessage(Message, ABC):
     """
 
     @property
+    @abstractmethod
     def content(self) -> Content:
         """ message content """
         raise NotImplemented

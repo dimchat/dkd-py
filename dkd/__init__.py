@@ -31,6 +31,14 @@
 from .protocol import *
 from .core import *
 
+
+def register_message_factories():
+    Envelope.register(factory=MessageEnvelopeFactory())
+    InstantMessage.register(factory=PlainMessageFactory())
+    SecureMessage.register(factory=EncryptedMessageFactory())
+    ReliableMessage.register(factory=NetworkMessageFactory())
+
+
 name = "DaoKeDao"
 
 __author__ = 'Albert Moky'
@@ -55,14 +63,6 @@ __all__ = [
     'PlainMessage', 'PlainMessageFactory',
     'EncryptedMessage', 'EncryptedMessageFactory',
     'NetworkMessage', 'NetworkMessageFactory',
+
+    'register_message_factories',
 ]
-
-
-def register_core_factories():
-    Envelope.register(factory=MessageEnvelopeFactory())
-    InstantMessage.register(factory=PlainMessageFactory())
-    SecureMessage.register(factory=EncryptedMessageFactory())
-    ReliableMessage.register(factory=NetworkMessageFactory())
-
-
-register_core_factories()
