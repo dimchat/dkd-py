@@ -31,11 +31,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union, Any, Dict
 
-from mkm.types import Mapper, Wrapper
+from mkm.types import Mapper
 from mkm import ID
 
 from .types import ContentType
-from .factories import Factories
 
 
 class Content(Mapper, ABC):
@@ -95,36 +94,24 @@ class Content(Mapper, ABC):
     #
 
     @classmethod
-    def parse(cls, content: Any):  # -> Content:
-        if content is None:
-            return None
-        elif isinstance(content, Content):
-            return content
-        info = Wrapper.get_dictionary(content)
-        # assert info is not None, 'message content error: %s' % content
-        msg_type = content_type(content=info)
-        factory = cls.factory(msg_type=msg_type)
-        if factory is None:
-            factory = cls.factory(msg_type=0)  # unknown
-        # assert isinstance(factory, ContentFactory), 'content factory error: %s' % factory
-        return factory.parse_content(content=info)
+    def parse(cls, content: Any):  # -> Optional[Content]:
+        gf = general_factory()
+        return gf.parse_content(content=content)
 
     @classmethod
     def factory(cls, msg_type: Union[int, ContentType]):  # -> Optional[ContentFactory]:
-        if isinstance(msg_type, ContentType):
-            msg_type = msg_type.value
-        return Factories.content_factories.get(msg_type)
+        gf = general_factory()
+        return gf.get_content_factory(msg_type=msg_type)
 
     @classmethod
     def register(cls, msg_type: Union[int, ContentType], factory):
-        if isinstance(msg_type, ContentType):
-            msg_type = msg_type.value
-        Factories.content_factories[msg_type] = factory
+        gf = general_factory()
+        gf.set_content_factory(msg_type=msg_type, factory=factory)
 
 
-def content_type(content: Dict[str, Any]) -> int:
-    msg_type = content.get('type')
-    return 0 if msg_type is None else int(msg_type)
+def general_factory():
+    from ..factory import FactoryManager
+    return FactoryManager.general_factory
 
 
 class ContentFactory(ABC):

@@ -31,13 +31,11 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict, List
 
-from mkm.types import Wrapper
 from mkm.crypto import SymmetricKey
 from mkm import ID
 
 from .content import Content
 from .message import Message
-from .factories import Factories
 
 
 class SecureMessage(Message, ABC):
@@ -157,24 +155,24 @@ class SecureMessage(Message, ABC):
     #
 
     @classmethod
-    def parse(cls, msg: Any):  # -> SecureMessage:
-        if msg is None:
-            return None
-        elif isinstance(msg, SecureMessage):
-            return msg
-        info = Wrapper.get_dictionary(msg)
-        # assert info is not None, 'secure message error: %s' % msg
-        factory = cls.factory()
-        # assert isinstance(factory, SecureMessageFactory), 'secure message factory error: %s' % factory
-        return factory.parse_secure_message(msg=info)
+    def parse(cls, msg: Any):  # -> Optional[SecureMessage]:
+        gf = general_factory()
+        return gf.parse_secure_message(msg=msg)
 
     @classmethod
-    def factory(cls):  # -> SecureMessageFactory:
-        return Factories.secure_message_factory
+    def factory(cls):  # -> Optional[SecureMessageFactory]:
+        gf = general_factory()
+        return gf.get_secure_message_factory()
 
     @classmethod
     def register(cls, factory):
-        Factories.secure_message_factory = factory
+        gf = general_factory()
+        gf.set_secure_message_factory(factory=factory)
+
+
+def general_factory():
+    from ..factory import FactoryManager
+    return FactoryManager.general_factory
 
 
 #

@@ -29,14 +29,6 @@
 # ==============================================================================
 
 from .protocol import *
-from .core import *
-
-
-def register_message_factories():
-    Envelope.register(factory=MessageEnvelopeFactory())
-    InstantMessage.register(factory=PlainMessageFactory())
-    SecureMessage.register(factory=EncryptedMessageFactory())
-    ReliableMessage.register(factory=NetworkMessageFactory())
 
 
 name = "DaoKeDao"
@@ -54,15 +46,4 @@ __all__ = [
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
-    #
-    #   Core
-    #
-    'BaseContent',
-    'MessageEnvelope', 'MessageEnvelopeFactory',
-    'BaseMessage',
-    'PlainMessage', 'PlainMessageFactory',
-    'EncryptedMessage', 'EncryptedMessageFactory',
-    'NetworkMessage', 'NetworkMessageFactory',
-
-    'register_message_factories',
 ]

@@ -31,11 +31,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union, Any, Dict
 
-from mkm.types import Mapper, Wrapper
+from mkm.types import Mapper
 from mkm import ID
 
 from .types import ContentType
-from .factories import Factories
 
 
 class Envelope(Mapper, ABC):
@@ -123,29 +122,28 @@ class Envelope(Mapper, ABC):
 
     @classmethod
     def create(cls, sender: ID, receiver: ID, time: float = 0):  # -> Envelope:
-        factory = cls.factory()
-        # assert isinstance(factory, EnvelopeFactory), 'envelope factory error: %s' % factory
-        return factory.create_envelope(sender=sender, receiver=receiver, time=time)
+        gf = general_factory()
+        return gf.create_envelope(sender=sender, receiver=receiver, time=time)
 
     @classmethod
-    def parse(cls, envelope: Any):  # -> Envelope:
-        if envelope is None:
-            return None
-        elif isinstance(envelope, Envelope):
-            return envelope
-        info = Wrapper.get_dictionary(envelope)
-        # assert info is not None, 'message envelope error: %s' % envelope
-        factory = cls.factory()
-        # assert isinstance(factory, EnvelopeFactory), 'envelope factory error: %s' % factory
-        return factory.parse_envelope(envelope=info)
+    def parse(cls, envelope: Any):  # -> Optional[Envelope]:
+        gf = general_factory()
+        return gf.parse_envelope(envelope=envelope)
 
     @classmethod
     def factory(cls):  # -> EnvelopeFactory:
-        return Factories.envelope_factory
+        gf = general_factory()
+        return gf.get_envelope_factory()
 
     @classmethod
     def register(cls, factory):
-        Factories.envelope_factory = factory
+        gf = general_factory()
+        gf.set_envelope_factory(factory=factory)
+
+
+def general_factory():
+    from ..factory import FactoryManager
+    return FactoryManager.general_factory
 
 
 class EnvelopeFactory(ABC):

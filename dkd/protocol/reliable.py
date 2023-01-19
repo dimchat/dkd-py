@@ -31,11 +31,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
-from mkm.types import Wrapper
 from mkm import ID, Meta, Visa
 
 from .secure import SecureMessage, SecureMessageDelegate
-from .factories import Factories
 
 
 class ReliableMessage(SecureMessage, ABC):
@@ -126,24 +124,24 @@ class ReliableMessage(SecureMessage, ABC):
     #
 
     @classmethod
-    def parse(cls, msg: Any):  # -> ReliableMessage:
-        if msg is None:
-            return None
-        elif isinstance(msg, ReliableMessage):
-            return msg
-        info = Wrapper.get_dictionary(msg)
-        # assert info is not None, 'reliable message error: %s' % msg
-        factory = cls.factory()
-        # assert isinstance(factory, ReliableMessageFactory), 'reliable message factory error: %s' % factory
-        return factory.parse_reliable_message(msg=info)
+    def parse(cls, msg: Any):  # -> Optional[ReliableMessage]:
+        gf = general_factory()
+        return gf.parse_reliable_message(msg=msg)
 
     @classmethod
-    def factory(cls):  # -> ReliableMessageFactory:
-        return Factories.reliable_message_factory
+    def factory(cls):  # -> Optional[ReliableMessageFactory]:
+        gf = general_factory()
+        return gf.get_reliable_message_factory()
 
     @classmethod
     def register(cls, factory):
-        Factories.reliable_message_factory = factory
+        gf = general_factory()
+        gf.set_reliable_message_factory(factory=factory)
+
+
+def general_factory():
+    from ..factory import FactoryManager
+    return FactoryManager.general_factory
 
 
 class ReliableMessageFactory(ABC):

@@ -31,7 +31,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union, Any, Dict, List
 
-from mkm.types import Wrapper
 from mkm.crypto import SymmetricKey
 from mkm import ID
 
@@ -40,7 +39,6 @@ from .content import Content
 from .envelope import Envelope
 from .message import Message
 from .secure import SecureMessage
-from .factories import Factories
 
 
 class InstantMessage(Message, ABC):
@@ -95,35 +93,33 @@ class InstantMessage(Message, ABC):
 
     @classmethod
     def create(cls, head: Envelope, body: Content):  # -> InstantMessage:
-        factory = cls.factory()
-        # assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
-        return factory.create_instant_message(head=head, body=body)
+        gf = general_factory()
+        return gf.create_instant_message(head=head, body=body)
 
     @classmethod
-    def parse(cls, msg: Any):  # -> InstantMessage:
-        if msg is None:
-            return None
-        elif isinstance(msg, InstantMessage):
-            return msg
-        info = Wrapper.get_dictionary(msg)
-        # assert info is not None, 'instant message error: %s' % msg
-        factory = cls.factory()
-        # assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
-        return factory.parse_instant_message(msg=info)
+    def parse(cls, msg: Any):  # -> Optional[InstantMessage]:
+        gf = general_factory()
+        return gf.parse_instant_factory(msg=msg)
 
     @classmethod
     def generate_serial_number(cls, msg_type: Union[int, ContentType], time: float) -> int:
-        factory = cls.factory()
-        # assert isinstance(factory, InstantMessageFactory), 'instant message factory error: %s' % factory
-        return factory.generate_serial_number(msg_type=msg_type, time=time)
+        gf = general_factory()
+        return gf.generate_serial_number(msg_type=msg_type, time=time)
 
     @classmethod
-    def factory(cls):  # -> InstantMessageFactory:
-        return Factories.instant_message_factory
+    def factory(cls):  # -> Optional[InstantMessageFactory]:
+        gf = general_factory()
+        return gf.get_instant_message_factory()
 
     @classmethod
     def register(cls, factory):
-        Factories.instant_message_factory = factory
+        gf = general_factory()
+        gf.set_instant_message_factory(factory=factory)
+
+
+def general_factory():
+    from ..factory import FactoryManager
+    return FactoryManager.general_factory
 
 
 class InstantMessageFactory(ABC):
