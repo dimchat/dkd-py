@@ -198,7 +198,7 @@ class SecureMessageDelegate(ABC):
     """ Decrypt Key """
 
     @abstractmethod
-    def decode_key(self, key: str, msg: SecureMessage) -> Optional[bytes]:
+    def decode_key(self, key: Any, msg: SecureMessage) -> Optional[bytes]:
         """
         1. Decode 'message.key' to encrypted symmetric key data
 
@@ -237,7 +237,7 @@ class SecureMessageDelegate(ABC):
     """ Decrypt Content """
 
     @abstractmethod
-    def decode_data(self, data: str, msg: SecureMessage) -> Optional[bytes]:
+    def decode_data(self, data: Any, msg: SecureMessage) -> Optional[bytes]:
         """
         4. Decode 'message.data' to encrypted content data
 

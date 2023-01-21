@@ -160,7 +160,7 @@ class ReliableMessageFactory(ABC):
 class ReliableMessageDelegate(SecureMessageDelegate, ABC):
 
     @abstractmethod
-    def decode_signature(self, signature: str, msg: ReliableMessage) -> Optional[bytes]:
+    def decode_signature(self, signature: Any, msg: ReliableMessage) -> Optional[bytes]:
         """
         1. Decode 'message.signature' from String (Base64)
 
