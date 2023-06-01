@@ -171,8 +171,8 @@ class SecureMessage(Message, ABC):
 
 
 def general_factory():
-    from ..factory import FactoryManager
-    return FactoryManager.general_factory
+    from ..factory import MessageFactoryManager
+    return MessageFactoryManager.general_factory
 
 
 #
@@ -286,12 +286,12 @@ class SecureMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def encode_signature(self, signature: bytes, msg: SecureMessage) -> str:
+    def encode_signature(self, signature: bytes, msg: SecureMessage) -> Any:
         """
         2. Encode 'message.signature' to String (Base64)
 
         :param signature: signature of message.data
         :param msg:       secure message
-        :return:          string
+        :return:          base64 string
         """
         raise NotImplemented

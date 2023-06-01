@@ -140,8 +140,8 @@ class ReliableMessage(SecureMessage, ABC):
 
 
 def general_factory():
-    from ..factory import FactoryManager
-    return FactoryManager.general_factory
+    from ..factory import MessageFactoryManager
+    return MessageFactoryManager.general_factory
 
 
 class ReliableMessageFactory(ABC):

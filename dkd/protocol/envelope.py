@@ -142,8 +142,8 @@ class Envelope(Mapper, ABC):
 
 
 def general_factory():
-    from ..factory import FactoryManager
-    return FactoryManager.general_factory
+    from ..factory import MessageFactoryManager
+    return MessageFactoryManager.general_factory
 
 
 class EnvelopeFactory(ABC):

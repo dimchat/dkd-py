@@ -44,14 +44,15 @@ class Content(Mapper, ABC):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            'type'    : 0x00,            // message type
-            'sn'      : 0,               // serial number
+            'type'    : 0x00,        // message type
+            'sn'      : 0,           // serial number
 
-            'group'   : 'Group ID',      // for group message
+            'time'    : 123,         // message time
+            'group'   : 'Group ID',  // for group message
 
             //-- message info
-            'text'    : 'text',          // for text message
-            'cmd'     : 'Command Name',  // for system command
+            'text'    : 'text',         // for text message
+            'command' : 'Command Name'  // for system command
             //...
         }
     """
@@ -110,8 +111,8 @@ class Content(Mapper, ABC):
 
 
 def general_factory():
-    from ..factory import FactoryManager
-    return FactoryManager.general_factory
+    from ..factory import MessageFactoryManager
+    return MessageFactoryManager.general_factory
 
 
 class ContentFactory(ABC):

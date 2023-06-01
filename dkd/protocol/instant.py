@@ -62,6 +62,11 @@ class InstantMessage(Message, ABC):
         """ message content """
         raise NotImplemented
 
+    @content.setter
+    def content(self, value: Content):
+        """ only for rebuild content """
+        raise NotImplemented
+
     """
         Encrypt the Instant Message to Secure Message
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -118,8 +123,8 @@ class InstantMessage(Message, ABC):
 
 
 def general_factory():
-    from ..factory import FactoryManager
-    return FactoryManager.general_factory
+    from ..factory import MessageFactoryManager
+    return MessageFactoryManager.general_factory
 
 
 class InstantMessageFactory(ABC):
@@ -186,13 +191,13 @@ class InstantMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def encode_data(self, data: bytes, msg: InstantMessage) -> str:
+    def encode_data(self, data: bytes, msg: InstantMessage) -> Any:
         """
         3. Encode 'message.data' to String (Base64)
 
         :param data:     encrypted content data
         :param msg:      instant message
-        :return:         string
+        :return:         base64 string
         """
         raise NotImplemented
 
@@ -222,7 +227,7 @@ class InstantMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def encode_key(self, data: bytes, msg: InstantMessage) -> str:
+    def encode_key(self, data: bytes, msg: InstantMessage) -> Any:
         """
         6. Encode 'message.key' to String (Base64)
 

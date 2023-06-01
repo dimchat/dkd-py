@@ -40,7 +40,7 @@ from .protocol import SecureMessage, SecureMessageFactory
 from .protocol import ReliableMessage, ReliableMessageFactory
 
 
-class GeneralFactory:
+class MessageGeneralFactory:
 
     def __init__(self):
         super().__init__()
@@ -68,22 +68,27 @@ class GeneralFactory:
         return self.__content_factories.get(msg_type)
 
     # noinspection PyMethodMayBeStatic
-    def get_content_type(self, content: Dict[str, Any]) -> int:
-        msg_type = content.get('type')
-        return 0 if msg_type is None else int(msg_type)
+    def get_content_type(self, content: Dict[str, Any]) -> Optional[int]:
+        return content.get('type')
 
     def parse_content(self, content: Any) -> Optional[Content]:
         if content is None:
             return None
         elif isinstance(content, Content):
             return content
-        info = Wrapper.get_dictionary(content)
-        # assert info is not None, 'message content error: %s' % content
+        info = Wrapper.get_dict(content)
+        if info is None:
+            # assert False, 'message content error: %s' % content
+            return None
         msg_type = self.get_content_type(content=info)
+        if msg_type is None:
+            msg_type = 0
         factory = self.get_content_factory(msg_type=msg_type)
-        if factory is None:
+        if factory is None and msg_type != 0:
             factory = self.get_content_factory(msg_type=0)  # unknown
-            # assert factory is not None, 'content factory not found: %d' % msg_type
+        # if factory is None:
+        #     # assert False, 'content factory not found: %d' % msg_type
+        #     return None
         return factory.parse_content(content=info)
 
     #
@@ -105,10 +110,14 @@ class GeneralFactory:
             return None
         elif isinstance(envelope, Envelope):
             return envelope
-        info = Wrapper.get_dictionary(envelope)
-        # assert info is not None, 'message envelope error: %s' % envelope
+        info = Wrapper.get_dict(envelope)
+        if info is None:
+            # assert False, 'message envelope error: %s' % envelope
+            return None
         factory = self.get_envelope_factory()
-        # assert factory is not None, 'envelope factory not set'
+        # if factory is None:
+        #     # assert False, 'envelope factory not set'
+        #     return None
         return factory.parse_envelope(envelope=info)
 
     #
@@ -131,10 +140,14 @@ class GeneralFactory:
             return None
         elif isinstance(msg, InstantMessage):
             return msg
-        info = Wrapper.get_dictionary(msg)
-        # assert info is not None, 'instant message error: %s' % msg
+        info = Wrapper.get_dict(msg)
+        if info is None:
+            # assert False, 'instant message error: %s' % msg
+            return None
         factory = self.get_instant_message_factory()
-        # assert factory is not None, 'instant message factory not set'
+        # if factory is None:
+        #     # assert False, 'instant message factory not set'
+        #     return None
         return factory.parse_instant_message(msg=info)
 
     def generate_serial_number(self, msg_type: Union[int, ContentType], time: float) -> int:
@@ -157,10 +170,14 @@ class GeneralFactory:
             return None
         elif isinstance(msg, SecureMessage):
             return msg
-        info = Wrapper.get_dictionary(msg)
-        # assert info is not None, 'secure message error: %s' % msg
+        info = Wrapper.get_dict(msg)
+        if info is None:
+            # assert False, 'secure message error: %s' % msg
+            return None
         factory = self.get_secure_message_factory()
-        # assert factory is not None, 'secure message factory not set'
+        # if factory is None:
+        #     # assert False, 'secure message factory not set'
+        #     return None
         return factory.parse_secure_message(msg=info)
 
     #
@@ -178,14 +195,18 @@ class GeneralFactory:
             return None
         elif isinstance(msg, ReliableMessage):
             return msg
-        info = Wrapper.get_dictionary(msg)
-        # assert info is not None, 'reliable message error: %s' % msg
+        info = Wrapper.get_dict(msg)
+        if info is None:
+            # assert False, 'reliable message error: %s' % msg
+            return None
         factory = self.get_reliable_message_factory()
-        # assert factory is not None, 'reliable message factory not set'
+        # if factory is None:
+        #     # assert False, 'reliable message factory not set'
+        #     return None
         return factory.parse_reliable_message(msg=info)
 
 
 # Singleton
-class FactoryManager:
+class MessageFactoryManager:
 
-    general_factory = GeneralFactory()
+    general_factory = MessageGeneralFactory()
