@@ -104,7 +104,7 @@ class Message(Mapper, ABC):
 
     @property
     @abstractmethod
-    def time(self) -> float:
+    def time(self) -> Optional[float]:
         """ content.time or envelope.time """
         raise NotImplemented
 

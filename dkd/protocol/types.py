@@ -90,15 +90,20 @@ class ContentType(IntEnum):
     # Web Page
     PAGE = 0x20     # 0010 0000
 
-    # Quote a message before and reply it with text
-    QUOTE = 0x37    # 0011 0111
+    # Name Card for sharing contact
+    NAME_CARD = 0x33  # 0011 0011
 
+    # Quote a message before and reply it with text
+    QUOTE = 0x37      # 0011 0111
+
+    # Money
     MONEY = 0x40          # 0100 0000
     TRANSFER = 0x41       # 0100 0001
     LUCKY_MONEY = 0x42    # 0100 0010
     CLAIM_PAYMENT = 0x48  # 0100 1000 (Claim for Payment)
     SPLIT_BILL = 0x49     # 0100 1001 (Split the Bill)
 
+    # Command
     COMMAND = 0x88  # 1000 1000
     HISTORY = 0x89  # 1000 1001 (Entity History Command)
 

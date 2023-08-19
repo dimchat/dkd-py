@@ -222,7 +222,8 @@ class SecureMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID, msg: SecureMessage) -> SymmetricKey:
+    def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID,
+                        msg: SecureMessage) -> Optional[SymmetricKey]:
         """
         3. Deserialize message key from data (JsON / ProtoBuf / ...)
 

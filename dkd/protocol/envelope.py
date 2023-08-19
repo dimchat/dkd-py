@@ -73,7 +73,7 @@ class Envelope(Mapper, ABC):
 
     @property
     @abstractmethod
-    def time(self) -> float:
+    def time(self) -> Optional[float]:
         """
         Get message time
 
@@ -149,7 +149,7 @@ def general_factory():
 class EnvelopeFactory(ABC):
 
     @abstractmethod
-    def create_envelope(self, sender: ID, receiver: ID, time: float) -> Envelope:
+    def create_envelope(self, sender: ID, receiver: ID, time: Optional[float]) -> Envelope:
         """
         Create envelope
 
