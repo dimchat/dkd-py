@@ -121,7 +121,7 @@ class Envelope(Mapper, ABC):
     #
 
     @classmethod
-    def create(cls, sender: ID, receiver: ID, time: float = 0):  # -> Envelope:
+    def create(cls, sender: ID, receiver: ID, time: float = None):  # -> Envelope:
         gf = general_factory()
         return gf.create_envelope(sender=sender, receiver=receiver, time=time)
 

@@ -101,7 +101,7 @@ class MessageGeneralFactory:
     def get_envelope_factory(self) -> Optional[EnvelopeFactory]:
         return self.__envelope_factory
 
-    def create_envelope(self, sender: ID, receiver: ID, time: float) -> Envelope:
+    def create_envelope(self, sender: ID, receiver: ID, time: Optional[float]) -> Envelope:
         factory = self.get_envelope_factory()
         return factory.create_envelope(sender=sender, receiver=receiver, time=time)
 
