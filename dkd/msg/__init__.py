@@ -2,12 +2,12 @@
 #
 #   Dao-Ke-Dao: Universal Message Module
 #
-#                                Written in 2019 by Moky <albert.moky@gmail.com>
+#                                Written in 2023 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2019 Albert Moky
+# Copyright (c) 2023 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,28 +28,16 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .protocol import *
-from .msg import *
-
-
-name = "DaoKeDao"
-
-__author__ = 'Albert Moky'
+from .instant import InstantMessageDelegate
+from .secure import SecureMessageDelegate
+from .reliable import ReliableMessageDelegate
+from .factory import MessageGeneralFactory, MessageFactoryManager
 
 __all__ = [
 
-    #
-    #   Protocol
-    #
-    'ContentType', 'Content', 'ContentFactory',
-    'Envelope', 'EnvelopeFactory',
-    'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'InstantMessageDelegate',
+    'SecureMessageDelegate',
+    'ReliableMessageDelegate',
 
-    #
-    #   Delegate
-    #
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
     'MessageGeneralFactory', 'MessageFactoryManager',
-
 ]

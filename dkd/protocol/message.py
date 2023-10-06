@@ -51,15 +51,37 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from mkm.types import DateTime
 from mkm.types import Mapper
 from mkm import ID
 
 from .envelope import Envelope
 
 
+"""
+    Message Transforming
+    ~~~~~~~~~~~~~~~~~~~~
+
+        Instant Message <-> Secure Message <-> Reliable Message
+        +-------------+     +------------+     +--------------+
+        |  sender     |     |  sender    |     |  sender      |
+        |  receiver   |     |  receiver  |     |  receiver    |
+        |  time       |     |  time      |     |  time        |
+        |             |     |            |     |              |
+        |  content    |     |  data      |     |  data        |
+        +-------------+     |  key/keys  |     |  key/keys    |
+                            +------------+     |  signature   |
+                                               +--------------+
+        Algorithm:
+            data      = password.encrypt(content)
+            key       = receiver.public_key.encrypt(password)
+            signature = sender.private_key.sign(data)
+"""
+
+
 class Message(Mapper, ABC):
-    """This class is used to create a message
-    with the envelope fields, such as 'sender', 'receiver', and 'time'
+    """ This class is used to create a message
+        with the envelope fields, such as 'sender', 'receiver', and 'time'
 
         Message with Envelope
         ~~~~~~~~~~~~~~~~~~~~~
@@ -74,16 +96,6 @@ class Message(Mapper, ABC):
             ...
         }
     """
-
-    @property
-    @abstractmethod
-    def delegate(self):  # -> Optional[Delegate]:
-        raise NotImplemented
-
-    @delegate.setter
-    @abstractmethod
-    def delegate(self, handler):
-        raise NotImplemented
 
     @property
     @abstractmethod
@@ -104,7 +116,7 @@ class Message(Mapper, ABC):
 
     @property
     @abstractmethod
-    def time(self) -> Optional[float]:
+    def time(self) -> Optional[DateTime]:
         """ content.time or envelope.time """
         raise NotImplemented
 

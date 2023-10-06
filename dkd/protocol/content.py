@@ -31,6 +31,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union, Any, Dict
 
+from mkm.types import DateTime
 from mkm.types import Mapper
 from mkm import ID
 
@@ -44,11 +45,11 @@ class Content(Mapper, ABC):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            'type'    : 0x00,        // message type
-            'sn'      : 0,           // serial number
+            'type'    : 0x00,           // message type
+            'sn'      : 0,              // serial number
 
-            'time'    : 123,         // message time
-            'group'   : 'Group ID',  // for group message
+            'time'    : 123,            // message time
+            'group'   : 'Group ID',     // for group message
 
             //-- message info
             'text'    : 'text',         // for text message
@@ -71,7 +72,7 @@ class Content(Mapper, ABC):
 
     @property
     @abstractmethod
-    def time(self) -> Optional[float]:
+    def time(self) -> Optional[DateTime]:
         """ message time """
         raise NotImplemented
 
@@ -102,16 +103,16 @@ class Content(Mapper, ABC):
     @classmethod
     def factory(cls, msg_type: Union[int, ContentType]):  # -> Optional[ContentFactory]:
         gf = general_factory()
-        return gf.get_content_factory(msg_type=msg_type)
+        return gf.get_content_factory(msg_type)
 
     @classmethod
     def register(cls, msg_type: Union[int, ContentType], factory):
         gf = general_factory()
-        gf.set_content_factory(msg_type=msg_type, factory=factory)
+        gf.set_content_factory(msg_type, factory=factory)
 
 
 def general_factory():
-    from ..factory import MessageFactoryManager
+    from ..msg import MessageFactoryManager
     return MessageFactoryManager.general_factory
 
 

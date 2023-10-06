@@ -30,14 +30,16 @@
 
 from typing import Optional, Union, Any, Dict
 
+from mkm.types import DateTime
+from mkm.types import Converter
 from mkm.types import Wrapper
 from mkm import ID
 
-from .protocol import Content, ContentType, ContentFactory
-from .protocol import Envelope, EnvelopeFactory
-from .protocol import InstantMessage, InstantMessageFactory
-from .protocol import SecureMessage, SecureMessageFactory
-from .protocol import ReliableMessage, ReliableMessageFactory
+from ..protocol import Content, ContentType, ContentFactory
+from ..protocol import Envelope, EnvelopeFactory
+from ..protocol import InstantMessage, InstantMessageFactory
+from ..protocol import SecureMessage, SecureMessageFactory
+from ..protocol import ReliableMessage, ReliableMessageFactory
 
 
 class MessageGeneralFactory:
@@ -68,8 +70,9 @@ class MessageGeneralFactory:
         return self.__content_factories.get(msg_type)
 
     # noinspection PyMethodMayBeStatic
-    def get_content_type(self, content: Dict[str, Any]) -> Optional[int]:
-        return content.get('type')
+    def get_content_type(self, content: Dict[str, Any], default: Optional[int]) -> Optional[int]:
+        value = content.get('type')
+        return Converter.get_int(value=value, default=default)
 
     def parse_content(self, content: Any) -> Optional[Content]:
         if content is None:
@@ -80,9 +83,8 @@ class MessageGeneralFactory:
         if info is None:
             # assert False, 'message content error: %s' % content
             return None
-        msg_type = self.get_content_type(content=info)
-        if msg_type is None:
-            msg_type = 0
+        # get factory by content type
+        msg_type = self.get_content_type(content=info, default=0)
         factory = self.get_content_factory(msg_type=msg_type)
         if factory is None and msg_type != 0:
             factory = self.get_content_factory(msg_type=0)  # unknown
@@ -101,7 +103,7 @@ class MessageGeneralFactory:
     def get_envelope_factory(self) -> Optional[EnvelopeFactory]:
         return self.__envelope_factory
 
-    def create_envelope(self, sender: ID, receiver: ID, time: Optional[float]) -> Envelope:
+    def create_envelope(self, sender: ID, receiver: ID, time: Optional[DateTime]) -> Envelope:
         factory = self.get_envelope_factory()
         return factory.create_envelope(sender=sender, receiver=receiver, time=time)
 
@@ -150,10 +152,10 @@ class MessageGeneralFactory:
         #     return None
         return factory.parse_instant_message(msg=info)
 
-    def generate_serial_number(self, msg_type: Union[int, ContentType], time: float) -> int:
+    def generate_serial_number(self, msg_type: Union[int, ContentType], now: DateTime) -> int:
         factory = self.get_instant_message_factory()
         # assert factory is not None, 'instant message factory not set'
-        return factory.generate_serial_number(msg_type=msg_type, time=time)
+        return factory.generate_serial_number(msg_type=msg_type, now=now)
 
     #
     #   SecureMessage

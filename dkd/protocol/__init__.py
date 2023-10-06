@@ -33,9 +33,9 @@ from .content import Content, ContentFactory
 from .envelope import Envelope, EnvelopeFactory
 
 from .message import Message
-from .instant import InstantMessage, InstantMessageFactory, InstantMessageDelegate
-from .secure import SecureMessage, SecureMessageFactory, SecureMessageDelegate
-from .reliable import ReliableMessage, ReliableMessageFactory, ReliableMessageDelegate
+from .instant import InstantMessage, InstantMessageFactory
+from .secure import SecureMessage, SecureMessageFactory
+from .reliable import ReliableMessage, ReliableMessageFactory
 
 __all__ = [
 
@@ -44,5 +44,4 @@ __all__ = [
 
     'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 ]

@@ -29,17 +29,13 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict, List
+from typing import Optional, Any, Dict
 
-from mkm.crypto import SymmetricKey
-from mkm import ID
-
-from .content import Content
 from .message import Message
 
 
 class SecureMessage(Message, ABC):
-    """Instant Message encrypted by a symmetric key
+    """ Instant Message encrypted by a symmetric key
 
         Secure Message
         ~~~~~~~~~~~~~~
@@ -50,10 +46,10 @@ class SecureMessage(Message, ABC):
             receiver : "hulk@yyy",
             time     : 123,
             //-- content data & key/keys
-            data     : "...",  // base64_encode(symmetric)
-            key      : "...",  // base64_encode(asymmetric)
+            data     : "...",  // base64_encode( symmetric_encrypt(content))
+            key      : "...",  // base64_encode(asymmetric_encrypt(password))
             keys     : {
-                "ID1": "key1", // base64_encode(asymmetric)
+                "ID1": "key1", // base64_encode(asymmetric_encrypt(password))
             }
         }
     """
@@ -72,82 +68,8 @@ class SecureMessage(Message, ABC):
 
     @property
     @abstractmethod
-    def encrypted_keys(self) -> Optional[Dict[str, Any]]:
+    def encrypted_keys(self) -> Optional[Dict[str, Any]]:  # str => str
         """ encrypted message keys """
-        raise NotImplemented
-
-    """
-        Decrypt the Secure Message to Instant Message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            +----------+      +----------+
-            | sender   |      | sender   |
-            | receiver |      | receiver |
-            | time     |  ->  | time     |
-            |          |      |          |  1. PW      = decrypt(key, receiver.SK)
-            | data     |      | content  |  2. content = decrypt(data, PW)
-            | key/keys |      +----------+
-            +----------+
-    """
-
-    @abstractmethod
-    def decrypt(self):  # -> Optional[InstantMessage]:
-        """
-        Decrypt message data to plaintext content
-
-        :return: InstantMessage object
-        """
-        raise NotImplemented
-
-    """
-        Sign the Secure Message to Reliable Message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            +----------+      +----------+
-            | sender   |      | sender   |
-            | receiver |      | receiver |
-            | time     |  ->  | time     |
-            |          |      |          |
-            | data     |      | data     |
-            | key/keys |      | key/keys |
-            +----------+      | signature|  1. signature = sign(data, sender.SK)
-                              +----------+
-    """
-
-    @abstractmethod
-    def sign(self):  # -> ReliableMessage:
-        """
-        Sign the message.data with sender's private key
-
-        :return: ReliableMessage object
-        """
-        raise NotImplemented
-
-    """
-        Split/Trim group message
-        ~~~~~~~~~~~~~~~~~~~~~~~~
-
-        for each members, get key from 'keys' and replace 'receiver' to member ID
-    """
-
-    @abstractmethod
-    def split(self, members: List[ID]):  # -> List[SecureMessage]:
-        """
-        Split the group message to single person messages
-
-        :param members: All group members
-        :return:        A list of SecureMessage objects for all group members
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def trim(self, member: ID):  # -> SecureMessage
-        """
-        Trim the group message for a member
-
-        :param member: Member ID
-        :return:       A SecureMessage object drop all irrelevant keys to the member
-        """
         raise NotImplemented
 
     #
@@ -171,7 +93,7 @@ class SecureMessage(Message, ABC):
 
 
 def general_factory():
-    from ..factory import MessageFactoryManager
+    from ..msg import MessageFactoryManager
     return MessageFactoryManager.general_factory
 
 
@@ -187,112 +109,5 @@ class SecureMessageFactory(ABC):
 
         :param msg: message info
         :return: SecureMessage
-        """
-        raise NotImplemented
-
-
-class SecureMessageDelegate(ABC):
-
-    """ Delegate for SecureMessage """
-
-    """ Decrypt Key """
-
-    @abstractmethod
-    def decode_key(self, key: Any, msg: SecureMessage) -> Optional[bytes]:
-        """
-        1. Decode 'message.key' to encrypted symmetric key data
-
-        :param key:      base64 string
-        :param msg:      secure message
-        :return:         encrypted symmetric key data
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def decrypt_key(self, data: bytes, sender: ID, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
-        """
-        2. Decrypt 'message.key' with receiver's private key
-
-        :param data:     encrypted symmetric key data
-        :param sender:   sender/member ID
-        :param receiver: receiver/group ID
-        :param msg:      secure message
-        :return:         serialized data of symmetric key
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def deserialize_key(self, data: Optional[bytes], sender: ID, receiver: ID,
-                        msg: SecureMessage) -> Optional[SymmetricKey]:
-        """
-        3. Deserialize message key from data (JsON / ProtoBuf / ...)
-
-        :param data:     serialized key data
-        :param sender:   sender/member ID
-        :param receiver: receiver/group ID
-        :param msg:      secure message
-        :return:         symmetric key
-        """
-        raise NotImplemented
-
-    """ Decrypt Content """
-
-    @abstractmethod
-    def decode_data(self, data: Any, msg: SecureMessage) -> Optional[bytes]:
-        """
-        4. Decode 'message.data' to encrypted content data
-
-        :param data:     base64 string
-        :param msg:      secure message
-        :return:         encrypted content data
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[bytes]:
-        """
-        5. Decrypt 'message.data' with symmetric key
-
-        :param data:     encrypted content data
-        :param key:      symmetric key
-        :param msg:      secure message
-        :return:         serialized data of message content
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def deserialize_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
-        """
-        6. Deserialize message content from data (JsON / ProtoBuf / ...)
-
-        :param data:     serialized content data
-        :param key:      symmetric key
-        :param msg:      secure message
-        :return:         message content
-        """
-        raise NotImplemented
-
-    """ Signature """
-
-    @abstractmethod
-    def sign_data(self, data: bytes, sender: ID, msg: SecureMessage) -> bytes:
-        """
-        1. Sign 'message.data' with sender's private key
-
-        :param data:      encrypted message data
-        :param sender:    sender ID
-        :param msg:       secure message
-        :return:          signature of encrypted message data
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def encode_signature(self, signature: bytes, msg: SecureMessage) -> Any:
-        """
-        2. Encode 'message.signature' to String (Base64)
-
-        :param signature: signature of message.data
-        :param msg:       secure message
-        :return:          base64 string
         """
         raise NotImplemented

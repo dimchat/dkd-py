@@ -31,14 +31,14 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
-from mkm import ID, Meta, Visa
+from mkm import Meta, Visa
 
-from .secure import SecureMessage, SecureMessageDelegate
+from .secure import SecureMessage
 
 
 class ReliableMessage(SecureMessage, ABC):
-    """This class is used to sign the SecureMessage
-    It contains a 'signature' field which signed with sender's private key
+    """ This class is used to sign the SecureMessage
+        It contains a 'signature' field which signed with sender's private key
 
         Instant Message signed by an asymmetric key
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,13 +49,13 @@ class ReliableMessage(SecureMessage, ABC):
             receiver : "hulk@yyy",
             time     : 123,
             //-- content data and key/keys
-            data     : "...",  // base64_encode(symmetric)
-            key      : "...",  // base64_encode(asymmetric)
+            data     : "...",  // base64_encode( symmetric_encrypt(content))
+            key      : "...",  // base64_encode(asymmetric_encrypt(password))
             keys     : {
-                "ID1": "key1", // base64_encode(asymmetric)
+                "ID1": "key1", // base64_encode(asymmetric_encrypt(password))
             },
             //-- signature
-            signature: "..."   // base64_encode()
+            signature: "..."   // base64_encode(asymmetric_sign(data))
         }
     """
 
@@ -84,8 +84,8 @@ class ReliableMessage(SecureMessage, ABC):
     @abstractmethod
     def visa(self) -> Optional[Visa]:
         """
-            Sender's Visa Document
-            ~~~~~~~~~~~~~~~~~~~~~~
+            Sender's Visa
+            ~~~~~~~~~~~~~
             Extends for the first message package of 'Handshake' protocol.
         """
         raise NotImplemented
@@ -93,30 +93,6 @@ class ReliableMessage(SecureMessage, ABC):
     @visa.setter
     @abstractmethod
     def visa(self, value: Visa):
-        raise NotImplemented
-
-    """
-        Verify the Reliable Message to Secure Message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            +----------+      +----------+
-            | sender   |      | sender   |
-            | receiver |      | receiver |
-            | time     |  ->  | time     |
-            |          |      |          |
-            | data     |      | data     |  1. verify(data, signature, sender.PK)
-            | key/keys |      | key/keys |
-            | signature|      +----------+
-            +----------+
-    """
-
-    @abstractmethod
-    def verify(self) -> Optional[SecureMessage]:
-        """
-        Verify the message.data with signature
-
-        :return: SecureMessage object if signature matched
-        """
         raise NotImplemented
 
     #
@@ -140,7 +116,7 @@ class ReliableMessage(SecureMessage, ABC):
 
 
 def general_factory():
-    from ..factory import MessageFactoryManager
+    from ..msg import MessageFactoryManager
     return MessageFactoryManager.general_factory
 
 
@@ -153,32 +129,5 @@ class ReliableMessageFactory(ABC):
 
         :param msg: message info
         :return: ReliableMessage
-        """
-        raise NotImplemented
-
-
-class ReliableMessageDelegate(SecureMessageDelegate, ABC):
-
-    @abstractmethod
-    def decode_signature(self, signature: Any, msg: ReliableMessage) -> Optional[bytes]:
-        """
-        1. Decode 'message.signature' from String (Base64)
-
-        :param signature: base64 string
-        :param msg:       reliable message
-        :return:          signature data
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def verify_data_signature(self, data: bytes, signature: bytes, sender: ID, msg: ReliableMessage) -> bool:
-        """
-        2. Verify the message data and signature with sender's public key
-
-        :param data:      message content(encrypted) data
-        :param signature: signature of message content(encrypted) data
-        :param sender:    sender ID
-        :param msg:       reliable message
-        :return:          True on signature matched
         """
         raise NotImplemented

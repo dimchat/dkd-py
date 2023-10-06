@@ -31,6 +31,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union, Any, Dict
 
+from mkm.types import DateTime
 from mkm.types import Mapper
 from mkm import ID
 
@@ -39,7 +40,7 @@ from .types import ContentType
 
 class Envelope(Mapper, ABC):
     """ This class is used to create a message envelope
-    which contains 'sender', 'receiver' and 'time'
+        which contains 'sender', 'receiver' and 'time'
 
         Envelope for message
         ~~~~~~~~~~~~~~~~~~~~
@@ -73,7 +74,7 @@ class Envelope(Mapper, ABC):
 
     @property
     @abstractmethod
-    def time(self) -> Optional[float]:
+    def time(self) -> Optional[DateTime]:
         """
         Get message time
 
@@ -121,7 +122,7 @@ class Envelope(Mapper, ABC):
     #
 
     @classmethod
-    def create(cls, sender: ID, receiver: ID, time: float = None):  # -> Envelope:
+    def create(cls, sender: ID, receiver: ID, time: DateTime = None):  # -> Envelope:
         gf = general_factory()
         return gf.create_envelope(sender=sender, receiver=receiver, time=time)
 
@@ -142,14 +143,14 @@ class Envelope(Mapper, ABC):
 
 
 def general_factory():
-    from ..factory import MessageFactoryManager
+    from ..msg import MessageFactoryManager
     return MessageFactoryManager.general_factory
 
 
 class EnvelopeFactory(ABC):
 
     @abstractmethod
-    def create_envelope(self, sender: ID, receiver: ID, time: Optional[float]) -> Envelope:
+    def create_envelope(self, sender: ID, receiver: ID, time: Optional[DateTime]) -> Envelope:
         """
         Create envelope
 

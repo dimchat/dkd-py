@@ -29,16 +29,14 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Any, Dict, List
+from typing import Optional, Union, Any, Dict
 
-from mkm.crypto import SymmetricKey
-from mkm import ID
+from mkm.types import DateTime
 
 from .types import ContentType
 from .content import Content
 from .envelope import Envelope
 from .message import Message
-from .secure import SecureMessage
 
 
 class InstantMessage(Message, ABC):
@@ -67,31 +65,6 @@ class InstantMessage(Message, ABC):
         """ only for rebuild content """
         raise NotImplemented
 
-    """
-        Encrypt the Instant Message to Secure Message
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            +----------+      +----------+
-            | sender   |      | sender   |
-            | receiver |      | receiver |
-            | time     |  ->  | time     |
-            |          |      |          |
-            | content  |      | data     |  1. data = encrypt(content, PW)
-            +----------+      | key/keys |  2. key  = encrypt(PW, receiver.PK)
-                              +----------+
-    """
-
-    @abstractmethod
-    def encrypt(self, password: SymmetricKey, members: List[ID] = None) -> Optional[SecureMessage]:
-        """
-        Encrypt message content with password(symmetric key)
-
-        :param password: A symmetric key for encrypting message content
-        :param members:  If this is a group message, get all members here
-        :return: SecureMessage object
-        """
-        raise NotImplemented
-
     #
     #   Factory methods
     #
@@ -107,9 +80,9 @@ class InstantMessage(Message, ABC):
         return gf.parse_instant_factory(msg=msg)
 
     @classmethod
-    def generate_serial_number(cls, msg_type: Union[int, ContentType], time: float) -> int:
+    def generate_serial_number(cls, msg_type: Union[int, ContentType], now: DateTime) -> int:
         gf = general_factory()
-        return gf.generate_serial_number(msg_type=msg_type, time=time)
+        return gf.generate_serial_number(msg_type, now=now)
 
     @classmethod
     def factory(cls):  # -> Optional[InstantMessageFactory]:
@@ -123,19 +96,19 @@ class InstantMessage(Message, ABC):
 
 
 def general_factory():
-    from ..factory import MessageFactoryManager
+    from ..msg import MessageFactoryManager
     return MessageFactoryManager.general_factory
 
 
 class InstantMessageFactory(ABC):
 
     @abstractmethod
-    def generate_serial_number(self, msg_type: Union[int, ContentType], time: float) -> int:
+    def generate_serial_number(self, msg_type: Union[int, ContentType], now: DateTime) -> int:
         """
         Generate SN for message content
 
         :param msg_type: content type
-        :param time:     message time
+        :param now:      message time
         :return: SN (uint64, serial number as msg id)
         """
         raise NotImplemented
@@ -158,81 +131,5 @@ class InstantMessageFactory(ABC):
 
         :param msg: message info
         :return: InstantMessage
-        """
-        raise NotImplemented
-
-
-class InstantMessageDelegate(ABC):
-
-    """ Encrypt Content """
-
-    @abstractmethod
-    def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
-        """
-        1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
-
-        :param content:  message content
-        :param key:      symmetric key
-        :param msg:      instant message
-        :return:         serialized content data
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
-        """
-        2. Encrypt content data to 'message.data' with symmetric key
-
-        :param data:     serialized data of message.content
-        :param key:      symmetric key
-        :param msg:      instant message
-        :return:         encrypted message content data
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def encode_data(self, data: bytes, msg: InstantMessage) -> Any:
-        """
-        3. Encode 'message.data' to String (Base64)
-
-        :param data:     encrypted content data
-        :param msg:      instant message
-        :return:         base64 string
-        """
-        raise NotImplemented
-
-    """ Encrypt Key """
-
-    @abstractmethod
-    def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
-        """
-        4. Serialize message key to data (JsON / ProtoBuf / ...)
-
-        :param key:      symmetric key to be encrypted
-        :param msg:      instant message
-        :return:         serialized key data
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
-        """
-        5. Encrypt key data to 'message.key' with receiver's public key
-
-        :param data:     serialized data of symmetric key
-        :param receiver: receiver ID
-        :param msg:      instant message
-        :return:         encrypted key data
-        """
-        raise NotImplemented
-
-    @abstractmethod
-    def encode_key(self, data: bytes, msg: InstantMessage) -> Any:
-        """
-        6. Encode 'message.key' to String (Base64)
-
-        :param data:     encrypted key data
-        :param msg:      instant message
-        :return:         base64 string
         """
         raise NotImplemented
