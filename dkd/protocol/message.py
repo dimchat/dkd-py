@@ -58,27 +58,6 @@ from mkm import ID
 from .envelope import Envelope
 
 
-"""
-    Message Transforming
-    ~~~~~~~~~~~~~~~~~~~~
-
-        Instant Message <-> Secure Message <-> Reliable Message
-        +-------------+     +------------+     +--------------+
-        |  sender     |     |  sender    |     |  sender      |
-        |  receiver   |     |  receiver  |     |  receiver    |
-        |  time       |     |  time      |     |  time        |
-        |             |     |            |     |              |
-        |  content    |     |  data      |     |  data        |
-        +-------------+     |  key/keys  |     |  key/keys    |
-                            +------------+     |  signature   |
-                                               +--------------+
-        Algorithm:
-            data      = password.encrypt(content)
-            key       = receiver.public_key.encrypt(password)
-            signature = sender.private_key.sign(data)
-"""
-
-
 class Message(Mapper, ABC):
     """ This class is used to create a message
         with the envelope fields, such as 'sender', 'receiver', and 'time'

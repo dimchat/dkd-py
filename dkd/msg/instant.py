@@ -54,6 +54,10 @@ class InstantMessageDelegate(ABC):
                               +----------+
     """
 
+    #
+    #   Encrypt Content
+    #
+
     @abstractmethod
     def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
         """
@@ -88,6 +92,10 @@ class InstantMessageDelegate(ABC):
     #     :return: base64 string
     #     """
     #     raise NotImplemented
+
+    #
+    #   Encrypt Key
+    #
 
     @abstractmethod
     def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:

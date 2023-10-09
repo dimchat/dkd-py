@@ -85,12 +85,11 @@ class MessageGeneralFactory:
             return None
         # get factory by content type
         msg_type = self.get_content_type(content=info, default=0)
+        assert msg_type > 0, 'content error: %s' % content
         factory = self.get_content_factory(msg_type=msg_type)
-        if factory is None and msg_type != 0:
+        if factory is None:
             factory = self.get_content_factory(msg_type=0)  # unknown
-        # if factory is None:
-        #     # assert False, 'content factory not found: %d' % msg_type
-        #     return None
+            assert factory is not None, 'default content factory not found'
         return factory.parse_content(content=info)
 
     #
@@ -105,6 +104,7 @@ class MessageGeneralFactory:
 
     def create_envelope(self, sender: ID, receiver: ID, time: Optional[DateTime]) -> Envelope:
         factory = self.get_envelope_factory()
+        assert factory is not None, 'envelope factory not ready'
         return factory.create_envelope(sender=sender, receiver=receiver, time=time)
 
     def parse_envelope(self, envelope: Any) -> Optional[Envelope]:
@@ -117,9 +117,7 @@ class MessageGeneralFactory:
             # assert False, 'message envelope error: %s' % envelope
             return None
         factory = self.get_envelope_factory()
-        # if factory is None:
-        #     # assert False, 'envelope factory not set'
-        #     return None
+        assert factory is not None, 'envelope factory not ready'
         return factory.parse_envelope(envelope=info)
 
     #
@@ -134,7 +132,7 @@ class MessageGeneralFactory:
 
     def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
         factory = self.get_instant_message_factory()
-        # assert factory is not None, 'instant message factory not set'
+        assert factory is not None, 'instant message factory not ready'
         return factory.create_instant_message(head=head, body=body)
 
     def parse_instant_factory(self, msg: Any) -> Optional[InstantMessage]:
@@ -147,14 +145,12 @@ class MessageGeneralFactory:
             # assert False, 'instant message error: %s' % msg
             return None
         factory = self.get_instant_message_factory()
-        # if factory is None:
-        #     # assert False, 'instant message factory not set'
-        #     return None
+        assert factory is not None, 'instant message factory not ready'
         return factory.parse_instant_message(msg=info)
 
     def generate_serial_number(self, msg_type: Union[int, ContentType], now: DateTime) -> int:
         factory = self.get_instant_message_factory()
-        # assert factory is not None, 'instant message factory not set'
+        assert factory is not None, 'instant message factory not ready'
         return factory.generate_serial_number(msg_type=msg_type, now=now)
 
     #
@@ -177,9 +173,7 @@ class MessageGeneralFactory:
             # assert False, 'secure message error: %s' % msg
             return None
         factory = self.get_secure_message_factory()
-        # if factory is None:
-        #     # assert False, 'secure message factory not set'
-        #     return None
+        assert factory is not None, 'secure message factory not ready'
         return factory.parse_secure_message(msg=info)
 
     #
@@ -202,9 +196,7 @@ class MessageGeneralFactory:
             # assert False, 'reliable message error: %s' % msg
             return None
         factory = self.get_reliable_message_factory()
-        # if factory is None:
-        #     # assert False, 'reliable message factory not set'
-        #     return None
+        assert factory is not None, 'reliable message factory not ready'
         return factory.parse_reliable_message(msg=info)
 
 

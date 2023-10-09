@@ -54,6 +54,10 @@ class SecureMessageDelegate(ABC):
             +----------+
     """
 
+    #
+    #   Decrypt Key
+    #
+
     # @abstractmethod
     # def decode_key(self, key: Any, msg: SecureMessage) -> Optional[bytes]:
     #     """
@@ -88,6 +92,10 @@ class SecureMessageDelegate(ABC):
         :return: symmetric key
         """
         raise NotImplemented
+
+    #
+    #   Decrypt Content
+    #
 
     # @abstractmethod
     # def decode_data(self, data: Any, msg: SecureMessage) -> Optional[bytes]:
@@ -138,6 +146,10 @@ class SecureMessageDelegate(ABC):
             +----------+      | signature|  1. signature = sign(data, sender.SK)
                               +----------+
     """
+
+    #
+    #   Signature
+    #
 
     @abstractmethod
     def sign_data(self, data: bytes, msg: SecureMessage) -> bytes:
