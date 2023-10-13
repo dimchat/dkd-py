@@ -29,11 +29,10 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
 from mkm.types import DateTime
 
-from .types import ContentType
 from .content import Content
 from .envelope import Envelope
 from .message import Message
@@ -80,9 +79,9 @@ class InstantMessage(Message, ABC):
         return gf.parse_instant_factory(msg=msg)
 
     @classmethod
-    def generate_serial_number(cls, msg_type: Union[int, ContentType], now: DateTime) -> int:
+    def generate_serial_number(cls, msg_type: int, now: DateTime) -> int:
         gf = general_factory()
-        return gf.generate_serial_number(msg_type, now=now)
+        return gf.generate_serial_number(msg_type, now)
 
     @classmethod
     def factory(cls):  # -> Optional[InstantMessageFactory]:
@@ -103,7 +102,7 @@ def general_factory():
 class InstantMessageFactory(ABC):
 
     @abstractmethod
-    def generate_serial_number(self, msg_type: Union[int, ContentType], now: DateTime) -> int:
+    def generate_serial_number(self, msg_type: int, now: DateTime) -> int:
         """
         Generate SN for message content
 

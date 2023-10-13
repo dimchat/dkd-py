@@ -29,13 +29,11 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
 from mkm.types import DateTime
 from mkm.types import Mapper
 from mkm import ID
-
-from .types import ContentType
 
 
 class Envelope(Mapper, ABC):
@@ -114,7 +112,7 @@ class Envelope(Mapper, ABC):
 
     @type.setter
     @abstractmethod
-    def type(self, value: Union[int, ContentType]):
+    def type(self, value: int):
         raise NotImplemented
 
     #

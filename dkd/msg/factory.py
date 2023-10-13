@@ -28,14 +28,14 @@
 # SOFTWARE.
 # ==============================================================================
 
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
 from mkm.types import DateTime
 from mkm.types import Converter
 from mkm.types import Wrapper
 from mkm import ID
 
-from ..protocol import Content, ContentType, ContentFactory
+from ..protocol import Content, ContentFactory
 from ..protocol import Envelope, EnvelopeFactory
 from ..protocol import InstantMessage, InstantMessageFactory
 from ..protocol import SecureMessage, SecureMessageFactory
@@ -59,14 +59,10 @@ class MessageGeneralFactory:
     #   Content
     #
 
-    def set_content_factory(self, msg_type: Union[int, ContentType], factory: ContentFactory):
-        if isinstance(msg_type, ContentType):
-            msg_type = msg_type.value
+    def set_content_factory(self, msg_type: int, factory: ContentFactory):
         self.__content_factories[msg_type] = factory
 
-    def get_content_factory(self, msg_type: Union[int, ContentType]) -> Optional[ContentFactory]:
-        if isinstance(msg_type, ContentType):
-            msg_type = msg_type.value
+    def get_content_factory(self, msg_type: int) -> Optional[ContentFactory]:
         return self.__content_factories.get(msg_type)
 
     # noinspection PyMethodMayBeStatic
@@ -86,9 +82,9 @@ class MessageGeneralFactory:
         # get factory by content type
         msg_type = self.get_content_type(content=info, default=0)
         assert msg_type > 0, 'content error: %s' % content
-        factory = self.get_content_factory(msg_type=msg_type)
+        factory = self.get_content_factory(msg_type)
         if factory is None:
-            factory = self.get_content_factory(msg_type=0)  # unknown
+            factory = self.get_content_factory(0)  # unknown
             assert factory is not None, 'default content factory not found'
         return factory.parse_content(content=info)
 
@@ -148,10 +144,10 @@ class MessageGeneralFactory:
         assert factory is not None, 'instant message factory not ready'
         return factory.parse_instant_message(msg=info)
 
-    def generate_serial_number(self, msg_type: Union[int, ContentType], now: DateTime) -> int:
+    def generate_serial_number(self, msg_type: int, now: DateTime) -> int:
         factory = self.get_instant_message_factory()
         assert factory is not None, 'instant message factory not ready'
-        return factory.generate_serial_number(msg_type=msg_type, now=now)
+        return factory.generate_serial_number(msg_type, now)
 
     #
     #   SecureMessage

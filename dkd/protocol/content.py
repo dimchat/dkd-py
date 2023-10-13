@@ -102,11 +102,15 @@ class Content(Mapper, ABC):
 
     @classmethod
     def factory(cls, msg_type: Union[int, ContentType]):  # -> Optional[ContentFactory]:
+        if isinstance(msg_type, ContentType):
+            msg_type = msg_type.value
         gf = general_factory()
         return gf.get_content_factory(msg_type)
 
     @classmethod
     def register(cls, msg_type: Union[int, ContentType], factory):
+        if isinstance(msg_type, ContentType):
+            msg_type = msg_type.value
         gf = general_factory()
         gf.set_content_factory(msg_type, factory=factory)
 
