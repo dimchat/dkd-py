@@ -31,8 +31,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
-from mkm import Meta, Visa
-
 from .secure import SecureMessage
 
 
@@ -63,36 +61,6 @@ class ReliableMessage(SecureMessage, ABC):
     @abstractmethod
     def signature(self) -> bytes:
         """ signature for encrypted data of message content """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def meta(self) -> Optional[Meta]:
-        """
-            Sender's Meta
-            ~~~~~~~~~~~~~
-            Extends for the first message package of 'Handshake' protocol.
-        """
-        raise NotImplemented
-
-    @meta.setter
-    @abstractmethod
-    def meta(self, value: Meta):
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def visa(self) -> Optional[Visa]:
-        """
-            Sender's Visa
-            ~~~~~~~~~~~~~
-            Extends for the first message package of 'Handshake' protocol.
-        """
-        raise NotImplemented
-
-    @visa.setter
-    @abstractmethod
-    def visa(self, value: Visa):
         raise NotImplemented
 
     #

@@ -101,9 +101,7 @@ class Content(Mapper, ABC):
         return gf.parse_content(content=content)
 
     @classmethod
-    def factory(cls, msg_type: Union[int, ContentType]):  # -> Optional[ContentFactory]:
-        if isinstance(msg_type, ContentType):
-            msg_type = msg_type.value
+    def factory(cls, msg_type: int):  # -> Optional[ContentFactory]:
         gf = general_factory()
         return gf.get_content_factory(msg_type)
 
