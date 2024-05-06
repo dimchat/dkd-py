@@ -59,7 +59,7 @@ class InstantMessageDelegate(ABC):
     #
 
     @abstractmethod
-    def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
+    async def serialize_content(self, content: Content, key: SymmetricKey, msg: InstantMessage) -> bytes:
         """
         1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
 
@@ -71,7 +71,7 @@ class InstantMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
+    async def encrypt_content(self, data: bytes, key: SymmetricKey, msg: InstantMessage) -> bytes:
         """
         2. Encrypt content data to 'message.data' with symmetric key
 
@@ -83,7 +83,7 @@ class InstantMessageDelegate(ABC):
         raise NotImplemented
 
     # @abstractmethod
-    # def encode_data(self, data: bytes, msg: InstantMessage) -> Any:
+    # async def encode_data(self, data: bytes, msg: InstantMessage) -> Any:
     #     """
     #     3. Encode 'message.data' to String (Base64)
     #
@@ -98,7 +98,7 @@ class InstantMessageDelegate(ABC):
     #
 
     @abstractmethod
-    def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
+    async def serialize_key(self, key: SymmetricKey, msg: InstantMessage) -> Optional[bytes]:
         """
         4. Serialize message key to data (JsON / ProtoBuf / ...)
 
@@ -109,7 +109,7 @@ class InstantMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
+    async def encrypt_key(self, data: bytes, receiver: ID, msg: InstantMessage) -> Optional[bytes]:
         """
         5. Encrypt key data to 'message.key' with receiver's public key
 
@@ -121,7 +121,7 @@ class InstantMessageDelegate(ABC):
         raise NotImplemented
 
     # @abstractmethod
-    # def encode_key(self, data: bytes, msg: InstantMessage) -> Any:
+    # async def encode_key(self, data: bytes, msg: InstantMessage) -> Any:
     #     """
     #     6. Encode 'message.key' to String (Base64)
     #

@@ -51,7 +51,7 @@ class ReliableMessageDelegate(ABC):  # (SecureMessageDelegate, ABC):
     """
 
     # @abstractmethod
-    # def decode_signature(self, signature: Any, msg: ReliableMessage) -> Optional[bytes]:
+    # async def decode_signature(self, signature: Any, msg: ReliableMessage) -> Optional[bytes]:
     #     """
     #     1. Decode 'message.signature' from String (Base64)
     #
@@ -62,7 +62,7 @@ class ReliableMessageDelegate(ABC):  # (SecureMessageDelegate, ABC):
     #     raise NotImplemented
 
     @abstractmethod
-    def verify_data_signature(self, data: bytes, signature: bytes, msg: ReliableMessage) -> bool:
+    async def verify_data_signature(self, data: bytes, signature: bytes, msg: ReliableMessage) -> bool:
         """
         2. Verify the message data and signature with sender's public key
 

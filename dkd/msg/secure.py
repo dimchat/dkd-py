@@ -59,7 +59,7 @@ class SecureMessageDelegate(ABC):
     #
 
     # @abstractmethod
-    # def decode_key(self, key: Any, msg: SecureMessage) -> Optional[bytes]:
+    # async def decode_key(self, key: Any, msg: SecureMessage) -> Optional[bytes]:
     #     """
     #     1. Decode 'message.key' to encrypted symmetric key data
     #
@@ -70,7 +70,7 @@ class SecureMessageDelegate(ABC):
     #     raise NotImplemented
 
     @abstractmethod
-    def decrypt_key(self, data: bytes, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
+    async def decrypt_key(self, data: bytes, receiver: ID, msg: SecureMessage) -> Optional[bytes]:
         """
         2. Decrypt 'message.key' with receiver's private key
 
@@ -82,7 +82,7 @@ class SecureMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def deserialize_key(self, data: Optional[bytes], msg: SecureMessage) -> Optional[SymmetricKey]:
+    async def deserialize_key(self, data: Optional[bytes], msg: SecureMessage) -> Optional[SymmetricKey]:
         """
         3. Deserialize message key from data (JsON / ProtoBuf / ...)
            (if key data is empty, means it should be reused, get it from key cache)
@@ -98,7 +98,7 @@ class SecureMessageDelegate(ABC):
     #
 
     # @abstractmethod
-    # def decode_data(self, data: Any, msg: SecureMessage) -> Optional[bytes]:
+    # async def decode_data(self, data: Any, msg: SecureMessage) -> Optional[bytes]:
     #     """
     #     4. Decode 'message.data' to encrypted content data
     #
@@ -109,7 +109,7 @@ class SecureMessageDelegate(ABC):
     #     raise NotImplemented
 
     @abstractmethod
-    def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[bytes]:
+    async def decrypt_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[bytes]:
         """
         5. Decrypt 'message.data' with symmetric key
 
@@ -121,7 +121,7 @@ class SecureMessageDelegate(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def deserialize_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
+    async def deserialize_content(self, data: bytes, key: SymmetricKey, msg: SecureMessage) -> Optional[Content]:
         """
         6. Deserialize message content from data (JsON / ProtoBuf / ...)
 
@@ -152,7 +152,7 @@ class SecureMessageDelegate(ABC):
     #
 
     @abstractmethod
-    def sign_data(self, data: bytes, msg: SecureMessage) -> bytes:
+    async def sign_data(self, data: bytes, msg: SecureMessage) -> bytes:
         """
         1. Sign 'message.data' with sender's private key
 
@@ -163,7 +163,7 @@ class SecureMessageDelegate(ABC):
         raise NotImplemented
 
     # @abstractmethod
-    # def encode_signature(self, signature: bytes, msg: SecureMessage) -> Any:
+    # async def encode_signature(self, signature: bytes, msg: SecureMessage) -> Any:
     #     """
     #     2. Encode 'message.signature' to String (Base64)
     #
