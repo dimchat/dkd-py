@@ -59,10 +59,10 @@ class InstantMessage(Message, ABC):
         """ message content """
         raise NotImplemented
 
-    @content.setter
-    def content(self, value: Content):
-        """ only for rebuild content """
-        raise NotImplemented
+    # @content.setter
+    # def content(self, value: Content):
+    #     """ only for rebuild content """
+    #     raise NotImplemented
 
     #
     #   Factory methods

@@ -81,6 +81,8 @@ class Message(Mapper, ABC):
     def envelope(self) -> Envelope:
         raise NotImplemented
 
+    # --------
+
     @property
     @abstractmethod
     def sender(self) -> ID:

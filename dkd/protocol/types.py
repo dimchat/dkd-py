@@ -80,6 +80,8 @@ class ContentType(IntEnum):
             (All above are just some advices to help choosing numbers :P)
     """
 
+    ANY = 0x00      # 0000 0000 (Undefined)
+
     TEXT = 0x01     # 0000 0001
 
     FILE = 0x10     # 0001 0000

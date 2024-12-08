@@ -12,7 +12,7 @@ import io
 
 from setuptools import setup, find_packages
 
-__version__ = '2.1.0'
+__version__ = '2.2.0'
 __author__ = 'Albert Moky'
 __contact__ = 'albert.moky@gmail.com'
 
@@ -36,6 +36,6 @@ setup(
         'Operating System :: OS Independent',
     ],
     install_requires=[
-        'mkm>=2.1.0',
+        'mkm>=2.2.0',
     ]
 )
