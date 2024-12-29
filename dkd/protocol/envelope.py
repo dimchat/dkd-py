@@ -35,6 +35,8 @@ from mkm.types import DateTime
 from mkm.types import Mapper
 from mkm import ID
 
+from .helpers import MessageExtensions
+
 
 class Envelope(Mapper, ABC):
     """ This class is used to create a message envelope
@@ -121,31 +123,31 @@ class Envelope(Mapper, ABC):
 
     @classmethod
     def create(cls, sender: ID, receiver: ID, time: DateTime = None):  # -> Envelope:
-        gf = general_factory()
-        return gf.create_envelope(sender=sender, receiver=receiver, time=time)
+        helper = MessageExtensions.envelope_helper
+        assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+        return helper.create_envelope(sender=sender, receiver=receiver, time=time)
 
     @classmethod
     def parse(cls, envelope: Any):  # -> Optional[Envelope]:
-        gf = general_factory()
-        return gf.parse_envelope(envelope=envelope)
+        helper = MessageExtensions.envelope_helper
+        assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+        return helper.parse_envelope(envelope=envelope)
 
     @classmethod
-    def factory(cls):  # -> EnvelopeFactory:
-        gf = general_factory()
-        return gf.get_envelope_factory()
+    def get_factory(cls):  # -> EnvelopeFactory:
+        helper = MessageExtensions.envelope_helper
+        assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+        return helper.get_envelope_factory()
 
     @classmethod
-    def register(cls, factory):
-        gf = general_factory()
-        gf.set_envelope_factory(factory=factory)
-
-
-def general_factory():
-    from ..msg import MessageFactoryManager
-    return MessageFactoryManager.general_factory
+    def set_factory(cls, factory):
+        helper = MessageExtensions.envelope_helper
+        assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+        helper.set_envelope_factory(factory=factory)
 
 
 class EnvelopeFactory(ABC):
+    """ Envelope Factory """
 
     @abstractmethod
     def create_envelope(self, sender: ID, receiver: ID, time: Optional[DateTime]) -> Envelope:
@@ -167,4 +169,24 @@ class EnvelopeFactory(ABC):
         :param envelope: message head info
         :return: Envelope
         """
+        raise NotImplemented
+
+
+class EnvelopeHelper(ABC):
+    """ General Helper """
+
+    @abstractmethod
+    def set_envelope_factory(self, factory: EnvelopeFactory):
+        raise NotImplemented
+
+    @abstractmethod
+    def get_envelope_factory(self) -> Optional[EnvelopeFactory]:
+        raise NotImplemented
+
+    @abstractmethod
+    def create_envelope(self, sender: ID, receiver: ID, time: Optional[DateTime]) -> Envelope:
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_envelope(self, envelope: Any) -> Optional[Envelope]:
         raise NotImplemented

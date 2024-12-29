@@ -37,6 +37,13 @@ from .instant import InstantMessage, InstantMessageFactory
 from .secure import SecureMessage, SecureMessageFactory
 from .reliable import ReliableMessage, ReliableMessageFactory
 
+# from .content import ContentHelper
+# from .envelope import EnvelopeHelper
+# from .instant import InstantMessageHelper
+# from .secure import SecureMessageHelper
+# from .reliable import ReliableMessageHelper
+# from .helpers import MessageExtensions
+
 __all__ = [
 
     'ContentType', 'Content', 'ContentFactory',
@@ -44,4 +51,9 @@ __all__ = [
 
     'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+
+    # 'ContentHelper', 'EnvelopeHelper',
+    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    # 'MessageExtensions',
+
 ]

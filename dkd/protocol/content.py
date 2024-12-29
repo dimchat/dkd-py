@@ -29,13 +29,13 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Any, Dict
+from typing import Optional, Any, Dict
 
 from mkm.types import DateTime
 from mkm.types import Mapper
 from mkm import ID
 
-from .types import ContentType
+from .helpers import MessageExtensions
 
 
 class Content(Mapper, ABC):
@@ -97,28 +97,25 @@ class Content(Mapper, ABC):
 
     @classmethod
     def parse(cls, content: Any):  # -> Optional[Content]:
-        gf = general_factory()
-        return gf.parse_content(content=content)
+        helper = MessageExtensions.content_helper
+        assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
+        return helper.parse_content(content=content)
 
     @classmethod
-    def factory(cls, msg_type: int):  # -> Optional[ContentFactory]:
-        gf = general_factory()
-        return gf.get_content_factory(msg_type)
+    def get_factory(cls, msg_type: int):  # -> Optional[ContentFactory]:
+        helper = MessageExtensions.content_helper
+        assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
+        return helper.get_content_factory(msg_type)
 
     @classmethod
-    def register(cls, msg_type: Union[int, ContentType], factory):
-        if isinstance(msg_type, ContentType):
-            msg_type = msg_type.value
-        gf = general_factory()
-        gf.set_content_factory(msg_type, factory=factory)
-
-
-def general_factory():
-    from ..msg import MessageFactoryManager
-    return MessageFactoryManager.general_factory
+    def set_factory(cls, msg_type: int, factory):
+        helper = MessageExtensions.content_helper
+        assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
+        helper.set_content_factory(msg_type, factory=factory)
 
 
 class ContentFactory(ABC):
+    """ Content Factory """
 
     @abstractmethod
     def parse_content(self, content: Dict[str, Any]) -> Optional[Content]:
@@ -128,4 +125,20 @@ class ContentFactory(ABC):
         :param content: content info
         :return: Content
         """
+        raise NotImplemented
+
+
+class ContentHelper(ABC):
+    """ General Helper """
+
+    @abstractmethod
+    def set_content_factory(self, msg_type: int, factory: ContentFactory):
+        raise NotImplemented
+
+    @abstractmethod
+    def get_content_factory(self, msg_type) -> Optional[ContentFactory]:
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_content(self, content: Any) -> Optional[Content]:
         raise NotImplemented

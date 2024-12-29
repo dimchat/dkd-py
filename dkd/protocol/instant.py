@@ -36,6 +36,7 @@ from mkm.types import DateTime
 from .content import Content
 from .envelope import Envelope
 from .message import Message
+from .helpers import MessageExtensions
 
 
 class InstantMessage(Message, ABC):
@@ -70,39 +71,40 @@ class InstantMessage(Message, ABC):
 
     @classmethod
     def create(cls, head: Envelope, body: Content):  # -> InstantMessage:
-        gf = general_factory()
-        return gf.create_instant_message(head=head, body=body)
+        helper = MessageExtensions.instant_helper
+        assert isinstance(helper, InstantMessageHelper), 'message helper error: %s' % helper
+        return helper.create_instant_message(head=head, body=body)
 
     @classmethod
     def parse(cls, msg: Any):  # -> Optional[InstantMessage]:
-        gf = general_factory()
-        return gf.parse_instant_factory(msg=msg)
+        helper = MessageExtensions.instant_helper
+        assert isinstance(helper, InstantMessageHelper), 'message helper error: %s' % helper
+        return helper.parse_instant_message(msg=msg)
 
     @classmethod
     def generate_serial_number(cls, msg_type: int, now: DateTime) -> int:
-        gf = general_factory()
-        return gf.generate_serial_number(msg_type, now)
+        helper = MessageExtensions.instant_helper
+        assert isinstance(helper, InstantMessageHelper), 'message helper error: %s' % helper
+        return helper.generate_serial_number(msg_type, now)
 
     @classmethod
-    def factory(cls):  # -> Optional[InstantMessageFactory]:
-        gf = general_factory()
-        return gf.get_instant_message_factory()
+    def get_factory(cls):  # -> Optional[InstantMessageFactory]:
+        helper = MessageExtensions.instant_helper
+        assert isinstance(helper, InstantMessageHelper), 'message helper error: %s' % helper
+        return helper.get_instant_message_factory()
 
     @classmethod
-    def register(cls, factory):
-        gf = general_factory()
-        gf.set_instant_message_factory(factory=factory)
-
-
-def general_factory():
-    from ..msg import MessageFactoryManager
-    return MessageFactoryManager.general_factory
+    def set_factory(cls, factory):
+        helper = MessageExtensions.instant_helper
+        assert isinstance(helper, InstantMessageHelper), 'message helper error: %s' % helper
+        return helper.set_instant_message_factory(factory=factory)
 
 
 class InstantMessageFactory(ABC):
+    """ Instant Message Factory """
 
     @abstractmethod
-    def generate_serial_number(self, msg_type: int, now: DateTime) -> int:
+    def generate_serial_number(self, msg_type: Optional[int], now: Optional[DateTime]) -> int:
         """
         Generate SN for message content
 
@@ -131,4 +133,28 @@ class InstantMessageFactory(ABC):
         :param msg: message info
         :return: InstantMessage
         """
+        raise NotImplemented
+
+
+class InstantMessageHelper(ABC):
+    """ General Helper """
+
+    @abstractmethod
+    def set_instant_message_factory(self, factory: InstantMessageFactory):
+        raise NotImplemented
+
+    @abstractmethod
+    def get_instant_message_factory(self) -> Optional[InstantMessageFactory]:
+        raise NotImplemented
+
+    @abstractmethod
+    def generate_serial_number(self, msg_type: Optional[int], now: Optional[DateTime]) -> int:
+        raise NotImplemented
+
+    @abstractmethod
+    def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_instant_message(self, msg: Any) -> Optional[InstantMessage]:
         raise NotImplemented

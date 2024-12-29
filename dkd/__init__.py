@@ -50,6 +50,5 @@ __all__ = [
     #   Delegate
     #
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
-    'MessageGeneralFactory', 'MessageFactoryManager',
 
 ]

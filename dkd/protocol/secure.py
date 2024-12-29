@@ -32,6 +32,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
 from .message import Message
+from .helpers import MessageExtensions
 
 
 class SecureMessage(Message, ABC):
@@ -78,29 +79,25 @@ class SecureMessage(Message, ABC):
 
     @classmethod
     def parse(cls, msg: Any):  # -> Optional[SecureMessage]:
-        gf = general_factory()
-        return gf.parse_secure_message(msg=msg)
+        helper = MessageExtensions.secure_helper
+        assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
+        return helper.parse_secure_message(msg=msg)
 
     @classmethod
-    def factory(cls):  # -> Optional[SecureMessageFactory]:
-        gf = general_factory()
-        return gf.get_secure_message_factory()
+    def get_factory(cls):  # -> Optional[SecureMessageFactory]:
+        helper = MessageExtensions.secure_helper
+        assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
+        return helper.get_secure_message_factory()
 
     @classmethod
-    def register(cls, factory):
-        gf = general_factory()
-        gf.set_secure_message_factory(factory=factory)
+    def set_factory(cls, factory):
+        helper = MessageExtensions.secure_helper
+        assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
+        helper.set_secure_message_factory(factory=factory)
 
 
-def general_factory():
-    from ..msg import MessageFactoryManager
-    return MessageFactoryManager.general_factory
-
-
-#
-#   SecureMessage factory
-#
 class SecureMessageFactory(ABC):
+    """ Secure Message factory """
 
     @abstractmethod
     def parse_secure_message(self, msg: Dict[str, Any]) -> Optional[SecureMessage]:
@@ -110,4 +107,20 @@ class SecureMessageFactory(ABC):
         :param msg: message info
         :return: SecureMessage
         """
+        raise NotImplemented
+
+
+class SecureMessageHelper(ABC):
+    """ General Helper """
+
+    @abstractmethod
+    def set_secure_message_factory(self, factory: SecureMessageFactory):
+        raise NotImplemented
+
+    @abstractmethod
+    def get_secure_message_factory(self) -> Optional[SecureMessageFactory]:
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_secure_message(self, msg: Any) -> Optional[SecureMessage]:
         raise NotImplemented

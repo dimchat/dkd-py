@@ -2,12 +2,12 @@
 #
 #   Dao-Ke-Dao: Universal Message Module
 #
-#                                Written in 2023 by Moky <albert.moky@gmail.com>
+#                                Written in 2024 by Moky <albert.moky@gmail.com>
 #
 # ==============================================================================
 # MIT License
 #
-# Copyright (c) 2023 Albert Moky
+# Copyright (c) 2024 Albert Moky
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,14 +28,19 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .instant import InstantMessageDelegate
-from .secure import SecureMessageDelegate
-from .reliable import ReliableMessageDelegate
 
-__all__ = [
+"""
+    Message FactoryManager
+    ~~~~~~~~~~~~~~~~~~~~~~
+"""
 
-    'InstantMessageDelegate',
-    'SecureMessageDelegate',
-    'ReliableMessageDelegate',
 
-]
+# protected
+class MessageExtensions:
+
+    content_helper = None   # ContentHelper
+    envelope_helper = None  # EnvelopeHelper
+
+    instant_helper = None   # InstantMessageHelper
+    secure_helper = None    # SecureMessageHelper
+    reliable_helper = None  # ReliableMessageHelper

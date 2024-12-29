@@ -32,6 +32,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
 from .secure import SecureMessage
+from .helpers import MessageExtensions
 
 
 class ReliableMessage(SecureMessage, ABC):
@@ -69,26 +70,25 @@ class ReliableMessage(SecureMessage, ABC):
 
     @classmethod
     def parse(cls, msg: Any):  # -> Optional[ReliableMessage]:
-        gf = general_factory()
-        return gf.parse_reliable_message(msg=msg)
+        helper = MessageExtensions.reliable_helper
+        assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
+        return helper.parse_reliable_message(msg=msg)
 
     @classmethod
-    def factory(cls):  # -> Optional[ReliableMessageFactory]:
-        gf = general_factory()
-        return gf.get_reliable_message_factory()
+    def get_factory(cls):  # -> Optional[ReliableMessageFactory]:
+        helper = MessageExtensions.reliable_helper
+        assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
+        return helper.get_reliable_message_factory()
 
     @classmethod
-    def register(cls, factory):
-        gf = general_factory()
-        gf.set_reliable_message_factory(factory=factory)
-
-
-def general_factory():
-    from ..msg import MessageFactoryManager
-    return MessageFactoryManager.general_factory
+    def set_factory(cls, factory):
+        helper = MessageExtensions.reliable_helper
+        assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
+        return helper.set_reliable_message_factory(factory=factory)
 
 
 class ReliableMessageFactory(ABC):
+    """ Reliable Message Factory """
 
     @abstractmethod
     def parse_reliable_message(self, msg: Dict[str, Any]) -> Optional[ReliableMessage]:
@@ -98,4 +98,20 @@ class ReliableMessageFactory(ABC):
         :param msg: message info
         :return: ReliableMessage
         """
+        raise NotImplemented
+
+
+class ReliableMessageHelper(ABC):
+    """ General Helper """
+
+    @abstractmethod
+    def set_reliable_message_factory(self, factory: ReliableMessageFactory):
+        raise NotImplemented
+
+    @abstractmethod
+    def get_reliable_message_factory(self) -> Optional[ReliableMessageFactory]:
+        raise NotImplemented
+
+    @abstractmethod
+    def parse_reliable_message(self, msg: Any) -> Optional[ReliableMessage]:
         raise NotImplemented
