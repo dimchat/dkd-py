@@ -31,6 +31,12 @@
 from .protocol import *
 from .msg import *
 
+from .protocol.content import ContentFactory
+from .protocol.envelope import EnvelopeFactory
+from .protocol.instant import InstantMessageFactory
+from .protocol.secure import SecureMessageFactory
+from .protocol.reliable import ReliableMessageFactory
+
 
 name = "DaoKeDao"
 
@@ -41,14 +47,25 @@ __all__ = [
     #
     #   Protocol
     #
-    'ContentType', 'Content', 'ContentFactory',
-    'Envelope', 'EnvelopeFactory',
-    'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
+
+    'ContentType',
+    'Content',
+    'Envelope',
+    'Message',
+    'InstantMessage', 'SecureMessage', 'ReliableMessage',
+
+    #
+    #   Factories
+    #
+
+    'ContentFactory',
+    'EnvelopeFactory',
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
 
     #
-    #   Delegate
+    #   Delegates
     #
+
     'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
 ]

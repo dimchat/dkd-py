@@ -209,5 +209,5 @@ content -> JsON string: ```{"sn":412968873,"text":"Hey guy!","type":1}```
 
 ----
 
-Copyright &copy; 2023 Albert Moky
+Copyright &copy; 2018 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)

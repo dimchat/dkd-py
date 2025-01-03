@@ -46,11 +46,17 @@ from .reliable import ReliableMessage, ReliableMessageFactory
 
 __all__ = [
 
-    'ContentType', 'Content', 'ContentFactory',
-    'Envelope', 'EnvelopeFactory',
+    'ContentType',
+    'Content',          # 'ContentFactory',
+    'Envelope',         # 'EnvelopeFactory',
+    'Message',
+    'InstantMessage',   # 'InstantMessageFactory',
+    'SecureMessage',    # 'SecureMessageFactory',
+    'ReliableMessage',  # 'ReliableMessageFactory',
 
-    'Message', 'InstantMessage', 'SecureMessage', 'ReliableMessage',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    #
+    #   Plugins
+    #
 
     # 'ContentHelper', 'EnvelopeHelper',
     # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
