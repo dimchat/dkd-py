@@ -29,7 +29,6 @@
 # ==============================================================================
 
 from .protocol import *
-from .msg import *
 
 from .protocol.content import ContentFactory
 from .protocol.envelope import EnvelopeFactory
@@ -61,11 +60,5 @@ __all__ = [
     'ContentFactory',
     'EnvelopeFactory',
     'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
-
-    #
-    #   Delegates
-    #
-
-    'InstantMessageDelegate', 'SecureMessageDelegate', 'ReliableMessageDelegate',
 
 ]
