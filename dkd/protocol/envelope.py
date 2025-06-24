@@ -101,7 +101,7 @@ class Envelope(Mapper, ABC):
 
     @property
     @abstractmethod
-    def type(self) -> Optional[int]:
+    def type(self) -> Optional[str]:
         """
             Message Type
             ~~~~~~~~~~~~
@@ -114,7 +114,7 @@ class Envelope(Mapper, ABC):
 
     @type.setter
     @abstractmethod
-    def type(self, value: int):
+    def type(self, value: str):
         raise NotImplemented
 
     #

@@ -28,7 +28,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .types import ContentType
 from .content import Content, ContentFactory
 from .envelope import Envelope, EnvelopeFactory
 
@@ -46,7 +45,6 @@ from .reliable import ReliableMessage, ReliableMessageFactory
 
 __all__ = [
 
-    'ContentType',
     'Content',          # 'ContentFactory',
     'Envelope',         # 'EnvelopeFactory',
     'Message',

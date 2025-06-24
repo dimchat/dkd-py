@@ -47,7 +47,6 @@ __all__ = [
     #   Protocol
     #
 
-    'ContentType',
     'Content',
     'Envelope',
     'Message',

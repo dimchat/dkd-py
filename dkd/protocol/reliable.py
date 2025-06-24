@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict
+from typing import Optional, Iterable, Any, List, Dict
 
 from .secure import SecureMessage
 from .helpers import MessageExtensions
@@ -65,7 +65,30 @@ class ReliableMessage(SecureMessage, ABC):
         raise NotImplemented
 
     #
-    #   Factory method
+    #   Conveniences
+    #
+
+    @classmethod
+    def convert(cls, messages: Iterable):  # -> List[ReliableMessage]:
+        array = []
+        for item in messages:
+            msg = cls.parse(msg=item)
+            if msg is None:
+                # message error
+                continue
+            array.append(msg)
+        return array
+
+    @classmethod
+    def revert(cls, messages: Iterable) -> List[Dict]:
+        array = []
+        for item in messages:
+            assert isinstance(item, ReliableMessage), 'message error: %s' % item
+            array.append(item.dictionary)
+        return array
+
+    #
+    #   Factory methods
     #
 
     @classmethod

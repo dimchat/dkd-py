@@ -109,6 +109,6 @@ class Message(Mapper, ABC):
 
     @property
     @abstractmethod
-    def type(self) -> Optional[int]:
+    def type(self) -> Optional[str]:
         """ content.type or envelope.type """
         raise NotImplemented

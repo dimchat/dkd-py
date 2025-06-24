@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict
+from typing import Optional, Iterable, Any, List, Dict
 
 from mkm.types import DateTime
 
@@ -66,6 +66,29 @@ class InstantMessage(Message, ABC):
     #     raise NotImplemented
 
     #
+    #   Conveniences
+    #
+
+    @classmethod
+    def convert(cls, messages: Iterable):  # -> List[InstantMessage]:
+        array = []
+        for item in messages:
+            msg = cls.parse(msg=item)
+            if msg is None:
+                # message error
+                continue
+            array.append(msg)
+        return array
+
+    @classmethod
+    def revert(cls, messages: Iterable) -> List[Dict]:
+        array = []
+        for item in messages:
+            assert isinstance(item, InstantMessage), 'message error: %s' % item
+            array.append(item.dictionary)
+        return array
+
+    #
     #   Factory methods
     #
 
@@ -82,7 +105,7 @@ class InstantMessage(Message, ABC):
         return helper.parse_instant_message(msg=msg)
 
     @classmethod
-    def generate_serial_number(cls, msg_type: int, now: DateTime) -> int:
+    def generate_serial_number(cls, msg_type: str, now: DateTime) -> int:
         helper = MessageExtensions.instant_helper
         assert isinstance(helper, InstantMessageHelper), 'message helper error: %s' % helper
         return helper.generate_serial_number(msg_type, now)
@@ -104,7 +127,7 @@ class InstantMessageFactory(ABC):
     """ Instant Message Factory """
 
     @abstractmethod
-    def generate_serial_number(self, msg_type: Optional[int], now: Optional[DateTime]) -> int:
+    def generate_serial_number(self, msg_type: Optional[str], now: Optional[DateTime]) -> int:
         """
         Generate SN for message content
 
@@ -148,7 +171,7 @@ class InstantMessageHelper(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def generate_serial_number(self, msg_type: Optional[int], now: Optional[DateTime]) -> int:
+    def generate_serial_number(self, msg_type: Optional[str], now: Optional[DateTime]) -> int:
         raise NotImplemented
 
     @abstractmethod

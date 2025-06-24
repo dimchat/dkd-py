@@ -29,7 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict
+from typing import Optional, Iterable, Any, List, Dict
 
 from mkm.types import DateTime
 from mkm.types import Mapper
@@ -45,7 +45,7 @@ class Content(Mapper, ABC):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            'type'    : 0x00,           // message type
+            'type'    : i2s(0),         // message type
             'sn'      : 0,              // serial number
 
             'time'    : 123,            // message time
@@ -60,7 +60,7 @@ class Content(Mapper, ABC):
 
     @property
     @abstractmethod
-    def type(self) -> int:
+    def type(self) -> str:
         """ content type """
         raise NotImplemented
 
@@ -92,6 +92,29 @@ class Content(Mapper, ABC):
         raise NotImplemented
 
     #
+    #   Conveniences
+    #
+
+    @classmethod
+    def convert(cls, contents: Iterable):  # -> List[Content]:
+        array = []
+        for item in contents:
+            msg = cls.parse(content=item)
+            if msg is None:
+                # content error
+                continue
+            array.append(msg)
+        return array
+
+    @classmethod
+    def revert(cls, contents: Iterable) -> List[Dict]:
+        array = []
+        for item in contents:
+            assert isinstance(item, Content), 'content error: %s' % item
+            array.append(item.dictionary)
+        return array
+
+    #
     #   Factory method
     #
 
@@ -102,13 +125,13 @@ class Content(Mapper, ABC):
         return helper.parse_content(content=content)
 
     @classmethod
-    def get_factory(cls, msg_type: int):  # -> Optional[ContentFactory]:
+    def get_factory(cls, msg_type: str):  # -> Optional[ContentFactory]:
         helper = MessageExtensions.content_helper
         assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
         return helper.get_content_factory(msg_type)
 
     @classmethod
-    def set_factory(cls, msg_type: int, factory):
+    def set_factory(cls, msg_type: str, factory):
         helper = MessageExtensions.content_helper
         assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
         helper.set_content_factory(msg_type, factory=factory)
@@ -132,11 +155,11 @@ class ContentHelper(ABC):
     """ General Helper """
 
     @abstractmethod
-    def set_content_factory(self, msg_type: int, factory: ContentFactory):
+    def set_content_factory(self, msg_type: str, factory: ContentFactory):
         raise NotImplemented
 
     @abstractmethod
-    def get_content_factory(self, msg_type) -> Optional[ContentFactory]:
+    def get_content_factory(self, msg_type: str) -> Optional[ContentFactory]:
         raise NotImplemented
 
     @abstractmethod
