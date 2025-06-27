@@ -69,22 +69,22 @@ class ReliableMessage(SecureMessage, ABC):
     #
 
     @classmethod
-    def convert(cls, messages: Iterable):  # -> List[ReliableMessage]:
-        array = []
-        for item in messages:
+    def convert(cls, array: Iterable):  # -> List[ReliableMessage]:
+        messages = []
+        for item in array:
             msg = cls.parse(msg=item)
             if msg is None:
                 # message error
                 continue
-            array.append(msg)
-        return array
+            messages.append(msg)
+        return messages
 
     @classmethod
     def revert(cls, messages: Iterable) -> List[Dict]:
         array = []
-        for item in messages:
-            assert isinstance(item, ReliableMessage), 'message error: %s' % item
-            array.append(item.dictionary)
+        for msg in messages:
+            assert isinstance(msg, ReliableMessage), 'message error: %s' % msg
+            array.append(msg.dictionary)
         return array
 
     #

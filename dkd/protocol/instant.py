@@ -70,22 +70,22 @@ class InstantMessage(Message, ABC):
     #
 
     @classmethod
-    def convert(cls, messages: Iterable):  # -> List[InstantMessage]:
-        array = []
-        for item in messages:
+    def convert(cls, array: Iterable):  # -> List[InstantMessage]:
+        messages = []
+        for item in array:
             msg = cls.parse(msg=item)
             if msg is None:
                 # message error
                 continue
-            array.append(msg)
-        return array
+            messages.append(msg)
+        return messages
 
     @classmethod
     def revert(cls, messages: Iterable) -> List[Dict]:
         array = []
-        for item in messages:
-            assert isinstance(item, InstantMessage), 'message error: %s' % item
-            array.append(item.dictionary)
+        for msg in messages:
+            assert isinstance(msg, InstantMessage), 'message error: %s' % msg
+            array.append(msg.dictionary)
         return array
 
     #

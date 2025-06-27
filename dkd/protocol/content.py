@@ -96,22 +96,22 @@ class Content(Mapper, ABC):
     #
 
     @classmethod
-    def convert(cls, contents: Iterable):  # -> List[Content]:
-        array = []
-        for item in contents:
+    def convert(cls, array: Iterable):  # -> List[Content]:
+        contents = []
+        for item in array:
             msg = cls.parse(content=item)
             if msg is None:
                 # content error
                 continue
-            array.append(msg)
-        return array
+            contents.append(msg)
+        return contents
 
     @classmethod
     def revert(cls, contents: Iterable) -> List[Dict]:
         array = []
-        for item in contents:
-            assert isinstance(item, Content), 'content error: %s' % item
-            array.append(item.dictionary)
+        for msg in contents:
+            assert isinstance(msg, Content), 'content error: %s' % msg
+            array.append(msg.dictionary)
         return array
 
     #
