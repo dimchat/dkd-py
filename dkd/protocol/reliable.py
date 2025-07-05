@@ -93,21 +93,24 @@ class ReliableMessage(SecureMessage, ABC):
 
     @classmethod
     def parse(cls, msg: Any):  # -> Optional[ReliableMessage]:
-        helper = MessageExtensions.reliable_helper
-        assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
+        helper = reliable_helper()
         return helper.parse_reliable_message(msg=msg)
 
     @classmethod
     def get_factory(cls):  # -> Optional[ReliableMessageFactory]:
-        helper = MessageExtensions.reliable_helper
-        assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
+        helper = reliable_helper()
         return helper.get_reliable_message_factory()
 
     @classmethod
     def set_factory(cls, factory):
-        helper = MessageExtensions.reliable_helper
-        assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
+        helper = reliable_helper()
         return helper.set_reliable_message_factory(factory=factory)
+
+
+def reliable_helper():
+    helper = MessageExtensions.reliable_helper
+    assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
+    return helper
 
 
 class ReliableMessageFactory(ABC):

@@ -79,21 +79,24 @@ class SecureMessage(Message, ABC):
 
     @classmethod
     def parse(cls, msg: Any):  # -> Optional[SecureMessage]:
-        helper = MessageExtensions.secure_helper
-        assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
+        helper = secure_helper()
         return helper.parse_secure_message(msg=msg)
 
     @classmethod
     def get_factory(cls):  # -> Optional[SecureMessageFactory]:
-        helper = MessageExtensions.secure_helper
-        assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
+        helper = secure_helper()
         return helper.get_secure_message_factory()
 
     @classmethod
     def set_factory(cls, factory):
-        helper = MessageExtensions.secure_helper
-        assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
+        helper = secure_helper()
         helper.set_secure_message_factory(factory=factory)
+
+
+def secure_helper():
+    helper = MessageExtensions.secure_helper
+    assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
+    return helper
 
 
 class SecureMessageFactory(ABC):

@@ -120,21 +120,24 @@ class Content(Mapper, ABC):
 
     @classmethod
     def parse(cls, content: Any):  # -> Optional[Content]:
-        helper = MessageExtensions.content_helper
-        assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
+        helper = content_helper()
         return helper.parse_content(content=content)
 
     @classmethod
     def get_factory(cls, msg_type: str):  # -> Optional[ContentFactory]:
-        helper = MessageExtensions.content_helper
-        assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
+        helper = content_helper()
         return helper.get_content_factory(msg_type)
 
     @classmethod
     def set_factory(cls, msg_type: str, factory):
-        helper = MessageExtensions.content_helper
-        assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
+        helper = content_helper()
         helper.set_content_factory(msg_type, factory=factory)
+
+
+def content_helper():
+    helper = MessageExtensions.content_helper
+    assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
+    return helper
 
 
 class ContentFactory(ABC):

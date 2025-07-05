@@ -123,27 +123,29 @@ class Envelope(Mapper, ABC):
 
     @classmethod
     def create(cls, sender: ID, receiver: ID, time: DateTime = None):  # -> Envelope:
-        helper = MessageExtensions.envelope_helper
-        assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+        helper = envelope_helper()
         return helper.create_envelope(sender=sender, receiver=receiver, time=time)
 
     @classmethod
     def parse(cls, envelope: Any):  # -> Optional[Envelope]:
-        helper = MessageExtensions.envelope_helper
-        assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+        helper = envelope_helper()
         return helper.parse_envelope(envelope=envelope)
 
     @classmethod
     def get_factory(cls):  # -> EnvelopeFactory:
-        helper = MessageExtensions.envelope_helper
-        assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+        helper = envelope_helper()
         return helper.get_envelope_factory()
 
     @classmethod
     def set_factory(cls, factory):
-        helper = MessageExtensions.envelope_helper
-        assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+        helper = envelope_helper()
         helper.set_envelope_factory(factory=factory)
+
+
+def envelope_helper():
+    helper = MessageExtensions.envelope_helper
+    assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+    return helper
 
 
 class EnvelopeFactory(ABC):

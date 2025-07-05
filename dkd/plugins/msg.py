@@ -33,12 +33,12 @@ from typing import Optional, Dict
 
 from mkm.types import Singleton
 
-from .protocol.content import ContentHelper
-from .protocol.envelope import EnvelopeHelper
-from .protocol.instant import InstantMessageHelper
-from .protocol.secure import SecureMessageHelper
-from .protocol.reliable import ReliableMessageHelper
-from .protocol.helpers import MessageExtensions
+from ..protocol.content import ContentHelper
+from ..protocol.envelope import EnvelopeHelper
+from ..protocol.instant import InstantMessageHelper
+from ..protocol.secure import SecureMessageHelper
+from ..protocol.reliable import ReliableMessageHelper
+from ..protocol.helpers import MessageExtensions
 
 
 # class GeneralMessageHelper(ContentHelper, EnvelopeHelper,
