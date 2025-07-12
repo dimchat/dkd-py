@@ -52,7 +52,7 @@ class GeneralMessageHelper(ABC):
     #
 
     @abstractmethod
-    def get_content_type(self, content: Dict, default: Optional[str]) -> Optional[str]:
+    def get_content_type(self, content: Dict, default: Optional[str] = None) -> Optional[str]:
         raise NotImplemented
 
 

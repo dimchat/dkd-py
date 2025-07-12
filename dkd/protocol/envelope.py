@@ -96,7 +96,7 @@ class Envelope(Mapper, ABC):
 
     @group.setter
     @abstractmethod
-    def group(self, value: ID):
+    def group(self, gid: ID):
         raise NotImplemented
 
     @property
@@ -114,7 +114,7 @@ class Envelope(Mapper, ABC):
 
     @type.setter
     @abstractmethod
-    def type(self, value: str):
+    def type(self, msg_type: str):
         raise NotImplemented
 
     #
@@ -164,7 +164,7 @@ class EnvelopeFactory(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def parse_envelope(self, envelope: Dict[str, Any]) -> Optional[Envelope]:
+    def parse_envelope(self, envelope: Dict) -> Optional[Envelope]:
         """
         Parse map object to envelope
 
@@ -172,6 +172,13 @@ class EnvelopeFactory(ABC):
         :return: Envelope
         """
         raise NotImplemented
+
+
+########################
+#                      #
+#   Plugins: Helpers   #
+#                      #
+########################
 
 
 class EnvelopeHelper(ABC):

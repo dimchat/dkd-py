@@ -117,7 +117,7 @@ class ReliableMessageFactory(ABC):
     """ Reliable Message Factory """
 
     @abstractmethod
-    def parse_reliable_message(self, msg: Dict[str, Any]) -> Optional[ReliableMessage]:
+    def parse_reliable_message(self, msg: Dict) -> Optional[ReliableMessage]:
         """
         Parse map object to message
 
@@ -125,6 +125,13 @@ class ReliableMessageFactory(ABC):
         :return: ReliableMessage
         """
         raise NotImplemented
+
+
+########################
+#                      #
+#   Plugins: Helpers   #
+#                      #
+########################
 
 
 class ReliableMessageHelper(ABC):

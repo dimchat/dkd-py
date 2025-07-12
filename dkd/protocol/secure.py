@@ -69,7 +69,7 @@ class SecureMessage(Message, ABC):
 
     @property
     @abstractmethod
-    def encrypted_keys(self) -> Optional[Dict[str, Any]]:  # str => str
+    def encrypted_keys(self) -> Optional[Dict]:  # str => str
         """ encrypted message keys """
         raise NotImplemented
 
@@ -103,7 +103,7 @@ class SecureMessageFactory(ABC):
     """ Secure Message factory """
 
     @abstractmethod
-    def parse_secure_message(self, msg: Dict[str, Any]) -> Optional[SecureMessage]:
+    def parse_secure_message(self, msg: Dict) -> Optional[SecureMessage]:
         """
         Parse map object to message
 
@@ -111,6 +111,13 @@ class SecureMessageFactory(ABC):
         :return: SecureMessage
         """
         raise NotImplemented
+
+
+########################
+#                      #
+#   Plugins: Helpers   #
+#                      #
+########################
 
 
 class SecureMessageHelper(ABC):

@@ -49,7 +49,7 @@ class Content(Mapper, ABC):
             'sn'      : 0,              // serial number
 
             'time'    : 123,            // message time
-            'group'   : 'Group ID',     // for group message
+            'group'   : '{GroupID}',    // for group message
 
             //-- message info
             'text'    : 'text',         // for text message
@@ -88,7 +88,7 @@ class Content(Mapper, ABC):
 
     @group.setter
     @abstractmethod
-    def group(self, value: ID):
+    def group(self, gid: ID):
         raise NotImplemented
 
     #
@@ -144,7 +144,7 @@ class ContentFactory(ABC):
     """ Content Factory """
 
     @abstractmethod
-    def parse_content(self, content: Dict[str, Any]) -> Optional[Content]:
+    def parse_content(self, content: Dict) -> Optional[Content]:
         """
         Parse map object to content
 
@@ -152,6 +152,13 @@ class ContentFactory(ABC):
         :return: Content
         """
         raise NotImplemented
+
+
+########################
+#                      #
+#   Plugins: Helpers   #
+#                      #
+########################
 
 
 class ContentHelper(ABC):

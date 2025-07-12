@@ -61,7 +61,7 @@ class InstantMessage(Message, ABC):
         raise NotImplemented
 
     # @content.setter
-    # def content(self, value: Content):
+    # def content(self, body: Content):
     #     """ only for rebuild content """
     #     raise NotImplemented
 
@@ -150,7 +150,7 @@ class InstantMessageFactory(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def parse_instant_message(self, msg: Dict[str, Any]) -> Optional[InstantMessage]:
+    def parse_instant_message(self, msg: Dict) -> Optional[InstantMessage]:
         """
         Parse map object to message
 
@@ -158,6 +158,13 @@ class InstantMessageFactory(ABC):
         :return: InstantMessage
         """
         raise NotImplemented
+
+
+########################
+#                      #
+#   Plugins: Helpers   #
+#                      #
+########################
 
 
 class InstantMessageHelper(ABC):
