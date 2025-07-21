@@ -61,17 +61,17 @@ This [document](https://github.com/dimchat/DIMP/blob/master/DaoKeDao-Message.md)
 ```python
 class ContentType(IntEnum):
 
-    ANY = 0x00      # 0000 0000 (Undefined)
+    ANY = 0x00        # 0000 0000 (Undefined)
 
-    TEXT = 0x01     # 0000 0001
+    TEXT = 0x01       # 0000 0001
 
-    FILE = 0x10     # 0001 0000
-    IMAGE = 0x12    # 0001 0010
-    AUDIO = 0x14    # 0001 0100
-    VIDEO = 0x16    # 0001 0110
+    FILE = 0x10       # 0001 0000
+    IMAGE = 0x12      # 0001 0010
+    AUDIO = 0x14      # 0001 0100
+    VIDEO = 0x16      # 0001 0110
 
     # Web Page
-    PAGE = 0x20     # 0010 0000
+    PAGE = 0x20       # 0010 0000
 
     # Name Card for sharing contact
     NAME_CARD = 0x33  # 0011 0011
@@ -87,8 +87,8 @@ class ContentType(IntEnum):
     SPLIT_BILL = 0x49     # 0100 1001 (Split the Bill)
 
     # Command
-    COMMAND = 0x88  # 1000 1000
-    HISTORY = 0x89  # 1000 1001 (Entity History Command)
+    COMMAND = 0x88        # 1000 1000
+    HISTORY = 0x89        # 1000 1001 (Entity History Command)
 
     # Application Customized
     APPLICATION = 0xA0       # 1010 0000 (Application 0nly, Reserved)
@@ -106,7 +106,7 @@ class ContentType(IntEnum):
     COMBINE_FORWARD = 0xCF   # 1100 1111 (Combine and Forward)
 
     # Top-Secret message forward by proxy (MTA)
-    FORWARD = 0xFF  # 1111 1111
+    FORWARD = 0xFF           # 1111 1111
 ```
 
 ## Message
@@ -209,5 +209,5 @@ content -> JsON string: ```{"sn":412968873,"text":"Hey guy!","type":1}```
 
 ----
 
-Copyright &copy; 2018 Albert Moky
+Copyright &copy; 2018-2025 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)

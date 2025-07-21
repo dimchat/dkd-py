@@ -103,7 +103,7 @@ class InstantMessage(Message, ABC):
         return helper.parse_instant_message(msg=msg)
 
     @classmethod
-    def generate_serial_number(cls, msg_type: Optional[str], now: Optional[DateTime]) -> int:
+    def generate_serial_number(cls, msg_type: Optional[str] = None, now: Optional[DateTime] = None) -> int:
         helper = instant_helper()
         return helper.generate_serial_number(msg_type, now)
 
