@@ -95,7 +95,7 @@ class InstantMessage(Message, ABC):
     @classmethod
     def create(cls, head: Envelope, body: Content):  # -> InstantMessage:
         helper = instant_helper()
-        return helper.create_instant_message(head=head, body=body)
+        return helper.create_instant_message(head, body)
 
     @classmethod
     def parse(cls, msg: Any):  # -> Optional[InstantMessage]:

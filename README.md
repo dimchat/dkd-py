@@ -4,7 +4,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/dkd-py/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Python%203-brightgreen.svg)](https://github.com/dimchat/dkd-py/wiki)
 [![Issues](https://img.shields.io/github/issues/dimchat/dkd-py)](https://github.com/dimchat/dkd-py/issues)
-[![Repo Size](https://img.shields.io/github/repo-size/dimchat/dkd-py)](https://github.com/dimchat/dkd-py/archive/refs/heads/main.zip)
+[![Repo Size](https://img.shields.io/github/repo-size/dimchat/dkd-py)](https://github.com/dimchat/dkd-py/archive/refs/heads/master.zip)
 [![Tags](https://img.shields.io/github/tag/dimchat/dkd-py)](https://github.com/dimchat/dkd-py/tags)
 [![Version](https://img.shields.io/pypi/v/dkd)](https://pypi.org/project/dkd)
 
@@ -13,7 +13,7 @@
 [![Stars](https://img.shields.io/github/stars/dimchat/dkd-py)](https://github.com/dimchat/dkd-py/stargazers)
 [![Followers](https://img.shields.io/github/followers/dimchat)](https://github.com/orgs/dimchat/followers)
 
-This [document](https://github.com/dimchat/DIMP/blob/master/DaoKeDao-Message.md) introduces a common **Message Module** for decentralized instant messaging.
+This [document](https://github.com/moky/DIMP/blob/master/DaoKeDao-Message.md) introduces a common **Message Module** for decentralized instant messaging.
 
 ## Features
 
@@ -73,7 +73,7 @@ class ContentType(IntEnum):
     # Web Page
     PAGE = 0x20       # 0010 0000
 
-    # Name Card for sharing contact
+    # Name Card
     NAME_CARD = 0x33  # 0011 0011
 
     # Quote a message before and reply it with text
