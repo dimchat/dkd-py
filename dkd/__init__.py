@@ -29,12 +29,7 @@
 # ==============================================================================
 
 from .protocol import *
-
-from .protocol.content import ContentFactory
-from .protocol.envelope import EnvelopeFactory
-from .protocol.instant import InstantMessageFactory
-from .protocol.secure import SecureMessageFactory
-from .protocol.reliable import ReliableMessageFactory
+from .ext import *
 
 
 name = "DaoKeDao"
@@ -47,17 +42,25 @@ __all__ = [
     #   Protocol
     #
 
-    'Content',
-    'Envelope',
+    'Content', 'Envelope',
     'Message',
     'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
+    'ContentFactory', 'EnvelopeFactory',
+    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+
+    # 'ContentHelper', 'EnvelopeHelper',
+    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    # 'MessageExtensions', 'shared_message_extensions',
+
     #
-    #   Factories
+    #   Extensions
     #
 
-    'ContentFactory',
-    'EnvelopeFactory',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'ContentHelper', 'EnvelopeHelper',
+    'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    'MessageExtensions', 'shared_message_extensions',
+
+    'GeneralMessageHelper',
 
 ]

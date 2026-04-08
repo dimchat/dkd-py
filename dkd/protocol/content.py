@@ -33,9 +33,9 @@ from typing import Optional, Iterable, Any, List, Dict
 
 from mkm.types import DateTime
 from mkm.types import Mapper
-from mkm import ID
+from mkm.protocol import ID
 
-from .helpers import MessageExtensions
+from .envelope import MessageExtensions, shared_message_extensions
 
 
 class Content(Mapper, ABC):
@@ -45,15 +45,15 @@ class Content(Mapper, ABC):
         ~~~~~~~~~~~~~~~
 
         data format: {
-            'type'    : i2s(0),         // message type
-            'sn'      : 0,              // serial number
+            "type"    : i2s(0),         // message type
+            "sn"      : 12345,          // serial number
 
-            'time'    : 123,            // message time
-            'group'   : '{GroupID}',    // for group message
+            "time"    : 123.45,         // message time
+            "group"   : "{GroupID}",    // for group message
 
             //-- message info
-            'text'    : 'text',         // for text message
-            'command' : 'Command Name'  // for system command
+            "text"    : "text",         // for text message
+            "command" : "Command Name"  // for system command
             //...
         }
     """
@@ -135,7 +135,7 @@ class Content(Mapper, ABC):
 
 
 def content_helper():
-    helper = MessageExtensions.content_helper
+    helper = shared_message_extensions.content_helper
     assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
     return helper
 
@@ -154,11 +154,9 @@ class ContentFactory(ABC):
         raise NotImplemented
 
 
-########################
-#                      #
-#   Plugins: Helpers   #
-#                      #
-########################
+# -----------------------------------------------------------------------------
+#  Message Extensions
+# -----------------------------------------------------------------------------
 
 
 class ContentHelper(ABC):
@@ -175,3 +173,18 @@ class ContentHelper(ABC):
     @abstractmethod
     def parse_content(self, content: Any) -> Optional[Content]:
         raise NotImplemented
+
+
+class _ContentExt:
+    _content_helper: Optional[ContentHelper] = None
+
+    @property
+    def content_helper(self) -> Optional[ContentHelper]:
+        return _ContentExt._content_helper
+
+    @content_helper.setter
+    def content_helper(self, helper: ContentHelper):
+        _ContentExt._content_helper = helper
+
+
+MessageExtensions.content_helper = _ContentExt.content_helper

@@ -31,8 +31,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
+from mkm.format import TransportableData
+
 from .message import Message
-from .helpers import MessageExtensions
+from .envelope import MessageExtensions, shared_message_extensions
 
 
 class SecureMessage(Message, ABC):
@@ -43,28 +45,22 @@ class SecureMessage(Message, ABC):
 
         data format: {
             //-- envelope
-            sender   : "moki@xxx",
-            receiver : "hulk@yyy",
-            time     : 123,
+            "sender"   : "moki@xxx",
+            "receiver" : "hulk@yyy",
+            "time"     : 123.45,
             //-- content data & key/keys
-            data     : "...",  // base64_encode( symmetric_encrypt(content))
-            key      : "...",  // base64_encode(asymmetric_encrypt(password))
-            keys     : {
-                "ID1": "key1", // base64_encode(asymmetric_encrypt(password))
+            "data"     : "...",     // base64_encode( symmetric_encrypt(content))
+            "keys"     : {
+                "ID1"    : "key1",  // base64_encode(asymmetric_encrypt(password))
+                "digest" : "..."    // hash(password.data)
             }
         }
     """
 
     @property
     @abstractmethod
-    def data(self) -> bytes:
+    def data(self) -> TransportableData:
         """ encrypted message content """
-        raise NotImplemented
-
-    @property
-    @abstractmethod
-    def encrypted_key(self) -> Optional[bytes]:
-        """ encrypted message key """
         raise NotImplemented
 
     @property
@@ -94,7 +90,7 @@ class SecureMessage(Message, ABC):
 
 
 def secure_helper():
-    helper = MessageExtensions.secure_helper
+    helper = shared_message_extensions.secure_helper
     assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
     return helper
 
@@ -113,11 +109,9 @@ class SecureMessageFactory(ABC):
         raise NotImplemented
 
 
-########################
-#                      #
-#   Plugins: Helpers   #
-#                      #
-########################
+# -----------------------------------------------------------------------------
+#  Message Extensions
+# -----------------------------------------------------------------------------
 
 
 class SecureMessageHelper(ABC):
@@ -134,3 +128,18 @@ class SecureMessageHelper(ABC):
     @abstractmethod
     def parse_secure_message(self, msg: Any) -> Optional[SecureMessage]:
         raise NotImplemented
+
+
+class _SecureExt:
+    _secure_helper: Optional[SecureMessageHelper] = None
+
+    @property
+    def secure_helper(self) -> Optional[SecureMessageHelper]:
+        return _SecureExt._secure_helper
+
+    @secure_helper.setter
+    def secure_helper(self, helper: SecureMessageHelper):
+        _SecureExt._secure_helper = helper
+
+
+MessageExtensions.secure_helper = _SecureExt.secure_helper

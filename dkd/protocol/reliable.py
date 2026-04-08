@@ -31,8 +31,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Iterable, Any, List, Dict
 
+from mkm.format import TransportableData
+
 from .secure import SecureMessage
-from .helpers import MessageExtensions
+from .envelope import MessageExtensions, shared_message_extensions
 
 
 class ReliableMessage(SecureMessage, ABC):
@@ -44,23 +46,23 @@ class ReliableMessage(SecureMessage, ABC):
 
         data format: {
             //-- envelope
-            sender   : "moki@xxx",
-            receiver : "hulk@yyy",
-            time     : 123,
+            "sender"   : "moki@xxx",
+            "receiver" : "hulk@yyy",
+            "time"     : 123.45,
             //-- content data and key/keys
-            data     : "...",  // base64_encode( symmetric_encrypt(content))
-            key      : "...",  // base64_encode(asymmetric_encrypt(password))
-            keys     : {
-                "ID1": "key1", // base64_encode(asymmetric_encrypt(password))
+            "data"     : "...",     // base64_encode( symmetric_encrypt(content))
+            "keys"     : {
+                "ID1"    : "key1",  // base64_encode(asymmetric_encrypt(password))
+                "digest" : "..."    // hash(password.data)
             },
             //-- signature
-            signature: "..."   // base64_encode(asymmetric_sign(data))
+            "signature": "..."      // base64_encode(asymmetric_sign(data))
         }
     """
 
     @property
     @abstractmethod
-    def signature(self) -> bytes:
+    def signature(self) -> TransportableData:
         """ signature for encrypted data of message content """
         raise NotImplemented
 
@@ -108,7 +110,7 @@ class ReliableMessage(SecureMessage, ABC):
 
 
 def reliable_helper():
-    helper = MessageExtensions.reliable_helper
+    helper = shared_message_extensions.reliable_helper
     assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
     return helper
 
@@ -127,11 +129,9 @@ class ReliableMessageFactory(ABC):
         raise NotImplemented
 
 
-########################
-#                      #
-#   Plugins: Helpers   #
-#                      #
-########################
+# -----------------------------------------------------------------------------
+#  Message Extensions
+# -----------------------------------------------------------------------------
 
 
 class ReliableMessageHelper(ABC):
@@ -148,3 +148,18 @@ class ReliableMessageHelper(ABC):
     @abstractmethod
     def parse_reliable_message(self, msg: Any) -> Optional[ReliableMessage]:
         raise NotImplemented
+
+
+class _ReliableExt:
+    _reliable_helper: Optional[ReliableMessageHelper] = None
+
+    @property
+    def reliable_helper(self) -> Optional[ReliableMessageHelper]:
+        return _ReliableExt._reliable_helper
+
+    @reliable_helper.setter
+    def reliable_helper(self, helper: ReliableMessageHelper):
+        _ReliableExt._reliable_helper = helper
+
+
+MessageExtensions.reliable_helper = _ReliableExt.reliable_helper

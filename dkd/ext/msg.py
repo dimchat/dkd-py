@@ -31,14 +31,12 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Dict
 
-from mkm.types import Singleton
+from ..protocol.envelope import MessageExtensions
 
-from ..protocol.content import ContentHelper
-from ..protocol.envelope import EnvelopeHelper
-from ..protocol.instant import InstantMessageHelper
-from ..protocol.secure import SecureMessageHelper
-from ..protocol.reliable import ReliableMessageHelper
-from ..protocol.helpers import MessageExtensions
+
+# -----------------------------------------------------------------------------
+#  Message Extensions
+# -----------------------------------------------------------------------------
 
 
 # class GeneralMessageHelper(ContentHelper, EnvelopeHelper,
@@ -56,78 +54,16 @@ class GeneralMessageHelper(ABC):
         raise NotImplemented
 
 
-@Singleton
-class SharedMessageExtensions:
-    """ Message FactoryManager """
-
-    def __init__(self):
-        super().__init__()
-        self.__helper: Optional[GeneralMessageHelper] = None
+class _MessageExt:
+    _message_helper: Optional[GeneralMessageHelper] = None
 
     @property
-    def helper(self) -> Optional[GeneralMessageHelper]:
-        return self.__helper
+    def message_helper(self) -> Optional[GeneralMessageHelper]:
+        return _MessageExt._message_helper
 
-    @helper.setter
-    def helper(self, helper: GeneralMessageHelper):
-        self.__helper = helper
+    @message_helper.setter
+    def message_helper(self, helper: GeneralMessageHelper):
+        _MessageExt._message_helper = helper
 
-    #
-    #   Content
-    #
 
-    @property
-    def content_helper(self) -> Optional[ContentHelper]:
-        return MessageExtensions.content_helper
-
-    @content_helper.setter
-    def content_helper(self, helper: ContentHelper):
-        MessageExtensions.content_helper = helper
-
-    #
-    #   Envelope
-    #
-
-    @property
-    def envelope_helper(self) -> Optional[EnvelopeHelper]:
-        return MessageExtensions.envelope_helper
-
-    @envelope_helper.setter
-    def envelope_helper(self, helper: EnvelopeHelper):
-        MessageExtensions.envelope_helper = helper
-
-    #
-    #   InstantMessage
-    #
-
-    @property
-    def instant_helper(self) -> Optional[InstantMessageHelper]:
-        return MessageExtensions.instant_helper
-
-    @instant_helper.setter
-    def instant_helper(self, helper: InstantMessageHelper):
-        MessageExtensions.instant_helper = helper
-
-    #
-    #   SecureMessage
-    #
-
-    @property
-    def secure_helper(self) -> Optional[SecureMessageHelper]:
-        return MessageExtensions.secure_helper
-
-    @secure_helper.setter
-    def secure_helper(self, helper: SecureMessageHelper):
-        MessageExtensions.secure_helper = helper
-
-    #
-    #   ReliableMessage
-    #
-
-    @property
-    def reliable_helper(self) -> Optional[ReliableMessageHelper]:
-        return MessageExtensions.reliable_helper
-
-    @reliable_helper.setter
-    def reliable_helper(self, helper: ReliableMessageHelper):
-        MessageExtensions.reliable_helper = helper
+MessageExtensions.helper = _MessageExt.message_helper

@@ -31,11 +31,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 
+from mkm.types import Singleton
 from mkm.types import DateTime
 from mkm.types import Mapper
-from mkm import ID
-
-from .helpers import MessageExtensions
+from mkm.protocol import ID
 
 
 class Envelope(Mapper, ABC):
@@ -46,9 +45,9 @@ class Envelope(Mapper, ABC):
         ~~~~~~~~~~~~~~~~~~~~
 
         data format: {
-            sender   : "moki@xxx",
-            receiver : "hulk@yyy",
-            time     : 123
+            "sender"   : "moki@xxx",
+            "receiver" : "hulk@yyy",
+            "time"     : 123.45
         }
     """
 
@@ -143,7 +142,7 @@ class Envelope(Mapper, ABC):
 
 
 def envelope_helper():
-    helper = MessageExtensions.envelope_helper
+    helper = shared_message_extensions.envelope_helper
     assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
     return helper
 
@@ -174,11 +173,9 @@ class EnvelopeFactory(ABC):
         raise NotImplemented
 
 
-########################
-#                      #
-#   Plugins: Helpers   #
-#                      #
-########################
+# -----------------------------------------------------------------------------
+#  Message Extensions
+# -----------------------------------------------------------------------------
 
 
 class EnvelopeHelper(ABC):
@@ -199,3 +196,23 @@ class EnvelopeHelper(ABC):
     @abstractmethod
     def parse_envelope(self, envelope: Any) -> Optional[Envelope]:
         raise NotImplemented
+
+
+@Singleton
+class MessageExtensions:
+
+    @property
+    def envelope_helper(self) -> Optional[EnvelopeHelper]:
+        return _EnvExt.envelope_helper
+
+    @envelope_helper.setter
+    def envelope_helper(self, helper: Optional[EnvelopeHelper]):
+        _EnvExt.envelope_helper = helper
+
+
+class _EnvExt:
+    envelope_helper: Optional[EnvelopeHelper] = None
+
+
+# global
+shared_message_extensions = MessageExtensions()

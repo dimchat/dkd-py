@@ -36,7 +36,7 @@ from mkm.types import DateTime
 from .content import Content
 from .envelope import Envelope
 from .message import Message
-from .helpers import MessageExtensions
+from .envelope import MessageExtensions, shared_message_extensions
 
 
 class InstantMessage(Message, ABC):
@@ -46,11 +46,15 @@ class InstantMessage(Message, ABC):
 
         data format: {
             //-- envelope
-            sender   : "moki@xxx",
-            receiver : "hulk@yyy",
-            time     : 123,
+            "sender"   : "moki@xxx",
+            "receiver" : "hulk@yyy",
+            "time"     : 123.45,
             //-- content
-            content  : {...}
+            "content"  : {
+                "type" : i2s(0),
+                "sn"   : 12345,
+                "text" : "Hello World"
+            }
         }
     """
 
@@ -119,7 +123,7 @@ class InstantMessage(Message, ABC):
 
 
 def instant_helper():
-    helper = MessageExtensions.instant_helper
+    helper = shared_message_extensions.instant_helper
     assert isinstance(helper, InstantMessageHelper), 'message helper error: %s' % helper
     return helper
 
@@ -160,11 +164,9 @@ class InstantMessageFactory(ABC):
         raise NotImplemented
 
 
-########################
-#                      #
-#   Plugins: Helpers   #
-#                      #
-########################
+# -----------------------------------------------------------------------------
+#  Message Extensions
+# -----------------------------------------------------------------------------
 
 
 class InstantMessageHelper(ABC):
@@ -189,3 +191,18 @@ class InstantMessageHelper(ABC):
     @abstractmethod
     def parse_instant_message(self, msg: Any) -> Optional[InstantMessage]:
         raise NotImplemented
+
+
+class _InstantExt:
+    _instant_helper: Optional[InstantMessageHelper] = None
+
+    @property
+    def instant_helper(self) -> Optional[InstantMessageHelper]:
+        return _InstantExt._instant_helper
+
+    @instant_helper.setter
+    def instant_helper(self, helper: InstantMessageHelper):
+        _InstantExt._instant_helper = helper
+
+
+MessageExtensions.instant_helper = _InstantExt.instant_helper

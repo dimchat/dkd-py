@@ -41,23 +41,28 @@ from .reliable import ReliableMessage, ReliableMessageFactory
 # from .instant import InstantMessageHelper
 # from .secure import SecureMessageHelper
 # from .reliable import ReliableMessageHelper
-# from .helpers import MessageExtensions
+# from .envelope import MessageExtensions, shared_message_extensions
+
 
 __all__ = [
 
-    'Content',          # 'ContentFactory',
-    'Envelope',         # 'EnvelopeFactory',
+    'Content', 'Envelope',
     'Message',
-    'InstantMessage',   # 'InstantMessageFactory',
-    'SecureMessage',    # 'SecureMessageFactory',
-    'ReliableMessage',  # 'ReliableMessageFactory',
+    'InstantMessage', 'SecureMessage', 'ReliableMessage',
 
     #
-    #   Plugins
+    #   Factories
+    #
+
+    'ContentFactory', 'EnvelopeFactory',
+    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+
+    #
+    #   Extensions
     #
 
     # 'ContentHelper', 'EnvelopeHelper',
     # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
-    # 'MessageExtensions',
+    # 'MessageExtensions', 'shared_message_extensions',
 
 ]
