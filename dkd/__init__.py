@@ -51,6 +51,8 @@ __all__ = [
 
     # 'ContentHelper', 'EnvelopeHelper',
     # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    # 'ContentExtension',
+    # 'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
     # 'MessageExtensions', 'shared_message_extensions',
 
     #
@@ -59,8 +61,11 @@ __all__ = [
 
     'ContentHelper', 'EnvelopeHelper',
     'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+
+    'ContentExtension',
+    'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
     'MessageExtensions', 'shared_message_extensions',
 
-    'GeneralMessageHelper',
+    'GeneralMessageHelper', 'GeneralMessageExtension',
 
 ]

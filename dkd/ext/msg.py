@@ -31,7 +31,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Dict
 
-from ..protocol.envelope import MessageExtensions
+from ..protocol.envelope import shared_message_extensions
 
 
 # -----------------------------------------------------------------------------
@@ -54,16 +54,19 @@ class GeneralMessageHelper(ABC):
         raise NotImplemented
 
 
-class _MessageExt:
-    _message_helper: Optional[GeneralMessageHelper] = None
+class GeneralMessageExtension:
 
     @property
-    def message_helper(self) -> Optional[GeneralMessageHelper]:
-        return _MessageExt._message_helper
+    def helper(self) -> Optional[GeneralMessageHelper]:
+        raise NotImplemented
 
-    @message_helper.setter
-    def message_helper(self, helper: GeneralMessageHelper):
-        _MessageExt._message_helper = helper
+    @helper.setter
+    def helper(self, delegate: GeneralMessageHelper):
+        raise NotImplemented
 
 
-MessageExtensions.helper = _MessageExt.message_helper
+shared_message_extensions.helper: Optional[GeneralMessageHelper] = None
+
+
+# def message_extensions() -> Union[GeneralMessageExtension, MessageExtensions]:
+#     return shared_message_extensions

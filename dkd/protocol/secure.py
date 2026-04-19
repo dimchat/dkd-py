@@ -34,7 +34,7 @@ from typing import Optional, Any, Dict
 from mkm.format import TransportableData
 
 from .message import Message
-from .envelope import MessageExtensions, shared_message_extensions
+from .envelope import shared_message_extensions
 
 
 class SecureMessage(Message, ABC):
@@ -89,12 +89,6 @@ class SecureMessage(Message, ABC):
         helper.set_secure_message_factory(factory=factory)
 
 
-def secure_helper():
-    helper = shared_message_extensions.secure_helper
-    assert isinstance(helper, SecureMessageHelper), 'message helper error: %s' % helper
-    return helper
-
-
 class SecureMessageFactory(ABC):
     """ Secure Message factory """
 
@@ -130,16 +124,24 @@ class SecureMessageHelper(ABC):
         raise NotImplemented
 
 
-class _SecureExt:
-    _secure_helper: Optional[SecureMessageHelper] = None
+class SecureMessageExtension:
 
     @property
     def secure_helper(self) -> Optional[SecureMessageHelper]:
-        return _SecureExt._secure_helper
+        raise NotImplemented
 
     @secure_helper.setter
     def secure_helper(self, helper: SecureMessageHelper):
-        _SecureExt._secure_helper = helper
+        raise NotImplemented
 
 
-MessageExtensions.secure_helper = _SecureExt.secure_helper
+shared_message_extensions.secure_helper: Optional[SecureMessageHelper] = None
+
+
+def message_extensions() -> SecureMessageExtension:
+    return shared_message_extensions
+
+
+def secure_helper():
+    ext = message_extensions()
+    return ext.secure_helper

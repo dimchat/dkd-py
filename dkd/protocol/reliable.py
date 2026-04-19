@@ -34,7 +34,7 @@ from typing import Optional, Iterable, Any, List, Dict
 from mkm.format import TransportableData
 
 from .secure import SecureMessage
-from .envelope import MessageExtensions, shared_message_extensions
+from .envelope import shared_message_extensions
 
 
 class ReliableMessage(SecureMessage, ABC):
@@ -86,7 +86,7 @@ class ReliableMessage(SecureMessage, ABC):
         array = []
         for msg in messages:
             assert isinstance(msg, ReliableMessage), 'message error: %s' % msg
-            array.append(msg.dictionary)
+            array.append(msg.to_dict())
         return array
 
     #
@@ -107,12 +107,6 @@ class ReliableMessage(SecureMessage, ABC):
     def set_factory(cls, factory):
         helper = reliable_helper()
         return helper.set_reliable_message_factory(factory=factory)
-
-
-def reliable_helper():
-    helper = shared_message_extensions.reliable_helper
-    assert isinstance(helper, ReliableMessageHelper), 'message helper error: %s' % helper
-    return helper
 
 
 class ReliableMessageFactory(ABC):
@@ -150,16 +144,24 @@ class ReliableMessageHelper(ABC):
         raise NotImplemented
 
 
-class _ReliableExt:
-    _reliable_helper: Optional[ReliableMessageHelper] = None
+class ReliableMessageExtension:
 
     @property
     def reliable_helper(self) -> Optional[ReliableMessageHelper]:
-        return _ReliableExt._reliable_helper
+        raise NotImplemented
 
     @reliable_helper.setter
     def reliable_helper(self, helper: ReliableMessageHelper):
-        _ReliableExt._reliable_helper = helper
+        raise NotImplemented
 
 
-MessageExtensions.reliable_helper = _ReliableExt.reliable_helper
+shared_message_extensions.reliable_helper: Optional[ReliableMessageHelper] = None
+
+
+def message_extensions() -> ReliableMessageExtension:
+    return shared_message_extensions
+
+
+def reliable_helper() -> ReliableMessageHelper:
+    ext = message_extensions()
+    return ext.reliable_helper

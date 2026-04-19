@@ -36,7 +36,7 @@ from mkm.types import DateTime
 from .content import Content
 from .envelope import Envelope
 from .message import Message
-from .envelope import MessageExtensions, shared_message_extensions
+from .envelope import shared_message_extensions
 
 
 class InstantMessage(Message, ABC):
@@ -89,7 +89,7 @@ class InstantMessage(Message, ABC):
         array = []
         for msg in messages:
             assert isinstance(msg, InstantMessage), 'message error: %s' % msg
-            array.append(msg.dictionary)
+            array.append(msg.to_dict())
         return array
 
     #
@@ -120,12 +120,6 @@ class InstantMessage(Message, ABC):
     def set_factory(cls, factory):
         helper = instant_helper()
         return helper.set_instant_message_factory(factory=factory)
-
-
-def instant_helper():
-    helper = shared_message_extensions.instant_helper
-    assert isinstance(helper, InstantMessageHelper), 'message helper error: %s' % helper
-    return helper
 
 
 class InstantMessageFactory(ABC):
@@ -193,16 +187,24 @@ class InstantMessageHelper(ABC):
         raise NotImplemented
 
 
-class _InstantExt:
-    _instant_helper: Optional[InstantMessageHelper] = None
+class InstantMessageExtension:
 
     @property
     def instant_helper(self) -> Optional[InstantMessageHelper]:
-        return _InstantExt._instant_helper
+        raise NotImplemented
 
     @instant_helper.setter
     def instant_helper(self, helper: InstantMessageHelper):
-        _InstantExt._instant_helper = helper
+        raise NotImplemented
 
 
-MessageExtensions.instant_helper = _InstantExt.instant_helper
+shared_message_extensions.instant_helper: Optional[InstantMessageHelper] = None
+
+
+def message_extensions() -> InstantMessageExtension:
+    return shared_message_extensions
+
+
+def instant_helper() -> InstantMessageHelper:
+    ext = message_extensions()
+    return ext.instant_helper

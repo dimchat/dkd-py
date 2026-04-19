@@ -35,7 +35,7 @@ from mkm.types import DateTime
 from mkm.types import Mapper
 from mkm.protocol import ID
 
-from .envelope import MessageExtensions, shared_message_extensions
+from .envelope import shared_message_extensions
 
 
 class Content(Mapper, ABC):
@@ -111,7 +111,7 @@ class Content(Mapper, ABC):
         array = []
         for msg in contents:
             assert isinstance(msg, Content), 'content error: %s' % msg
-            array.append(msg.dictionary)
+            array.append(msg.to_dict())
         return array
 
     #
@@ -132,12 +132,6 @@ class Content(Mapper, ABC):
     def set_factory(cls, msg_type: str, factory):
         helper = content_helper()
         helper.set_content_factory(msg_type, factory=factory)
-
-
-def content_helper():
-    helper = shared_message_extensions.content_helper
-    assert isinstance(helper, ContentHelper), 'content helper error: %s' % helper
-    return helper
 
 
 class ContentFactory(ABC):
@@ -175,16 +169,24 @@ class ContentHelper(ABC):
         raise NotImplemented
 
 
-class _ContentExt:
-    _content_helper: Optional[ContentHelper] = None
+class ContentExtension:
 
     @property
     def content_helper(self) -> Optional[ContentHelper]:
-        return _ContentExt._content_helper
+        raise NotImplemented
 
     @content_helper.setter
     def content_helper(self, helper: ContentHelper):
-        _ContentExt._content_helper = helper
+        raise NotImplemented
 
 
-MessageExtensions.content_helper = _ContentExt.content_helper
+shared_message_extensions.content_helper: Optional[ContentHelper] = None
+
+
+def message_extensions() -> ContentExtension:
+    return shared_message_extensions
+
+
+def content_helper() -> ContentHelper:
+    ext = message_extensions()
+    return ext.content_helper

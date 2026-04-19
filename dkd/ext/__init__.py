@@ -34,9 +34,14 @@ from ..protocol.envelope import EnvelopeHelper
 from ..protocol.instant import InstantMessageHelper
 from ..protocol.secure import SecureMessageHelper
 from ..protocol.reliable import ReliableMessageHelper
+
+from ..protocol.content import ContentExtension
+from ..protocol.instant import InstantMessageExtension
+from ..protocol.secure import SecureMessageExtension
+from ..protocol.reliable import ReliableMessageExtension
 from ..protocol.envelope import MessageExtensions, shared_message_extensions
 
-from .msg import GeneralMessageHelper
+from .msg import GeneralMessageHelper, GeneralMessageExtension
 
 
 __all__ = [
@@ -47,12 +52,15 @@ __all__ = [
 
     'ContentHelper', 'EnvelopeHelper',
     'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+
+    'ContentExtension',
+    'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
     'MessageExtensions', 'shared_message_extensions',
 
     #
     #   General Extensions
     #
 
-    'GeneralMessageHelper',
+    'GeneralMessageHelper', 'GeneralMessageExtension',
 
 ]
