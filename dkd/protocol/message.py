@@ -53,7 +53,7 @@ from typing import Optional
 
 from mkm.types import DateTime
 from mkm.types import Mapper
-from mkm import ID
+from mkm.protocol import ID
 
 from .envelope import Envelope
 
@@ -68,9 +68,9 @@ class Message(Mapper, ABC):
 
         data format: {
             //-- envelope
-            sender   : "moki@xxx",
-            receiver : "hulk@yyy",
-            time     : 123,
+            "sender"   : "moki@xxx",
+            "receiver" : "hulk@yyy",
+            "time"     : 123.45,
             //-- body
             ...
         }

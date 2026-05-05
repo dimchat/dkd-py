@@ -49,7 +49,7 @@ This [document](https://github.com/moky/DIMP/blob/master/DaoKeDao-Message.md) in
 ```javascript
 /* example */
 {
-    "type"     : 0x01,      // message type
+    "type"     : "1",       // message type
     "sn"       : 412968873, // serial number (message ID in conversation)
     
     "text"     : "Hey guy!"
@@ -59,54 +59,56 @@ This [document](https://github.com/moky/DIMP/blob/master/DaoKeDao-Message.md) in
 ### Content Type
 
 ```python
-class ContentType(IntEnum):
+def i2s(value: int) -> str:
+    return '%d' % value
 
-    ANY = 0x00        # 0000 0000 (Undefined)
 
-    TEXT = 0x01       # 0000 0001
+class ContentType:
 
-    FILE = 0x10       # 0001 0000
-    IMAGE = 0x12      # 0001 0010
-    AUDIO = 0x14      # 0001 0100
-    VIDEO = 0x16      # 0001 0110
+    ANY = i2s(0x00)        # 0000 0000 (Undefined)
+
+    TEXT = i2s(0x01)       # 0000 0001
+
+    FILE = i2s(0x10)       # 0001 0000
+    IMAGE = i2s(0x12)      # 0001 0010
+    AUDIO = i2s(0x14)      # 0001 0100
+    VIDEO = i2s(0x16)      # 0001 0110
 
     # Web Page
-    PAGE = 0x20       # 0010 0000
+    PAGE = i2s(0x20)       # 0010 0000
 
     # Name Card
-    NAME_CARD = 0x33  # 0011 0011
+    NAME_CARD = i2s(0x33)  # 0011 0011
 
     # Quote a message before and reply it with text
-    QUOTE = 0x37      # 0011 0111
+    QUOTE = i2s(0x37)      # 0011 0111
 
-    # Money
-    MONEY = 0x40          # 0100 0000
-    TRANSFER = 0x41       # 0100 0001
-    LUCKY_MONEY = 0x42    # 0100 0010
-    CLAIM_PAYMENT = 0x48  # 0100 1000 (Claim for Payment)
-    SPLIT_BILL = 0x49     # 0100 1001 (Split the Bill)
+    MONEY = i2s(0x40)          # 0100 0000
+    TRANSFER = i2s(0x41)       # 0100 0001
+    LUCKY_MONEY = i2s(0x42)    # 0100 0010
+    CLAIM_PAYMENT = i2s(0x48)  # 0100 1000 (Claim for Payment)
+    SPLIT_BILL = i2s(0x49)     # 0100 1001 (Split the Bill)
 
-    # Command
-    COMMAND = 0x88        # 1000 1000
-    HISTORY = 0x89        # 1000 1001 (Entity History Command)
+    COMMAND = i2s(0x88)        # 1000 1000
+    HISTORY = i2s(0x89)        # 1000 1001 (Entity History Command)
 
     # Application Customized
-    APPLICATION = 0xA0       # 1010 0000 (Application 0nly, Reserved)
-    # APPLICATION_1 = 0xA1   # 1010 0001 (Reserved)
-    # ...                    # 1010 ???? (Reserved)
-    # APPLICATION_15 = 0xAF  # 1010 1111 (Reserved)
+    APPLICATION = i2s(0xA0)       # 1010 0000 (Application 0nly, Reserved)
+    # APPLICATION_1 = i2s(0xA1)   # 1010 0001 (Reserved)
+    # ...                         # 1010 ???? (Reserved)
+    # APPLICATION_15 = i2s(0xAF)  # 1010 1111 (Reserved)
 
-    # CUSTOMIZED_0 = 0xC0    # 1100 0000 (Reserved)
-    # CUSTOMIZED_1 = 0xC1    # 1100 0001 (Reserved)
-    # ...                    # 1100 ???? (Reserved)
-    ARRAY = 0xCA             # 1100 1010 (Content Array)
-    # ...                    # 1100 ???? (Reserved)
-    CUSTOMIZED = 0xCC        # 1100 1100 (Customized Content)
-    # ...                    # 1100 ???? (Reserved)
-    COMBINE_FORWARD = 0xCF   # 1100 1111 (Combine and Forward)
+    # CUSTOMIZED_0 = i2s(0xC0)    # 1100 0000 (Reserved)
+    # CUSTOMIZED_1 = i2s(0xC1)    # 1100 0001 (Reserved)
+    # ...                         # 1100 ???? (Reserved)
+    ARRAY = i2s(0xCA)             # 1100 1010 (Content Array)
+    # ...                         # 1100 ???? (Reserved)
+    CUSTOMIZED = i2s(0xCC)        # 1100 1100 (Customized Content)
+    # ...                         # 1100 ???? (Reserved)
+    COMBINE_FORWARD = i2s(0xCF)   # 1100 1111 (Combine and Forward)
 
     # Top-Secret message forward by proxy (MTA)
-    FORWARD = 0xFF           # 1111 1111
+    FORWARD = i2s(0xFF)           # 1111 1111
 ```
 
 ## Message
@@ -121,7 +123,7 @@ Accordingly, when the client received a message, it needs TWO steps to extract t
 1. Verify the ```Reliable Message``` to ```Secure Message```;
 2. Decrypt the ```Secure Message``` to ```Instant Message```.
 
-```javascript
+```
     Message Transforming
     ~~~~~~~~~~~~~~~~~~~~
 
@@ -154,7 +156,7 @@ Accordingly, when the client received a message, it needs TWO steps to extract t
     
     //-------- body (content) ---------
     "content"  : {
-        "type" : 0x01,      // message type
+        "type" : "1",       // message type
         "sn"   : 412968873, // serial number (ID)
         "text" : "Hey guy!"
     }
@@ -209,5 +211,5 @@ content -> JsON string: ```{"sn":412968873,"text":"Hey guy!","type":1}```
 
 ----
 
-Copyright &copy; 2018-2025 Albert Moky
+Copyright &copy; 2018-2026 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)
