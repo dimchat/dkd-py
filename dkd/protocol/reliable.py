@@ -64,7 +64,9 @@ class ReliableMessage(SecureMessage, ABC):
     @abstractmethod
     def signature(self) -> TransportableData:
         """ signature for encrypted data of message content """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.signature getter'
+        )
 
     #
     #   Conveniences
@@ -120,7 +122,9 @@ class ReliableMessageFactory(ABC):
         :param msg: message info
         :return: ReliableMessage
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_reliable_message()'
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -133,26 +137,41 @@ class ReliableMessageHelper(ABC):
 
     @abstractmethod
     def set_reliable_message_factory(self, factory: ReliableMessageFactory):
-        raise NotImplemented
+        """ Set reliable message factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_reliable_message_factory()'
+        )
 
     @abstractmethod
     def get_reliable_message_factory(self) -> Optional[ReliableMessageFactory]:
-        raise NotImplemented
+        """ Get reliable message factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_reliable_message_factory()'
+        )
 
     @abstractmethod
     def parse_reliable_message(self, msg: Any) -> Optional[ReliableMessage]:
-        raise NotImplemented
+        """ Parse any object to reliable message """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_reliable_message()'
+        )
 
 
 class ReliableMessageExtension:
 
     @property
     def reliable_helper(self) -> Optional[ReliableMessageHelper]:
-        raise NotImplemented
+        """ Get reliable message helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.reliable_helper getter'
+        )
 
     @reliable_helper.setter
     def reliable_helper(self, helper: ReliableMessageHelper):
-        raise NotImplemented
+        """ Set reliable message helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.reliable_helper setter'
+        )
 
 
 shared_message_extensions.reliable_helper: Optional[ReliableMessageHelper] = None

@@ -59,7 +59,9 @@ class Envelope(Mapper, ABC):
 
         :return: sender ID
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.sender getter'
+        )
 
     @property
     @abstractmethod
@@ -69,7 +71,9 @@ class Envelope(Mapper, ABC):
 
         :return: receiver ID
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.receiver getter'
+        )
 
     @property
     @abstractmethod
@@ -79,7 +83,9 @@ class Envelope(Mapper, ABC):
 
         :return: timestamp
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.time getter'
+        )
 
     @property
     @abstractmethod
@@ -91,12 +97,17 @@ class Envelope(Mapper, ABC):
             the 'receiver' will be changed to a member ID, and
             the group ID will be saved as 'group'.
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.group getter'
+        )
 
     @group.setter
     @abstractmethod
     def group(self, gid: ID):
-        raise NotImplemented
+        """ Set group ID """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.group setter'
+        )
 
     @property
     @abstractmethod
@@ -109,12 +120,17 @@ class Envelope(Mapper, ABC):
             we pick out the content type and set it in envelope
             to let the station do its job.
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.type getter'
+        )
 
     @type.setter
     @abstractmethod
     def type(self, msg_type: str):
-        raise NotImplemented
+        """ Set message type """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.type setter'
+        )
 
     #
     #   Factory methods
@@ -160,7 +176,9 @@ class EnvelopeFactory(ABC):
         :param time:     message time
         :return: Envelope
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_envelope()'
+        )
 
     @abstractmethod
     def parse_envelope(self, envelope: Dict) -> Optional[Envelope]:
@@ -170,7 +188,9 @@ class EnvelopeFactory(ABC):
         :param envelope: message head info
         :return: Envelope
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_envelope()'
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -183,19 +203,31 @@ class EnvelopeHelper(ABC):
 
     @abstractmethod
     def set_envelope_factory(self, factory: EnvelopeFactory):
-        raise NotImplemented
+        """ Set envelope factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_envelope_factory()'
+        )
 
     @abstractmethod
     def get_envelope_factory(self) -> Optional[EnvelopeFactory]:
-        raise NotImplemented
+        """ Get envelope factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_envelope_factory()'
+        )
 
     @abstractmethod
     def create_envelope(self, sender: ID, receiver: ID, time: Optional[DateTime]) -> Envelope:
-        raise NotImplemented
+        """ Create envelope with sender, receiver and time """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_envelope()'
+        )
 
     @abstractmethod
     def parse_envelope(self, envelope: Any) -> Optional[Envelope]:
-        raise NotImplemented
+        """ Parse any object to envelope """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_envelope()'
+        )
 
 
 @Singleton
@@ -203,10 +235,12 @@ class MessageExtensions:
 
     @property
     def envelope_helper(self) -> Optional[EnvelopeHelper]:
+        """ Get envelope helper """
         return _EnvExt.envelope_helper
 
     @envelope_helper.setter
     def envelope_helper(self, helper: Optional[EnvelopeHelper]):
+        """ Set envelope helper """
         _EnvExt.envelope_helper = helper
 
 

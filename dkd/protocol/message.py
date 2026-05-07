@@ -79,7 +79,10 @@ class Message(Mapper, ABC):
     @property
     @abstractmethod
     def envelope(self) -> Envelope:
-        raise NotImplemented
+        """ Get message envelope """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.envelope getter'
+        )
 
     # --------
 
@@ -87,28 +90,38 @@ class Message(Mapper, ABC):
     @abstractmethod
     def sender(self) -> ID:
         """ envelope.sender """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.sender getter'
+        )
 
     @property
     @abstractmethod
     def receiver(self) -> ID:
         """ envelope.receiver """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.receiver getter'
+        )
 
     @property
     @abstractmethod
     def time(self) -> Optional[DateTime]:
         """ content.time or envelope.time """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.time getter'
+        )
 
     @property
     @abstractmethod
     def group(self) -> Optional[ID]:
         """ content.group or envelope.group """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.group getter'
+        )
 
     @property
     @abstractmethod
     def type(self) -> Optional[str]:
         """ content.type or envelope.type """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.type getter'
+        )

@@ -62,19 +62,25 @@ class Content(Mapper, ABC):
     @abstractmethod
     def type(self) -> str:
         """ content type """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.type getter'
+        )
 
     @property
     @abstractmethod
     def sn(self) -> int:
         """ serial number as message id """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.sn getter'
+        )
 
     @property
     @abstractmethod
     def time(self) -> Optional[DateTime]:
         """ message time """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.time getter'
+        )
 
     @property
     @abstractmethod
@@ -84,12 +90,17 @@ class Content(Mapper, ABC):
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             if field 'group' exists, it means this is a group message
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.group getter'
+        )
 
     @group.setter
     @abstractmethod
     def group(self, gid: ID):
-        raise NotImplemented
+        """ Set group ID """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.group setter'
+        )
 
     #
     #   Conveniences
@@ -145,7 +156,9 @@ class ContentFactory(ABC):
         :param content: content info
         :return: Content
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_content()'
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -158,26 +171,41 @@ class ContentHelper(ABC):
 
     @abstractmethod
     def set_content_factory(self, msg_type: str, factory: ContentFactory):
-        raise NotImplemented
+        """ Set content factory for type """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_content_factory()'
+        )
 
     @abstractmethod
     def get_content_factory(self, msg_type: str) -> Optional[ContentFactory]:
-        raise NotImplemented
+        """ Get content factory for type """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_content_factory()'
+        )
 
     @abstractmethod
     def parse_content(self, content: Any) -> Optional[Content]:
-        raise NotImplemented
+        """ Parse any object to content """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_content()'
+        )
 
 
 class ContentExtension:
 
     @property
     def content_helper(self) -> Optional[ContentHelper]:
-        raise NotImplemented
+        """ Get content helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.content_helper getter'
+        )
 
     @content_helper.setter
     def content_helper(self, helper: ContentHelper):
-        raise NotImplemented
+        """ Set content helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.content_helper setter'
+        )
 
 
 shared_message_extensions.content_helper: Optional[ContentHelper] = None

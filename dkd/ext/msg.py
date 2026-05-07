@@ -51,18 +51,27 @@ class GeneralMessageHelper(ABC):
 
     @abstractmethod
     def get_content_type(self, content: Dict, default: Optional[str] = None) -> Optional[str]:
-        raise NotImplemented
+        """ Get type form content info """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_content_type()'
+        )
 
 
 class GeneralMessageExtension:
 
     @property
     def helper(self) -> Optional[GeneralMessageHelper]:
-        raise NotImplemented
+        """ Get general message helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.helper getter'
+        )
 
     @helper.setter
     def helper(self, delegate: GeneralMessageHelper):
-        raise NotImplemented
+        """ Set general message helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.helper setter'
+        )
 
 
 shared_message_extensions.helper: Optional[GeneralMessageHelper] = None

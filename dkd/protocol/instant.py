@@ -62,12 +62,16 @@ class InstantMessage(Message, ABC):
     @abstractmethod
     def content(self) -> Content:
         """ message content """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.content getter'
+        )
 
     # @content.setter
     # def content(self, body: Content):
     #     """ only for rebuild content """
-    #     raise NotImplemented
+    #     raise NotImplementedError(
+    #         f'Not implemented: {type(self).__module__}.{type(self).__name__}.content setter'
+    #     )
 
     #
     #   Conveniences
@@ -134,7 +138,9 @@ class InstantMessageFactory(ABC):
         :param now:      message time
         :return: SN (uint64, serial number as msg id)
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.generate_serial_number()'
+        )
 
     @abstractmethod
     def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
@@ -145,7 +151,9 @@ class InstantMessageFactory(ABC):
         :param body: message content
         :return: InstantMessage
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_instant_message()'
+        )
 
     @abstractmethod
     def parse_instant_message(self, msg: Dict) -> Optional[InstantMessage]:
@@ -155,7 +163,9 @@ class InstantMessageFactory(ABC):
         :param msg: message info
         :return: InstantMessage
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_instant_message()'
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -168,34 +178,55 @@ class InstantMessageHelper(ABC):
 
     @abstractmethod
     def set_instant_message_factory(self, factory: InstantMessageFactory):
-        raise NotImplemented
+        """ Set instant message factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_instant_message_factory()'
+        )
 
     @abstractmethod
     def get_instant_message_factory(self) -> Optional[InstantMessageFactory]:
-        raise NotImplemented
+        """ Get instant message factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_instant_message_factory()'
+        )
 
     @abstractmethod
     def generate_serial_number(self, msg_type: Optional[str], now: Optional[DateTime]) -> int:
-        raise NotImplemented
+        """ Generate SN """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.generate_serial_number()'
+        )
 
     @abstractmethod
     def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
-        raise NotImplemented
+        """ Create instant message """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_instant_message()'
+        )
 
     @abstractmethod
     def parse_instant_message(self, msg: Any) -> Optional[InstantMessage]:
-        raise NotImplemented
+        """ Parse any object to instant message """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_instant_message()'
+        )
 
 
 class InstantMessageExtension:
 
     @property
     def instant_helper(self) -> Optional[InstantMessageHelper]:
-        raise NotImplemented
+        """ Get instant message helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.instant_helper getter'
+        )
 
     @instant_helper.setter
     def instant_helper(self, helper: InstantMessageHelper):
-        raise NotImplemented
+        """ Set instant message helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.instant_helper setter'
+        )
 
 
 shared_message_extensions.instant_helper: Optional[InstantMessageHelper] = None

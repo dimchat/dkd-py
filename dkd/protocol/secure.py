@@ -61,13 +61,17 @@ class SecureMessage(Message, ABC):
     @abstractmethod
     def data(self) -> TransportableData:
         """ encrypted message content """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.data getter'
+        )
 
     @property
     @abstractmethod
     def encrypted_keys(self) -> Optional[Dict]:  # str => str
         """ encrypted message keys """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.encrypted_keys getter'
+        )
 
     #
     #   Factory method
@@ -100,7 +104,9 @@ class SecureMessageFactory(ABC):
         :param msg: message info
         :return: SecureMessage
         """
-        raise NotImplemented
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_secure_message()'
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -113,26 +119,41 @@ class SecureMessageHelper(ABC):
 
     @abstractmethod
     def set_secure_message_factory(self, factory: SecureMessageFactory):
-        raise NotImplemented
+        """ Set secure message factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_secure_message_factory()'
+        )
 
     @abstractmethod
     def get_secure_message_factory(self) -> Optional[SecureMessageFactory]:
-        raise NotImplemented
+        """ Get secure message factory """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_secure_message_factory()'
+        )
 
     @abstractmethod
     def parse_secure_message(self, msg: Any) -> Optional[SecureMessage]:
-        raise NotImplemented
+        """ Parse any object to secure message """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_secure_message()'
+        )
 
 
 class SecureMessageExtension:
 
     @property
     def secure_helper(self) -> Optional[SecureMessageHelper]:
-        raise NotImplemented
+        """ Get secure message helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.secure_helper getter'
+        )
 
     @secure_helper.setter
     def secure_helper(self, helper: SecureMessageHelper):
-        raise NotImplemented
+        """ Set secure message helper """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.secure_helper setter'
+        )
 
 
 shared_message_extensions.secure_helper: Optional[SecureMessageHelper] = None
