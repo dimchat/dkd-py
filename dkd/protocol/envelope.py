@@ -159,7 +159,7 @@ class Envelope(Mapper, ABC):
 
 def envelope_helper():
     helper = shared_message_extensions.envelope_helper
-    assert isinstance(helper, EnvelopeHelper), 'envelope helper error: %s' % helper
+    assert isinstance(helper, EnvelopeHelper), f'envelope helper error: {helper}'
     return helper
 
 

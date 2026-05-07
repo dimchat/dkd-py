@@ -87,7 +87,7 @@ class ReliableMessage(SecureMessage, ABC):
     def revert(cls, messages: Iterable) -> List[Dict]:
         array = []
         for msg in messages:
-            assert isinstance(msg, ReliableMessage), 'message error: %s' % msg
+            assert isinstance(msg, ReliableMessage), f'message error: {msg}'
             array.append(msg.to_dict())
         return array
 

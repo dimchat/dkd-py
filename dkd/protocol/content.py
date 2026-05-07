@@ -121,7 +121,7 @@ class Content(Mapper, ABC):
     def revert(cls, contents: Iterable) -> List[Dict]:
         array = []
         for msg in contents:
-            assert isinstance(msg, Content), 'content error: %s' % msg
+            assert isinstance(msg, Content), f'content error: {msg}'
             array.append(msg.to_dict())
         return array
 

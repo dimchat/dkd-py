@@ -92,7 +92,7 @@ class InstantMessage(Message, ABC):
     def revert(cls, messages: Iterable) -> List[Dict]:
         array = []
         for msg in messages:
-            assert isinstance(msg, InstantMessage), 'message error: %s' % msg
+            assert isinstance(msg, InstantMessage), f'message error: {msg}'
             array.append(msg.to_dict())
         return array
 
