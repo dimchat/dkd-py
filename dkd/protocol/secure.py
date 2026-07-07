@@ -48,7 +48,7 @@ class SecureMessage(Message, ABC):
             "sender"   : "moki@xxx",
             "receiver" : "hulk@yyy",
             "time"     : 123.45,
-            //-- content data & key/keys
+            //-- content data & keys
             "data"     : "...",     // base64_encode( symmetric_encrypt(content))
             "keys"     : {
                 "ID1"    : "key1",  // base64_encode(asymmetric_encrypt(password))

@@ -52,7 +52,7 @@ class Content(Mapper, ABC):
             "group"   : "{GroupID}",    // for group message
 
             //-- message info
-            "text"    : "text",         // for text message
+            "text"    : "message",      // for text message
             "command" : "Command Name"  // for system command
             //...
         }

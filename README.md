@@ -51,6 +51,7 @@ This [document](https://github.com/moky/DIMP/blob/master/DaoKeDao-Message.md) in
 {
     "type"     : "1",       // message type
     "sn"       : 412968873, // serial number (message ID in conversation)
+    "time"     : 1545405083,
     
     "text"     : "Hey guy!"
 }
@@ -134,7 +135,7 @@ Accordingly, when the client received a message, it needs TWO steps to extract t
     |  time       |        |  time      |        |  time        |
     |             |        |            |        |              |
     |  content    |        |  data      |        |  data        |
-    +-------------+        |  key/keys  |        |  key/keys    |
+    +-------------+        |  keys      |        |  keys        |
                            +------------+        |  signature   |
                                                  +--------------+
     Algorithm:
@@ -156,9 +157,11 @@ Accordingly, when the client received a message, it needs TWO steps to extract t
     
     //-------- body (content) ---------
     "content"  : {
-        "type" : "1",       // message type
-        "sn"   : 412968873, // serial number (ID)
-        "text" : "Hey guy!"
+        "type"  : "1",       // message type
+        "sn"    : 412968873, // serial number (ID)
+        "time"  : 1545405083,
+        
+        "text"  : "Hey guy!"
     }
 }
 ```
@@ -183,7 +186,9 @@ content -> JsON string: ```{"sn":412968873,"text":"Hey guy!","type":1}```
     
     //-------- body (content) ---------
     "data"     : "9cjCKG99ULCCxbL2mkc/MgF1saeRqJaCc+S12+HCqmsuF7TWK61EwTQWZSKskUeF",
-    "key"      : "WH/wAcu+HfpaLq+vRblNnYufkyjTm4FgYyzW3wBDeRtXs1TeDmRxKVu7nQI/sdIALGLXrY+O5mlRfhU8f8TuIBilZUlX/eIUpL4uSDYKVLaRG9pOcrCHKevjUpId9x/8KBEiMIL5LB0Vo7sKrvrqosCnIgNfHbXMKvMzwcqZEU8="
+    "keys"     : {
+        "hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj" : "WH/wAcu+HfpaLq+vRblNnYufkyjTm4FgYyzW3wBDeRtXs1TeDmRxKVu7nQI/sdIALGLXrY+O5mlRfhU8f8TuIBilZUlX/eIUpL4uSDYKVLaRG9pOcrCHKevjUpId9x/8KBEiMIL5LB0Vo7sKrvrqosCnIgNfHbXMKvMzwcqZEU8="
+    }
 }
 ```
 
@@ -202,7 +207,9 @@ content -> JsON string: ```{"sn":412968873,"text":"Hey guy!","type":1}```
     
     //-------- body (content) ---------
     "data"      : "9cjCKG99ULCCxbL2mkc/MgF1saeRqJaCc+S12+HCqmsuF7TWK61EwTQWZSKskUeF",
-    "key"       : "WH/wAcu+HfpaLq+vRblNnYufkyjTm4FgYyzW3wBDeRtXs1TeDmRxKVu7nQI/sdIALGLXrY+O5mlRfhU8f8TuIBilZUlX/eIUpL4uSDYKVLaRG9pOcrCHKevjUpId9x/8KBEiMIL5LB0Vo7sKrvrqosCnIgNfHbXMKvMzwcqZEU8=",
+    "keys"      : {
+        "hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj" : "WH/wAcu+HfpaLq+vRblNnYufkyjTm4FgYyzW3wBDeRtXs1TeDmRxKVu7nQI/sdIALGLXrY+O5mlRfhU8f8TuIBilZUlX/eIUpL4uSDYKVLaRG9pOcrCHKevjUpId9x/8KBEiMIL5LB0Vo7sKrvrqosCnIgNfHbXMKvMzwcqZEU8="
+    },
     "signature" : "Yo+hchWsQlWHtc8iMGS7jpn/i9pOLNq0E3dTNsx80QdBboTLeKoJYAg/lI+kZL+g7oWJYpD4qKemOwzI+9pxdMuZmPycG+0/VM3HVSMcguEOqOH9SElp/fYVnm4aSjAJk2vBpARzMT0aRNp/jTFLawmMDuIlgWhBfXvH7bT7rDI="
 }
 ```

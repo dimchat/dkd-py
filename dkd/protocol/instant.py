@@ -51,9 +51,11 @@ class InstantMessage(Message, ABC):
             "time"     : 123.45,
             //-- content
             "content"  : {
-                "type" : i2s(0),
-                "sn"   : 12345,
-                "text" : "Hello World"
+                "type"  : i2s(0),
+                "sn"    : 12345,
+                "time"  : 123.45,
+                "group" : "g-123@zzz",
+                "text"  : "Hello World!"
             }
         }
     """
