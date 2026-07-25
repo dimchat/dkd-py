@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict
+from collections.abc import Mapping
+from typing import Optional, Any
 
 from mkm.types import Singleton
 from mkm.types import DateTime
@@ -181,7 +182,7 @@ class EnvelopeFactory(ABC):
         )
 
     @abstractmethod
-    def parse_envelope(self, envelope: Dict) -> Optional[Envelope]:
+    def parse_envelope(self, envelope: Mapping) -> Optional[Envelope]:
         """
         Parse map object to envelope
 

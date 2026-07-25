@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Iterable, Any, List, Dict
+from collections.abc import Mapping, MutableMapping
+from typing import Optional, Iterable, Any, List
 
 from mkm.types import DateTime
 from mkm.types import Mapper
@@ -118,11 +119,11 @@ class Content(Mapper, ABC):
         return contents
 
     @classmethod
-    def revert(cls, contents: Iterable) -> List[Dict]:
+    def revert(cls, contents: Iterable) -> List[MutableMapping]:
         array = []
         for msg in contents:
             assert isinstance(msg, Content), f'content error: {msg}'
-            array.append(msg.to_dict())
+            array.append(msg.to_map())
         return array
 
     #
@@ -149,7 +150,7 @@ class ContentFactory(ABC):
     """ Content Factory """
 
     @abstractmethod
-    def parse_content(self, content: Dict) -> Optional[Content]:
+    def parse_content(self, content: Mapping) -> Optional[Content]:
         """
         Parse map object to content
 

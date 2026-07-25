@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict
+from collections.abc import Mapping
+from typing import Optional
 
 from ..protocol.envelope import shared_message_extensions
 
@@ -50,7 +51,7 @@ class GeneralMessageHelper(ABC):
     #
 
     @abstractmethod
-    def get_content_type(self, content: Dict, default: Optional[str] = None) -> Optional[str]:
+    def get_content_type(self, content: Mapping, default: Optional[str] = None) -> Optional[str]:
         """ Get type form content info """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_content_type()'

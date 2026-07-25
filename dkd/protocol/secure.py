@@ -29,6 +29,7 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from typing import Optional, Any, Dict
 
 from mkm.format import TransportableData
@@ -97,7 +98,7 @@ class SecureMessageFactory(ABC):
     """ Secure Message factory """
 
     @abstractmethod
-    def parse_secure_message(self, msg: Dict) -> Optional[SecureMessage]:
+    def parse_secure_message(self, msg: Mapping) -> Optional[SecureMessage]:
         """
         Parse map object to message
 

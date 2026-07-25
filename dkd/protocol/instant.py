@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Iterable, Any, List, Dict
+from collections.abc import Mapping, MutableMapping
+from typing import Optional, Iterable, Any, List
 
 from mkm.types import DateTime
 
@@ -91,11 +92,11 @@ class InstantMessage(Message, ABC):
         return messages
 
     @classmethod
-    def revert(cls, messages: Iterable) -> List[Dict]:
+    def revert(cls, messages: Iterable) -> List[MutableMapping]:
         array = []
         for msg in messages:
             assert isinstance(msg, InstantMessage), f'message error: {msg}'
-            array.append(msg.to_dict())
+            array.append(msg.to_map())
         return array
 
     #
@@ -158,7 +159,7 @@ class InstantMessageFactory(ABC):
         )
 
     @abstractmethod
-    def parse_instant_message(self, msg: Dict) -> Optional[InstantMessage]:
+    def parse_instant_message(self, msg: Mapping) -> Optional[InstantMessage]:
         """
         Parse map object to message
 
