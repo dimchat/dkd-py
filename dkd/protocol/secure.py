@@ -29,9 +29,9 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
-from typing import Optional, Any, Dict
+from typing import Optional, Any
 
+from mkm.types import StrMap
 from mkm.format import TransportableData
 
 from .message import Message
@@ -68,7 +68,7 @@ class SecureMessage(Message, ABC):
 
     @property
     @abstractmethod
-    def encrypted_keys(self) -> Optional[Dict]:  # str => str
+    def encrypted_keys(self) -> Optional[StrMap]:  # str => str
         """ encrypted message keys """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.encrypted_keys getter'
@@ -98,7 +98,7 @@ class SecureMessageFactory(ABC):
     """ Secure Message factory """
 
     @abstractmethod
-    def parse_secure_message(self, msg: Mapping) -> Optional[SecureMessage]:
+    def parse_secure_message(self, msg: StrMap) -> Optional[SecureMessage]:
         """
         Parse map object to message
 

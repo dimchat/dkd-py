@@ -29,11 +29,11 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
 from typing import Optional, Any
 
 from mkm.types import Singleton
 from mkm.types import DateTime
+from mkm.types import StrMap
 from mkm.types import Mapper
 from mkm.protocol import ID
 
@@ -182,7 +182,7 @@ class EnvelopeFactory(ABC):
         )
 
     @abstractmethod
-    def parse_envelope(self, envelope: Mapping) -> Optional[Envelope]:
+    def parse_envelope(self, envelope: StrMap) -> Optional[Envelope]:
         """
         Parse map object to envelope
 

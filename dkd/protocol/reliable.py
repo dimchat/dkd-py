@@ -29,9 +29,10 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, MutableMapping
-from typing import Optional, Iterable, Any, List
+from typing import Optional, Any, List
+from typing import Iterable
 
+from mkm.types import StrMap, MutableStrMap
 from mkm.format import TransportableData
 
 from .secure import SecureMessage
@@ -85,7 +86,7 @@ class ReliableMessage(SecureMessage, ABC):
         return messages
 
     @classmethod
-    def revert(cls, messages: Iterable) -> List[MutableMapping]:
+    def revert(cls, messages: Iterable) -> List[MutableStrMap]:
         array = []
         for msg in messages:
             assert isinstance(msg, ReliableMessage), f'message error: {msg}'
@@ -116,7 +117,7 @@ class ReliableMessageFactory(ABC):
     """ Reliable Message Factory """
 
     @abstractmethod
-    def parse_reliable_message(self, msg: Mapping) -> Optional[ReliableMessage]:
+    def parse_reliable_message(self, msg: StrMap) -> Optional[ReliableMessage]:
         """
         Parse map object to message
 

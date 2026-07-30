@@ -29,10 +29,11 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, MutableMapping
-from typing import Optional, Iterable, Any, List
+from typing import Optional, Any, List
+from typing import Iterable
 
 from mkm.types import DateTime
+from mkm.types import StrMap, MutableStrMap
 from mkm.types import Mapper
 from mkm.protocol import ID
 
@@ -119,7 +120,7 @@ class Content(Mapper, ABC):
         return contents
 
     @classmethod
-    def revert(cls, contents: Iterable) -> List[MutableMapping]:
+    def revert(cls, contents: Iterable) -> List[MutableStrMap]:
         array = []
         for msg in contents:
             assert isinstance(msg, Content), f'content error: {msg}'
@@ -150,7 +151,7 @@ class ContentFactory(ABC):
     """ Content Factory """
 
     @abstractmethod
-    def parse_content(self, content: Mapping) -> Optional[Content]:
+    def parse_content(self, content: StrMap) -> Optional[Content]:
         """
         Parse map object to content
 
