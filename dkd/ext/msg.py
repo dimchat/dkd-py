@@ -33,51 +33,77 @@ from typing import Optional
 
 from mkm.types import StrMap
 
+from ..protocol.message import Message
 from ..protocol.envelope import shared_message_extensions
 
 
 # -----------------------------------------------------------------------------
-#  Message Extensions
+#  Message Handler
 # -----------------------------------------------------------------------------
 
 
-# class GeneralMessageHelper(ContentHelper, EnvelopeHelper,
-#                            InstantMessageHelper, SecureMessageHelper, ReliableMessageHelper,
-#                            ABC):
-class GeneralMessageHelper(ABC):
-    """ Message GeneralFactory """
+class MessageHandler(ABC):
+    """ Message handler interface for common message system utilities.
+
+        Combines utility methods for message component parsing (e.g., content type
+        extraction) and acts as a unified interface for core message handlers.
+    """
 
     #
-    #   Message Type
+    #  Message Type
     #
 
     @abstractmethod
     def get_content_type(self, content: StrMap, default: Optional[str] = None) -> Optional[str]:
-        """ Get type form content info """
+        """ Extract the content type from a raw content map.
+
+        Retrieves the message type identifier (e.g., "01" for text, "88" for
+        command) from a raw content map with a fallback default value if the
+        type field is missing.
+
+        :param content: is the raw content map containing the type metadata.
+        :param default: is the fallback value if the type is not found.
+        :return: the extracted content type (or *default* if not present).
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_content_type()'
         )
 
+    @abstractmethod
+    def is_broadcast(self, message: Message) -> bool:
+        """ Check whether this is a broadcast message.
 
-class GeneralMessageExtension:
+        1. If receiver is broadcast, return true
+        2. If group exists and is broadcast, return true too
+
+        :param message: is the message with sender and optional group.
+        :return: true if the message is a broadcast.
+        """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.is_broadcast()'
+        )
+
+
+#
+#  General Extensions
+#
+
+
+class MessageHandlerExtension:
 
     @property
-    def helper(self) -> Optional[GeneralMessageHelper]:
-        """ Get general message helper """
+    def handler(self) -> Optional[MessageHandler]:
+        """ Get the general message handler """
         raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.helper getter'
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.handler getter'
         )
 
-    @helper.setter
-    def helper(self, delegate: GeneralMessageHelper):
-        """ Set general message helper """
+    @handler.setter
+    def handler(self, ext: MessageHandler):
+        """ Set the general message handler """
         raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.helper setter'
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.handler setter'
         )
 
 
-shared_message_extensions.helper: Optional[GeneralMessageHelper] = None
-
-
-# def message_extensions() -> Union[GeneralMessageExtension, MessageExtensions]:
-#     return shared_message_extensions
+shared_message_extensions.handler: Optional[MessageHandler] = None

@@ -29,12 +29,16 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 from mkm.types import StrMap
 from mkm.format import TransportableData
+from mkm.protocol import ID
+
+from ..crypto import EncryptedBundle
 
 from .message import Message
+from .instant import InstantMessage
 from .envelope import shared_message_extensions
 
 
@@ -79,6 +83,21 @@ class SecureMessage(Message, ABC):
     #
 
     @classmethod
+    def from_instant_message(cls, i_msg: InstantMessage, data: bytes, bundles: Dict[ID, EncryptedBundle] = None):
+        """ Create a SecureMessage from an instant message, adding 'data' and 'keys'.
+
+        Encrypts the plaintext content with a symmetric key, then encrypts the key
+        for each receiver terminal, forming the encrypted data and key bundles.
+
+        :param i_msg:   is the plain instant message.
+        :param data:    is the encrypted data of the content.
+        :param bundles: is the encrypted key bundles for the receiver terminals.
+        :return: a new SecureMessage instance.
+        """
+        helper = secure_helper()
+        return helper.create_secure_message(i_msg=i_msg, data=data, bundles=bundles)
+
+    @classmethod
     def parse(cls, msg: Any):  # -> Optional[SecureMessage]:
         helper = secure_helper()
         return helper.parse_secure_message(msg=msg)
@@ -96,6 +115,22 @@ class SecureMessage(Message, ABC):
 
 class SecureMessageFactory(ABC):
     """ Secure Message factory """
+
+    @abstractmethod
+    def create_secure_message(self, i_msg: InstantMessage, data: bytes, bundles: Optional[Dict[ID, EncryptedBundle]]):
+        """ Create a secure message from instant message, adding 'data' and 'keys'.
+
+        Encrypts the plaintext content with a symmetric key, then encrypts the key
+        for each receiver terminal, forming the encrypted data and key bundles.
+
+        :param i_msg:   is the plain message (with envelope and content).
+        :param data:    is the encrypted data of the content.
+        :param bundles: is the encrypted key bundles (terminal -> encrypted key data).
+        :return: a SecureMessage instance.
+        """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_secure_message()'
+        )
 
     @abstractmethod
     def parse_secure_message(self, msg: StrMap) -> Optional[SecureMessage]:
@@ -130,6 +165,22 @@ class SecureMessageHelper(ABC):
         """ Get secure message factory """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_secure_message_factory()'
+        )
+
+    @abstractmethod
+    def create_secure_message(self, i_msg: InstantMessage, data: bytes, bundles: Optional[Dict[ID, EncryptedBundle]]):
+        """ Create a secure message from instant message, adding 'data' and 'keys'.
+
+        Encrypts the plaintext content with a symmetric key, then encrypts the key
+        for each receiver terminal, forming the encrypted data and key bundles.
+
+        :param i_msg:   is the plain instant message.
+        :param data:    is the encrypted data of the content.
+        :param bundles: is the encrypted key bundles for the receiver terminals.
+        :return: a new SecureMessage instance.
+        """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_secure_message()'
         )
 
     @abstractmethod

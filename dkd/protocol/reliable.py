@@ -98,6 +98,20 @@ class ReliableMessage(SecureMessage, ABC):
     #
 
     @classmethod
+    def from_secure_message(cls, s_msg: SecureMessage, signature: bytes):
+        """ Create a ReliableMessage from a secure message, adding 'signature'.
+
+        Signs the encrypted content data with the sender's private key, forming
+        the digital signature for authenticity and integrity verification.
+
+        :param s_msg:     is the encrypted secure message.
+        :param signature: is the signature of the encrypted content data.
+        :return: a new ReliableMessage instance.
+        """
+        helper = reliable_helper()
+        return helper.create_reliable_message(s_msg=s_msg, signature=signature)
+
+    @classmethod
     def parse(cls, msg: Any):  # -> Optional[ReliableMessage]:
         helper = reliable_helper()
         return helper.parse_reliable_message(msg=msg)
@@ -115,6 +129,21 @@ class ReliableMessage(SecureMessage, ABC):
 
 class ReliableMessageFactory(ABC):
     """ Reliable Message Factory """
+
+    @abstractmethod
+    def create_reliable_message(self, s_msg: SecureMessage, signature: bytes):
+        """ Create a reliable message from secure message, adding 'signature'.
+
+        Signs the encrypted content data with the sender's private key, forming
+        the digital signature for authenticity and integrity verification.
+
+        :param s_msg:     is the encrypted message.
+        :param signature: is the signature of the encrypted content data.
+        :return: a ReliableMessage instance.
+        """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_reliable_message()'
+        )
 
     @abstractmethod
     def parse_reliable_message(self, msg: StrMap) -> Optional[ReliableMessage]:
@@ -149,6 +178,21 @@ class ReliableMessageHelper(ABC):
         """ Get reliable message factory """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_reliable_message_factory()'
+        )
+
+    @abstractmethod
+    def create_reliable_message(self, s_msg: SecureMessage, signature: bytes):
+        """ Create a reliable message from secure message, adding 'signature'.
+
+        Signs the encrypted content data with the sender's private key, forming
+        the digital signature for authenticity and integrity verification.
+
+        :param s_msg:     is the encrypted secure message.
+        :param signature: is the signature of the encrypted content data.
+        :return: a new ReliableMessage instance.
+        """
+        raise NotImplementedError(
+            f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_reliable_message()'
         )
 
     @abstractmethod
