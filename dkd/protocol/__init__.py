@@ -28,49 +28,71 @@
 # SOFTWARE.
 # ==============================================================================
 
-from .content import Content, ContentFactory
+"""
+    Dao-Ke-Dao
+    ~~~~~~~~~~
+
+    Universal Message Module
+"""
+
 from .envelope import Envelope, EnvelopeFactory
+# from .envelope import EnvelopeHelper
+# from .envelope import envelope_helper
+
+# from .envelope import MessageExtensions
+# from .envelope import shared_message_extensions
 
 from .message import Message
+
 from .instant import InstantMessage, InstantMessageFactory
-from .secure import SecureMessage, SecureMessageFactory
-from .reliable import ReliableMessage, ReliableMessageFactory
-
-# from .content import ContentHelper
-# from .envelope import EnvelopeHelper
-# from .instant import InstantMessageHelper
-# from .secure import SecureMessageHelper
-# from .reliable import ReliableMessageHelper
-
-# from .content import ContentExtension
 # from .instant import InstantMessageExtension
+# from .instant import InstantMessageHelper
+# from .instant import instant_helper
+
+from .secure import SecureMessage, SecureMessageFactory
 # from .secure import SecureMessageExtension
+# from .secure import SecureMessageHelper
+# from .secure import secure_helper
+
+from .reliable import ReliableMessage, ReliableMessageFactory
 # from .reliable import ReliableMessageExtension
-# from .envelope import MessageExtensions, shared_message_extensions
+# from .reliable import ReliableMessageHelper
+# from .reliable import reliable_helper
+
+from .content import Content, ContentFactory
+# from .content import ContentExtension
+# from .content import ContentHelper
+# from .content import content_helper
 
 
 __all__ = [
 
-    'Content', 'Envelope',
     'Message',
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    # 'MessageExtensions',
+    # 'shared_message_extensions',
 
-    #
-    #   Factories
-    #
+    'Envelope', 'EnvelopeFactory',
+    # 'EnvelopeHelper',
+    # 'envelope_helper',
 
-    'ContentFactory', 'EnvelopeFactory',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'InstantMessage', 'InstantMessageFactory',
+    # 'InstantMessageExtension',
+    # 'InstantMessageHelper',
+    # 'instant_helper',
 
-    #
-    #   Extensions
-    #
+    'SecureMessage', 'SecureMessageFactory',
+    # 'SecureMessageExtension',
+    # 'SecureMessageHelper',
+    # 'secure_helper',
 
-    # 'ContentHelper', 'EnvelopeHelper',
-    # 'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    'ReliableMessage', 'ReliableMessageFactory',
+    # 'ReliableMessageExtension',
+    # 'ReliableMessageHelper',
+    # 'reliable_helper',
 
+    'Content', 'ContentFactory',
     # 'ContentExtension',
-    # 'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
-    # 'MessageExtensions', 'shared_message_extensions',
+    # 'ContentHelper',
+    # 'content_helper',
 
 ]

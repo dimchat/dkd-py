@@ -288,10 +288,10 @@ class ContentExtension:
 shared_message_extensions.content_helper: Optional[ContentHelper] = None
 
 
-def message_extensions() -> ContentExtension:
+def _content_extension() -> ContentExtension:
     return shared_message_extensions
 
 
 def content_helper() -> ContentHelper:
-    ext = message_extensions()
+    ext = _content_extension()
     return ext.content_helper

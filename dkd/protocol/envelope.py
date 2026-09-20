@@ -192,12 +192,6 @@ class Envelope(Mapper, ABC):
         helper.set_envelope_factory(factory=factory)
 
 
-def envelope_helper():
-    helper = shared_message_extensions.envelope_helper
-    assert isinstance(helper, EnvelopeHelper), f'envelope helper error: {helper}'
-    return helper
-
-
 class EnvelopeFactory(ABC):
     """Factory interface for creating and parsing `Envelope` instances.
 
@@ -326,3 +320,7 @@ class _EnvExt:
 
 # global
 shared_message_extensions = MessageExtensions()
+
+
+def envelope_helper() -> EnvelopeHelper:
+    return shared_message_extensions.envelope_helper

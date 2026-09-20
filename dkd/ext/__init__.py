@@ -28,23 +28,46 @@
 # SOFTWARE.
 # ==============================================================================
 
+"""
+    Dao-Ke-Dao
+    ~~~~~~~~~~
 
-from ..crypto.helpers import EncryptedBundleHandler, DefaultBundleHandler
-from ..crypto.helpers import BundleExtension
+    Universal Message Module
+"""
 
-from ..protocol.content import ContentHelper
+from ..crypto.bundle import EncryptedBundleExtension
+from ..crypto.bundle import EncryptedBundleHandler
+from ..crypto.bundle import bundle_handler
+
+from ..crypto.default_handler import DefaultBundleHandler
+
+
+from ..protocol.envelope import MessageExtensions
+from ..protocol.envelope import shared_message_extensions
+
 from ..protocol.envelope import EnvelopeHelper
+from ..protocol.envelope import envelope_helper
+
+from ..protocol.instant import InstantMessageExtension
 from ..protocol.instant import InstantMessageHelper
+from ..protocol.instant import instant_helper
+
+from ..protocol.secure import SecureMessageExtension
 from ..protocol.secure import SecureMessageHelper
+from ..protocol.secure import secure_helper
+
+from ..protocol.reliable import ReliableMessageExtension
 from ..protocol.reliable import ReliableMessageHelper
+from ..protocol.reliable import reliable_helper
 
 from ..protocol.content import ContentExtension
-from ..protocol.instant import InstantMessageExtension
-from ..protocol.secure import SecureMessageExtension
-from ..protocol.reliable import ReliableMessageExtension
-from ..protocol.envelope import MessageExtensions, shared_message_extensions
+from ..protocol.content import ContentHelper
+from ..protocol.content import content_helper
 
-from .msg import MessageHandler, MessageHandlerExtension
+
+from .msg import MessageHandlerExtension
+from .msg import MessageHandler
+from .msg import message_handler
 
 
 __all__ = [
@@ -53,24 +76,44 @@ __all__ = [
     #   Crypto
     #
 
-    'EncryptedBundleHandler', 'DefaultBundleHandler',
-    'BundleExtension',
+    'EncryptedBundleExtension',
+    'EncryptedBundleHandler',
+    'bundle_handler',
+
+    'DefaultBundleHandler',
 
     #
     #   Message
     #
 
-    'ContentHelper', 'EnvelopeHelper',
-    'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    'MessageExtensions',
+    'shared_message_extensions',
+
+    'EnvelopeHelper',
+    'envelope_helper',
+
+    'InstantMessageExtension',
+    'InstantMessageHelper',
+    'instant_helper',
+
+    'SecureMessageExtension',
+    'SecureMessageHelper',
+    'secure_helper',
+
+    'ReliableMessageExtension',
+    'ReliableMessageHelper',
+    'reliable_helper',
 
     'ContentExtension',
-    'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
-    'MessageExtensions', 'shared_message_extensions',
+    'ContentHelper',
+    'content_helper',
 
     #
     #   General Extensions
     #
 
-    'MessageHandler', 'MessageHandlerExtension',
+    'MessageHandlerExtension',
+    'MessageHandler',
+    'message_handler',
 
 ]

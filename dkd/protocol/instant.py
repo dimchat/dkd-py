@@ -328,10 +328,10 @@ class InstantMessageExtension:
 shared_message_extensions.instant_helper: Optional[InstantMessageHelper] = None
 
 
-def message_extensions() -> InstantMessageExtension:
+def _instant_extension() -> InstantMessageExtension:
     return shared_message_extensions
 
 
 def instant_helper() -> InstantMessageHelper:
-    ext = message_extensions()
+    ext = _instant_extension()
     return ext.instant_helper

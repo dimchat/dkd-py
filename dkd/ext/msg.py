@@ -106,4 +106,14 @@ class MessageHandlerExtension:
         )
 
 
+# handler extension
 shared_message_extensions.handler: Optional[MessageHandler] = None
+
+
+def _message_extension() -> MessageHandlerExtension:
+    return shared_message_extensions
+
+
+def message_handler() -> MessageHandler:
+    ext = _message_extension()
+    return ext.handler

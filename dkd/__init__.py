@@ -46,37 +46,97 @@ __author__ = 'Albert Moky'
 
 __all__ = [
 
+    'BytesMap',
+
     #
     #   Crypto
     #
 
-    'EncryptedBundle', 'UserEncryptedBundle',
+    'EncryptedBundle',
+    # 'EncryptedBundleExtension',
+    # 'EncryptedBundleHandler',
+    # 'bundle_handler',
+
+    'UserEncryptedBundle',
+
+    # 'DefaultBundleHandler',
 
     #
     #   Protocol
     #
 
-    'Content', 'Envelope',
     'Message',
-    'InstantMessage', 'SecureMessage', 'ReliableMessage',
+    # 'MessageExtensions',
+    # 'shared_message_extensions',
 
-    'ContentFactory', 'EnvelopeFactory',
-    'InstantMessageFactory', 'SecureMessageFactory', 'ReliableMessageFactory',
+    'Envelope', 'EnvelopeFactory',
+    # 'EnvelopeHelper',
+    # 'envelope_helper',
 
+    'InstantMessage', 'InstantMessageFactory',
+    # 'InstantMessageExtension',
+    # 'InstantMessageHelper',
+    # 'instant_helper',
+
+    'SecureMessage', 'SecureMessageFactory',
+    # 'SecureMessageExtension',
+    # 'SecureMessageHelper',
+    # 'secure_helper',
+
+    'ReliableMessage', 'ReliableMessageFactory',
+    # 'ReliableMessageExtension',
+    # 'ReliableMessageHelper',
+    # 'reliable_helper',
+
+    'Content', 'ContentFactory',
+    # 'ContentExtension',
+    # 'ContentHelper',
+    # 'content_helper',
+
+    ################################################################
     #
     #   Extensions
     #
+    ################################################################
 
-    'EncryptedBundleHandler', 'DefaultBundleHandler',
-    'BundleExtension',
+    'EncryptedBundleExtension',
+    'EncryptedBundleHandler',
+    'bundle_handler',
 
-    'ContentHelper', 'EnvelopeHelper',
-    'InstantMessageHelper', 'SecureMessageHelper', 'ReliableMessageHelper',
+    'DefaultBundleHandler',
+
+    #
+    #   Message
+    #
+
+    'MessageExtensions',
+    'shared_message_extensions',
+
+    'EnvelopeHelper',
+    'envelope_helper',
+
+    'InstantMessageExtension',
+    'InstantMessageHelper',
+    'instant_helper',
+
+    'SecureMessageExtension',
+    'SecureMessageHelper',
+    'secure_helper',
+
+    'ReliableMessageExtension',
+    'ReliableMessageHelper',
+    'reliable_helper',
 
     'ContentExtension',
-    'InstantMessageExtension', 'SecureMessageExtension', 'ReliableMessageExtension',
-    'MessageExtensions', 'shared_message_extensions',
+    'ContentHelper',
+    'content_helper',
 
-    'MessageHandler', 'MessageHandlerExtension',
+    #
+    #   General Extensions
+    #
+
+    'MessageHandlerExtension',
+    'MessageHandler',
+    'message_handler',
 
 ]

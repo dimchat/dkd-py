@@ -287,10 +287,10 @@ class ReliableMessageExtension:
 shared_message_extensions.reliable_helper: Optional[ReliableMessageHelper] = None
 
 
-def message_extensions() -> ReliableMessageExtension:
+def _reliable_extension() -> ReliableMessageExtension:
     return shared_message_extensions
 
 
 def reliable_helper() -> ReliableMessageHelper:
-    ext = message_extensions()
+    ext = _reliable_extension()
     return ext.reliable_helper

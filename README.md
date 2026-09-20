@@ -66,7 +66,8 @@ def i2s(value: int) -> str:
 
 class ContentType:
 
-    ANY = i2s(0x00)        # 0000 0000 (Undefined)
+    ANY = '*'
+    # UNKNOWN = i2s(0x00)  # 0000 0000 (Undefined)
 
     TEXT = i2s(0x01)       # 0000 0001
 

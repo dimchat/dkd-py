@@ -73,6 +73,7 @@ class Message(Mapper, ABC):
       "sender"   : "moki@xxx",  // Sender's unique ID
       "receiver" : "hulk@yyy",  // Receiver's unique ID
       "time"     : 123.45,      // Message timestamp (Unix timestamp in seconds)
+
       // Message body (varies by message type)
       ...
     }
@@ -82,11 +83,7 @@ class Message(Mapper, ABC):
     @property
     @abstractmethod
     def envelope(self) -> Envelope:
-        """Complete message envelope containing routing metadata.
-
-        Serves as the single source of truth for sender, receiver, and base
-        timestamp.
-        """
+        """Complete message envelope containing routing metadata."""
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.envelope getter'
         )
@@ -112,7 +109,7 @@ class Message(Mapper, ABC):
     @property
     @abstractmethod
     def time(self) -> Optional[DateTime]:
-        """Returns the message timestamp (content.time or envelope.time)."""
+        """Returns the message time (content.time or envelope.time)."""
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.time getter'
         )

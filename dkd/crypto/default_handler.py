@@ -28,50 +28,17 @@
 # SOFTWARE.
 # ==============================================================================
 
-from abc import ABC, abstractmethod
-from typing import Optional, Dict, Iterable
+from typing import Optional, Iterable
+from typing import Mapping, MutableMapping
 
-from mkm.types import StrMap, Mapper
+from mkm.types import StrMap
 from mkm.format import TransportableData
 from mkm.protocol import ID
 from mkm.ext import shared_account_extensions
 
-from .bundle import EncryptedBundle, UserEncryptedBundle
-
-
-# -----------------------------------------------------------------------------
-#  Bundle Handler
-# -----------------------------------------------------------------------------
-
-
-class EncryptedBundleHandler(ABC):
-    """ Handler interface for encoding/decoding EncryptedBundle. """
-
-    @abstractmethod
-    def encode_bundle(self, bundle: EncryptedBundle, receiver: ID) -> StrMap:
-        """ Encode key data.
-
-        :param bundle:   is the encrypted key data with targets (ID terminals).
-        :param receiver: is the user ID.
-        :return: encoded key data with targets (ID + terminals).
-        """
-        raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.encode_bundle()'
-        )
-
-    @abstractmethod
-    def decode_bundle(self, encoded_keys: Mapper, receiver: ID,
-                      terminals: Optional[Iterable[str]] = None):  # -> EncryptedBundle:
-        """ Decode key data from 'message.keys'.
-
-        :param encoded_keys: is the encoded key data with targets (ID + terminals).
-        :param receiver:      is the user ID.
-        :param terminals:    is the visa terminals (None to decode all terminals).
-        :return: encrypted key data with targets (ID terminals).
-        """
-        raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.decode_bundle()'
-        )
+from .bundle import EncryptedBundle
+from .bundle import EncryptedBundleHandler
+from .user_bundle import UserEncryptedBundle
 
 
 class DefaultBundleHandler(EncryptedBundleHandler):
@@ -79,7 +46,7 @@ class DefaultBundleHandler(EncryptedBundleHandler):
 
     # Override
     def encode_bundle(self, bundle: EncryptedBundle, receiver: ID) -> StrMap:
-        encoded_keys: Dict[str, str] = {}
+        encoded_keys: MutableMapping[str, str] = {}
         #
         #  0. ID string without terminal
         #
@@ -119,7 +86,7 @@ class DefaultBundleHandler(EncryptedBundleHandler):
         return encoded_keys
 
     # noinspection PyMethodMayBeStatic
-    def _decode_bundle(self, encoded_keys: Mapper, receiver: ID) -> EncryptedBundle:
+    def _decode_bundle(self, encoded_keys: Mapping, receiver: ID) -> EncryptedBundle:
         """ Decode bundle for all terminals of the receiver.
 
         Scans every entry in `encoded_keys`, keeps the ones whose target is
@@ -172,7 +139,7 @@ class DefaultBundleHandler(EncryptedBundleHandler):
         return bundle
 
     # Override
-    def decode_bundle(self, encoded_keys: Mapper, receiver: ID,
+    def decode_bundle(self, encoded_keys: Mapping, receiver: ID,
                       terminals: Optional[Iterable[str]] = None) -> EncryptedBundle:
         if terminals is None:
             # decode full bundle
@@ -220,36 +187,5 @@ class DefaultBundleHandler(EncryptedBundleHandler):
         return bundle
 
 
-# -----------------------------------------------------------------------------
-#  Account Extensions
-# -----------------------------------------------------------------------------
-
-
-class BundleExtension:
-
-    @property
-    def bundle_handler(self) -> EncryptedBundleHandler:
-        """ Get the bundle handler """
-        raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.bundle_handler getter'
-        )
-
-    @bundle_handler.setter
-    def bundle_handler(self, handler: EncryptedBundleHandler):
-        """ Set the bundle handler """
-        raise NotImplementedError(
-            f'Not implemented: {type(self).__module__}.{type(self).__name__}.bundle_handler setter'
-        )
-
-
-# global
+# bundle extension
 shared_account_extensions.bundle_handler: EncryptedBundleHandler = DefaultBundleHandler()
-
-
-def account_extensions() -> BundleExtension:
-    return shared_account_extensions
-
-
-def bundle_handler() -> EncryptedBundleHandler:
-    ext = account_extensions()
-    return ext.bundle_handler

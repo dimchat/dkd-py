@@ -29,7 +29,8 @@
 # ==============================================================================
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Dict
+from typing import Optional, Any
+from typing import Mapping
 
 from mkm.types import StrMap
 from mkm.format import TransportableData
@@ -101,7 +102,7 @@ class SecureMessage(Message, ABC):
     #
 
     @classmethod
-    def from_instant_message(cls, i_msg: InstantMessage, data: bytes, bundles: Dict[ID, EncryptedBundle] = None):
+    def from_instant_message(cls, i_msg: InstantMessage, data: bytes, bundles: Mapping[ID, EncryptedBundle] = None):
         """Create a `SecureMessage` from an instant message, adding 'data' and 'keys'.
 
         Encrypts the plaintext content with a symmetric key, then encrypts the key
@@ -152,7 +153,8 @@ class SecureMessageFactory(ABC):
     """
 
     @abstractmethod
-    def create_secure_message(self, i_msg: InstantMessage, data: bytes, bundles: Optional[Dict[ID, EncryptedBundle]]):
+    def create_secure_message(self, i_msg: InstantMessage,
+                              data: bytes, bundles: Optional[Mapping[ID, EncryptedBundle]]):
         """Create a secure message from instant message, adding 'data' and 'keys'.
 
         Encrypts the plaintext content with a symmetric key, then encrypts the key
@@ -220,7 +222,8 @@ class SecureMessageHelper(ABC):
         )
 
     @abstractmethod
-    def create_secure_message(self, i_msg: InstantMessage, data: bytes, bundles: Optional[Dict[ID, EncryptedBundle]]):
+    def create_secure_message(self, i_msg: InstantMessage,
+                              data: bytes, bundles: Optional[Mapping[ID, EncryptedBundle]]):
         """Create a secure message from instant message, adding 'data' and 'keys'.
 
         Encrypts the plaintext content with a symmetric key, then encrypts the key
@@ -270,10 +273,10 @@ class SecureMessageExtension:
 shared_message_extensions.secure_helper: Optional[SecureMessageHelper] = None
 
 
-def message_extensions() -> SecureMessageExtension:
+def _secure_extension() -> SecureMessageExtension:
     return shared_message_extensions
 
 
 def secure_helper():
-    ext = message_extensions()
+    ext = _secure_extension()
     return ext.secure_helper

@@ -36,23 +36,28 @@
 """
 
 from .bundle import BytesMap
-from .bundle import EncryptedBundle, UserEncryptedBundle
 
-# from .helpers import EncryptedBundleHandler, DefaultBundleHandler
-# from .helpers import BundleExtension
+from .bundle import EncryptedBundle
+# from .bundle import EncryptedBundleExtension
+# from .bundle import EncryptedBundleHandler
+# from .bundle import bundle_handler
+
+from .user_bundle import UserEncryptedBundle
+
+# from .default_handler import DefaultBundleHandler
 
 
 __all__ = [
 
     'BytesMap',
 
-    'EncryptedBundle', 'UserEncryptedBundle',
+    'EncryptedBundle',
+    # 'EncryptedBundleExtension',
+    # 'EncryptedBundleHandler',
+    # 'bundle_handler',
 
-    #
-    #   Helpers
-    #
+    'UserEncryptedBundle',
 
-    # 'EncryptedBundleHandler', 'DefaultBundleHandler',
-    # 'BundleExtension',
+    # 'DefaultBundleHandler',
 
 ]
