@@ -41,29 +41,35 @@ from .envelope import shared_message_extensions
 
 
 class Content(Mapper, ABC):
-    """This class is for creating message content
+    """Interface for message content (body) that contains the actual message data.
 
-        Message Content
-        ~~~~~~~~~~~~~~~
+    Represents the core payload of a message, including type identifier, metadata,
+    and message-specific data (text, commands, etc.). Implements `Mapper` for
+    serialization to/from structured formats (Map/JSON).
 
-        data format: {
-            "type"    : i2s(0),         // message type
-            "sn"      : 12345,          // serial number
+    Serialized format (Map/JSON):
+    ```json
+    {
+      "type"  : i2s(0),          // Message type (e.g., i2s(1) = "1" = "text")
+      "sn"    : 12345,           // Unique serial number (serves as message ID)
 
-            "time"    : 123.45,         // message time
-            "group"   : "{GroupID}",    // for group message
+      "time"  : 123.45,          // Message timestamp (Unix timestamp in seconds)
+      "group" : "group@zzz",     // Optional group ID (marks this as a group message)
 
-            //-- message info
-            "text"    : "message",      // for text message
-            "command" : "Command Name"  // for system command
-            //...
-        }
+      //...
+    }
+    ```
     """
 
     @property
     @abstractmethod
     def type(self) -> str:
-        """ content type """
+        """Message type identifier.
+
+        This type categorizes the content payload (e.g., text, image, command) and
+        is used to determine how to parse the message-specific fields (text, command,
+        etc.). Generated via `i2s()` (integer to string) function (e.g., 0 -> "0").
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.type getter'
         )
@@ -71,7 +77,11 @@ class Content(Mapper, ABC):
     @property
     @abstractmethod
     def sn(self) -> int:
-        """ serial number as message id """
+        """Serial number (unique message identifier).
+
+        This integer serves as a unique ID for the message, used for deduplication,
+        tracking, and acknowledgment of message delivery.
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.sn getter'
         )
@@ -79,7 +89,13 @@ class Content(Mapper, ABC):
     @property
     @abstractmethod
     def time(self) -> Optional[DateTime]:
-        """ message time """
+        """Timestamp when the content was created.
+
+        Represented as a `DateTime` object (parsed from Unix timestamp in serialized
+        format).
+
+        :return: content creation timestamp, or None if not specified
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.time getter'
         )
@@ -87,10 +103,12 @@ class Content(Mapper, ABC):
     @property
     @abstractmethod
     def group(self) -> Optional[ID]:
-        """
-            Group ID/string for group message
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            if field 'group' exists, it means this is a group message
+        """Group identifier for group messages.
+
+        **Key Indicator**: The presence of this field (non-null value) signifies that
+        this is a group message (as opposed to a direct message between two entities).
+
+        :return: group ID for group messages, None for direct messages
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.group getter'
@@ -99,7 +117,10 @@ class Content(Mapper, ABC):
     @group.setter
     @abstractmethod
     def group(self, gid: ID):
-        """ Set group ID """
+        """Set the group ID for a group message.
+
+        :param gid: group ID (None to mark as a direct message)
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.group setter'
         )
@@ -110,6 +131,11 @@ class Content(Mapper, ABC):
 
     @classmethod
     def convert(cls, array: Iterable):  # -> List[Content]:
+        """Convert an array of raw content objects into `Content` instances.
+
+        :param array: list of raw content data (map/JSON)
+        :return: list of parsed `Content` instances (invalid items are skipped)
+        """
         contents = []
         for item in array:
             msg = cls.parse(content=item)
@@ -121,6 +147,11 @@ class Content(Mapper, ABC):
 
     @classmethod
     def revert(cls, contents: Iterable) -> List[MutableStrMap]:
+        """Convert `Content` instances back to raw map objects.
+
+        :param contents: list of `Content` instances
+        :return: list of serialized map (JSON) objects
+        """
         array = []
         for msg in contents:
             assert isinstance(msg, Content), f'content error: {msg}'
@@ -128,35 +159,56 @@ class Content(Mapper, ABC):
         return array
 
     #
-    #   Factory method
+    #   Factory methods
     #
 
     @classmethod
     def parse(cls, content: Any):  # -> Optional[Content]:
+        """Parse a raw object into a `Content` instance.
+
+        :param content: raw content data (map, JSON string, etc.)
+        :return: parsed `Content` instance, or None if parsing fails
+        """
         helper = content_helper()
         return helper.parse_content(content=content)
 
     @classmethod
     def get_factory(cls, msg_type: str):  # -> Optional[ContentFactory]:
+        """Get the content factory for a message type.
+
+        :param msg_type: message type identifier (e.g., "1" for text)
+        :return: registered factory for the type, or None if not registered
+        """
         helper = content_helper()
         return helper.get_content_factory(msg_type)
 
     @classmethod
     def set_factory(cls, msg_type: str, factory):
+        """Register a content factory for a message type.
+
+        :param msg_type: message type identifier
+        :param factory:   factory to be registered
+        """
         helper = content_helper()
         helper.set_content_factory(msg_type, factory=factory)
 
 
 class ContentFactory(ABC):
-    """ Content Factory """
+    """Factory interface for parsing `Content` instances from serialized data.
+
+    Provides a method to reconstruct message content from its serialized Map/JSON
+    representation, with proper type validation and conversion.
+    """
 
     @abstractmethod
     def parse_content(self, content: StrMap) -> Optional[Content]:
-        """
-        Parse map object to content
+        """Parses a serialized Map into a `Content` instance.
 
-        :param content: content info
-        :return: Content
+        Validates the structure (required fields: type, sn) and converts raw values
+        (e.g., Unix timestamp -> DateTime, group string -> ID) to proper types.
+
+        :param content: serialized content data in the Map format defined in `Content`
+        :return: a `Content` instance if parsing/validation succeeds, None otherwise
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_content()'
@@ -169,25 +221,48 @@ class ContentFactory(ABC):
 
 
 class ContentHelper(ABC):
-    """ General Helper """
+    """Helper interface for message content management.
+
+    Manages content factories (by message type) and provides core functionality for:
+    - Registering type-specific content factories (e.g., text, image, command)
+    - Parsing raw content data into strongly-typed `Content` instances
+
+    Content represents the payload of a message (text, file, command, etc.) and is
+    categorized by message type identifiers (e.g., "01" for text, "88" for command).
+    """
 
     @abstractmethod
     def set_content_factory(self, msg_type: str, factory: ContentFactory):
-        """ Set content factory for type """
+        """Set the content factory for a message type.
+
+        :param msg_type: message type identifier
+        :param factory:    factory to be registered
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_content_factory()'
         )
 
     @abstractmethod
     def get_content_factory(self, msg_type: str) -> Optional[ContentFactory]:
-        """ Get content factory for type """
+        """Get the content factory for a message type.
+
+        :param msg_type: message type identifier
+        :return: registered factory for the type, or None if not registered
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_content_factory()'
         )
 
     @abstractmethod
     def parse_content(self, content: Any) -> Optional[Content]:
-        """ Parse any object to content """
+        """Parses raw content data into a strongly-typed `Content` instance.
+
+        Converts arbitrary raw content data (e.g., map, JSON string) into a valid
+        Content object based on the registered factories for the message type.
+
+        :param content: raw content data to parse
+        :return: parsed `Content` instance (None if parsing fails or no factory exists)
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_content()'
         )

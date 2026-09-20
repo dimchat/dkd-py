@@ -39,26 +39,31 @@ from mkm.protocol import ID
 
 
 class Envelope(Mapper, ABC):
-    """ This class is used to create a message envelope
-        which contains 'sender', 'receiver' and 'time'
+    """Interface for message envelopes (headers) that contain routing/metadata for messages.
 
-        Envelope for message
-        ~~~~~~~~~~~~~~~~~~~~
+    Envelopes wrap core message content with essential delivery information, including
+    sender/receiver identifiers, timestamp, and metadata for message routing.
+    Implements `Mapper` for serialization to/from structured formats (Map/JSON).
 
-        data format: {
-            "sender"   : "moki@xxx",
-            "receiver" : "hulk@yyy",
-            "time"     : 123.45
-        }
+    Serialized format (Map/JSON):
+    ```json
+    {
+      "sender"   : "moki@xxx",   // Sender's unique ID
+      "receiver" : "hulk@yyy",   // Receiver's unique ID
+      "time"     : 123.45,       // Message timestamp (Unix timestamp in seconds)
+
+      "group"    : "group@zzz",  // Optional group ID (marks this as a group message)
+      "type"     : "text"        // Optional message type
+    }
+    ```
     """
 
     @property
     @abstractmethod
     def sender(self) -> ID:
-        """
-        Get message sender
+        """Unique identifier of the message sender.
 
-        :return: sender ID
+        This ID identifies the origin of the message (user) and cannot be null.
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.sender getter'
@@ -67,10 +72,9 @@ class Envelope(Mapper, ABC):
     @property
     @abstractmethod
     def receiver(self) -> ID:
-        """
-        Get message receiver
+        """Unique identifier of the message receiver.
 
-        :return: receiver ID
+        This ID identifies the target of the message (user/group) and cannot be null.
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.receiver getter'
@@ -79,10 +83,12 @@ class Envelope(Mapper, ABC):
     @property
     @abstractmethod
     def time(self) -> Optional[DateTime]:
-        """
-        Get message time
+        """Timestamp when the message was created/sent.
 
-        :return: timestamp
+        Represented as a `DateTime` object (parsed from Unix timestamp in serialized
+        format).
+
+        :return: message timestamp, or None if not specified
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.time getter'
@@ -91,12 +97,13 @@ class Envelope(Mapper, ABC):
     @property
     @abstractmethod
     def group(self) -> Optional[ID]:
-        """
-            Group ID
-            ~~~~~~~~
-            when a group message was split/trimmed to a single message
-            the 'receiver' will be changed to a member ID, and
-            the group ID will be saved as 'group'.
+        """Optional group identifier for group messages.
+
+        **Special Behavior**: When a group message is split into individual messages
+        for group members, the `receiver` field is updated to the member's ID, and
+        the original group ID is stored in this `group` field to preserve context.
+
+        :return: original group ID for split group messages, None for direct messages
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.group getter'
@@ -105,7 +112,10 @@ class Envelope(Mapper, ABC):
     @group.setter
     @abstractmethod
     def group(self, gid: ID):
-        """ Set group ID """
+        """Set the group ID for a split group message.
+
+        :param gid: original group ID (None for direct messages)
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.group setter'
         )
@@ -113,13 +123,14 @@ class Envelope(Mapper, ABC):
     @property
     @abstractmethod
     def type(self) -> Optional[str]:
-        """
-            Message Type
-            ~~~~~~~~~~~~
-            because the message content will be encrypted, so
-            the intermediate nodes(station) cannot recognize what kind of it.
-            we pick out the content type and set it in envelope
-            to let the station do its job.
+        """Message content type identifier (for routing encrypted content).
+
+        **Purpose**: Since message content may be encrypted, intermediate nodes
+        (e.g., stations) cannot parse the content to determine its type. This field
+        exposes the content type in plaintext to enable proper routing/processing
+        by network nodes.
+
+        Examples: "text", "file", "command", ...
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.type getter'
@@ -128,7 +139,10 @@ class Envelope(Mapper, ABC):
     @type.setter
     @abstractmethod
     def type(self, msg_type: str):
-        """ Set message type """
+        """Set the message content type.
+
+        :param msg_type: content type identifier (e.g., "text", "file")
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.type setter'
         )
@@ -139,21 +153,41 @@ class Envelope(Mapper, ABC):
 
     @classmethod
     def create(cls, sender: ID, receiver: ID, time: DateTime = None):  # -> Envelope:
+        """Create a new `Envelope` with the given routing metadata.
+
+        :param sender:   ID of the message sender
+        :param receiver: ID of the message receiver (user/group)
+        :param time:     message timestamp (defaults to current time if None)
+        :return: new `Envelope` instance
+        """
         helper = envelope_helper()
         return helper.create_envelope(sender=sender, receiver=receiver, time=time)
 
     @classmethod
     def parse(cls, envelope: Any):  # -> Optional[Envelope]:
+        """Parse a raw object into an `Envelope` instance.
+
+        :param envelope: raw envelope data (map, JSON string, etc.)
+        :return: parsed `Envelope` instance, or None if parsing fails
+        """
         helper = envelope_helper()
         return helper.parse_envelope(envelope=envelope)
 
     @classmethod
     def get_factory(cls):  # -> EnvelopeFactory:
+        """Get the envelope factory.
+
+        :return: registered `EnvelopeFactory`, or None if not registered
+        """
         helper = envelope_helper()
         return helper.get_envelope_factory()
 
     @classmethod
     def set_factory(cls, factory):
+        """Register the envelope factory.
+
+        :param factory: factory to be registered
+        """
         helper = envelope_helper()
         helper.set_envelope_factory(factory=factory)
 
@@ -165,17 +199,20 @@ def envelope_helper():
 
 
 class EnvelopeFactory(ABC):
-    """ Envelope Factory """
+    """Factory interface for creating and parsing `Envelope` instances.
+
+    Provides methods to construct new envelopes from raw components and reconstruct
+    envelopes from their serialized Map/JSON representation.
+    """
 
     @abstractmethod
     def create_envelope(self, sender: ID, receiver: ID, time: Optional[DateTime]) -> Envelope:
-        """
-        Create envelope
+        """Creates a new `Envelope` instance with required sender/receiver and optional timestamp.
 
-        :param sender:   sender ID
-        :param receiver: receiver ID
-        :param time:     message time
-        :return: Envelope
+        :param sender:   required sender ID (cannot be None)
+        :param receiver: required receiver ID (cannot be None)
+        :param time:     optional message timestamp (defaults to current time if None)
+        :return: new `Envelope` instance with the specified parameters
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_envelope()'
@@ -183,11 +220,13 @@ class EnvelopeFactory(ABC):
 
     @abstractmethod
     def parse_envelope(self, envelope: StrMap) -> Optional[Envelope]:
-        """
-        Parse map object to envelope
+        """Parses a serialized Map into an `Envelope` instance.
 
-        :param envelope: message head info
-        :return: Envelope
+        Validates the structure and converts raw values (e.g., Unix timestamp ->
+        DateTime) to the proper types defined in the `Envelope` interface.
+
+        :param envelope: serialized envelope data in the Map format defined in `Envelope`
+        :return: an `Envelope` instance if parsing/validation succeeds, None otherwise
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_envelope()'
@@ -200,32 +239,62 @@ class EnvelopeFactory(ABC):
 
 
 class EnvelopeHelper(ABC):
-    """ General Helper """
+    """Helper interface for message envelope management.
+
+    Manages envelope factories and provides core functionality for:
+    - Creating message envelopes (header metadata)
+    - Parsing raw envelope data into strongly-typed `Envelope` instances
+
+    Envelopes contain the core routing metadata of a message: sender ID, receiver
+    ID, and timestamp (when the message was sent).
+    """
 
     @abstractmethod
     def set_envelope_factory(self, factory: EnvelopeFactory):
-        """ Set envelope factory """
+        """Set the envelope factory.
+
+        :param factory: factory to be registered
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_envelope_factory()'
         )
 
     @abstractmethod
     def get_envelope_factory(self) -> Optional[EnvelopeFactory]:
-        """ Get envelope factory """
+        """Get the envelope factory.
+
+        :return: registered `EnvelopeFactory`, or None if not registered
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_envelope_factory()'
         )
 
     @abstractmethod
     def create_envelope(self, sender: ID, receiver: ID, time: Optional[DateTime]) -> Envelope:
-        """ Create envelope with sender, receiver and time """
+        """Creates a custom message envelope with specified routing metadata.
+
+        Builds an Envelope from explicit sender/receiver/timestamp parameters,
+        forming the header of a message (routing information).
+
+        :param sender:   ID of the message sender
+        :param receiver: ID of the message receiver (user/group)
+        :param time:     message timestamp (defaults to current time if None)
+        :return: custom `Envelope` instance with routing metadata
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_envelope()'
         )
 
     @abstractmethod
     def parse_envelope(self, envelope: Any) -> Optional[Envelope]:
-        """ Parse any object to envelope """
+        """Parses raw envelope data into a strongly-typed `Envelope` instance.
+
+        Converts arbitrary raw envelope data (e.g., map, JSON string) into a valid
+        Envelope object for consistent message routing.
+
+        :param envelope: raw envelope data to parse
+        :return: parsed `Envelope` instance (None if parsing fails)
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_envelope()'
         )
@@ -233,15 +302,21 @@ class EnvelopeHelper(ABC):
 
 @Singleton
 class MessageExtensions:
+    """Singleton extension class for message system operations.
+
+    Provides a unified entry point for accessing all message-related helpers,
+    ensuring consistent management of message components
+    (Content/Envelope/InstantMessage etc.).
+    """
 
     @property
     def envelope_helper(self) -> Optional[EnvelopeHelper]:
-        """ Get envelope helper """
+        """Get the envelope helper"""
         return _EnvExt.envelope_helper
 
     @envelope_helper.setter
     def envelope_helper(self, helper: Optional[EnvelopeHelper]):
-        """ Set envelope helper """
+        """Set the envelope helper"""
         _EnvExt.envelope_helper = helper
 
 

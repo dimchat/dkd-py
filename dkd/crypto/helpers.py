@@ -122,8 +122,8 @@ class DefaultBundleHandler(EncryptedBundleHandler):
     def _decode_bundle(self, encoded_keys: Mapper, receiver: ID) -> EncryptedBundle:
         """ Decode bundle for all terminals of the receiver.
 
-        Scans every entry in *encodedKeys*, keeps the ones whose target is
-        the *receiver* (Naked ID or ID with a terminal), and skips the others.
+        Scans every entry in `encoded_keys`, keeps the ones whose target is
+        the `receiver` (Naked ID or ID with a terminal), and skips the others.
 
         :param encoded_keys: is the encoded key data with targets (ID + terminals).
         :param receiver:     is the user ID (without terminal).

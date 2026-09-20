@@ -28,6 +28,13 @@
 # SOFTWARE.
 # ==============================================================================
 
+"""
+    Dao-Ke-Dao
+    ~~~~~~~~~~
+
+    Universal Message Module
+"""
+
 from .crypto import *
 from .protocol import *
 from .ext import *

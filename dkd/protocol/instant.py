@@ -42,30 +42,39 @@ from .envelope import shared_message_extensions
 
 
 class InstantMessage(Message, ABC):
-    """
-        Instant Message
-        ~~~~~~~~~~~~~~~
+    """Interface for plaintext instant messages (unencrypted, first stage).
 
-        data format: {
-            //-- envelope
-            "sender"   : "moki@xxx",
-            "receiver" : "hulk@yyy",
-            "time"     : 123.45,
-            //-- content
-            "content"  : {
-                "type"  : i2s(0),
-                "sn"    : 12345,
-                "time"  : 123.45,
-                "group" : "g-123@zzz",
-                "text"  : "Hello World!"
-            }
-        }
+    Represents the original, unencrypted message with plaintext content. This is
+    the starting point of the message transformation workflow before encryption
+    and signing.
+
+    Serialized format (Map/JSON):
+    ```json
+    {
+      // Envelope metadata
+      "sender"   : "moki@xxx",  // Sender's unique ID
+      "receiver" : "hulk@yyy",  // Receiver's unique ID
+      "time"     : 123.45,      // Message timestamp (Unix timestamp in seconds)
+
+      // Plaintext content (complete Content object)
+      "content"  : {            // Unencrypted message body
+        "type" : i2s(0),        // Content type
+        "sn"   : 12345,         // Serial number (message ID)
+        "text" : "Hello World"  // Message-specific fields
+      }
+    }
+    ```
     """
 
     @property
     @abstractmethod
     def content(self) -> Content:
-        """ message content """
+        """Plaintext message content (unencrypted body).
+
+        This contains the actual message payload (text, commands, etc.) in its
+        original unencrypted form. Cannot be None (core payload of the instant
+        message).
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.content getter'
         )
@@ -83,6 +92,11 @@ class InstantMessage(Message, ABC):
 
     @classmethod
     def convert(cls, array: Iterable):  # -> List[InstantMessage]:
+        """Convert an array of raw objects into `InstantMessage` instances.
+
+        :param array: list of raw message data (map/JSON)
+        :return: list of parsed `InstantMessage` instances (invalid items are skipped)
+        """
         messages = []
         for item in array:
             msg = cls.parse(msg=item)
@@ -94,6 +108,11 @@ class InstantMessage(Message, ABC):
 
     @classmethod
     def revert(cls, messages: Iterable) -> List[MutableStrMap]:
+        """Convert `InstantMessage` instances back to raw map objects.
+
+        :param messages: list of `InstantMessage` instances
+        :return: list of serialized map (JSON) objects
+        """
         array = []
         for msg in messages:
             assert isinstance(msg, InstantMessage), f'message error: {msg}'
@@ -106,41 +125,72 @@ class InstantMessage(Message, ABC):
 
     @classmethod
     def create(cls, head: Envelope, body: Content):  # -> InstantMessage:
+        """Create an `InstantMessage` from envelope and content.
+
+        :param head: message envelope (routing metadata)
+        :param body: message content (payload)
+        :return: new `InstantMessage` instance
+        """
         helper = instant_helper()
         return helper.create_instant_message(head, body)
 
     @classmethod
     def parse(cls, msg: Any):  # -> Optional[InstantMessage]:
+        """Parse a raw object into an `InstantMessage` instance.
+
+        :param msg: raw message data (map, JSON string, etc.)
+        :return: parsed `InstantMessage` instance, or None if parsing fails
+        """
         helper = instant_helper()
         return helper.parse_instant_message(msg=msg)
 
     @classmethod
     def generate_serial_number(cls, msg_type: Optional[str] = None, now: Optional[DateTime] = None) -> int:
+        """Generate a unique serial number (SN) for the message content.
+
+        :param msg_type: content type (used for type-specific SN generation)
+        :param now:      message timestamp (defaults to current time if None)
+        :return: 64-bit unsigned integer (uint64) as the serial number
+        """
         helper = instant_helper()
         return helper.generate_serial_number(msg_type, now)
 
     @classmethod
     def get_factory(cls):  # -> Optional[InstantMessageFactory]:
+        """Get the instant message factory.
+
+        :return: registered `InstantMessageFactory`, or None if not registered
+        """
         helper = instant_helper()
         return helper.get_instant_message_factory()
 
     @classmethod
     def set_factory(cls, factory):
+        """Register the instant message factory.
+
+        :param factory: factory to be registered
+        """
         helper = instant_helper()
         return helper.set_instant_message_factory(factory=factory)
 
 
 class InstantMessageFactory(ABC):
-    """ Instant Message Factory """
+    """Factory interface for creating and parsing `InstantMessage` instances.
+
+    Provides methods to generate unique serial numbers, create new instant messages
+    from envelope/content pairs, and parse serialized instant messages.
+    """
 
     @abstractmethod
     def generate_serial_number(self, msg_type: Optional[str], now: Optional[DateTime]) -> int:
-        """
-        Generate SN for message content
+        """Generates a unique serial number (SN) for message content.
 
-        :param msg_type: content type
-        :param now:      message time
-        :return: SN (uint64, serial number as msg id)
+        The SN serves as a unique message ID (uint64) to track and deduplicate
+        messages.
+
+        :param msg_type: type of the message content (used for algorithm-specific generation)
+        :param now:      timestamp to incorporate into the SN (or current time if None)
+        :return: 64-bit unsigned integer (uint64) as the unique serial number
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.generate_serial_number()'
@@ -148,12 +198,14 @@ class InstantMessageFactory(ABC):
 
     @abstractmethod
     def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
-        """
-        Create instant message with envelope & content
+        """Creates a new `InstantMessage` from envelope and plaintext content.
 
-        :param head: message envelope
-        :param body: message content
-        :return: InstantMessage
+        Combines routing metadata (envelope) with unencrypted content to form a
+        complete instant message (plaintext stage).
+
+        :param head: message envelope (routing metadata, cannot be None)
+        :param body: plaintext content (message payload, cannot be None)
+        :return: new `InstantMessage` instance
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_instant_message()'
@@ -161,11 +213,13 @@ class InstantMessageFactory(ABC):
 
     @abstractmethod
     def parse_instant_message(self, msg: StrMap) -> Optional[InstantMessage]:
-        """
-        Parse map object to message
+        """Parses a serialized Map into an `InstantMessage` instance.
 
-        :param msg: message info
-        :return: InstantMessage
+        Validates the structure and converts raw values (e.g., timestamp ->
+        DateTime, content map -> Content object) to proper types.
+
+        :param msg: serialized instant message data (matches format in `InstantMessage`)
+        :return: an `InstantMessage` instance if parsing succeeds, None otherwise
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_instant_message()'
@@ -178,39 +232,77 @@ class InstantMessageFactory(ABC):
 
 
 class InstantMessageHelper(ABC):
-    """ General Helper """
+    """Helper interface for instant message management.
+
+    Manages instant message factories and provides core functionality for:
+    - Creating instant messages (envelope + content)
+    - Parsing raw instant message data into strongly-typed `InstantMessage` instances
+    - Generating unique serial numbers (SN) for message identification
+
+    InstantMessage represents the basic, unencrypted message structure
+    (envelope + content) before security processing (encryption/signing).
+    """
 
     @abstractmethod
     def set_instant_message_factory(self, factory: InstantMessageFactory):
-        """ Set instant message factory """
+        """Set the instant message factory.
+
+        :param factory: factory to be registered
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.set_instant_message_factory()'
         )
 
     @abstractmethod
     def get_instant_message_factory(self) -> Optional[InstantMessageFactory]:
-        """ Get instant message factory """
+        """Get the instant message factory.
+
+        :return: registered `InstantMessageFactory`, or None if not registered
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_instant_message_factory()'
         )
 
     @abstractmethod
     def generate_serial_number(self, msg_type: Optional[str], now: Optional[DateTime]) -> int:
-        """ Generate SN """
+        """Generates a unique serial number (SN) for message identification.
+
+        Creates a cryptographically unique or time-based serial number to uniquely
+        identify a message (used for tracking, deduplication, and receipts).
+
+        :param msg_type: message type identifier (for type-specific SN generation)
+        :param now:      timestamp (defaults to current time if None)
+        :return: unique serial number (uint64) for the message
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.generate_serial_number()'
         )
 
     @abstractmethod
     def create_instant_message(self, head: Envelope, body: Content) -> InstantMessage:
-        """ Create instant message """
+        """Creates an instant message from envelope (header) and content (body).
+
+        Combines routing metadata (envelope) with message payload (content) to form
+        a complete, unencrypted instant message.
+
+        :param head: message envelope (routing metadata: sender/receiver/time)
+        :param body: message content (payload: text, file, command, etc.)
+        :return: complete `InstantMessage` instance
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.create_instant_message()'
         )
 
     @abstractmethod
     def parse_instant_message(self, msg: Any) -> Optional[InstantMessage]:
-        """ Parse any object to instant message """
+        """Parses raw instant message data into a strongly-typed `InstantMessage` instance.
+
+        Converts arbitrary raw instant message data (e.g., map, JSON string) into a
+        valid InstantMessage object for consistent message processing.
+
+        :param msg: raw instant message data to parse
+        :return: parsed `InstantMessage` instance (None if parsing fails)
+        """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.parse_instant_message()'
         )

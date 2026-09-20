@@ -28,6 +28,13 @@
 # SOFTWARE.
 # ==============================================================================
 
+"""
+    Dao-Ke-Dao
+    ~~~~~~~~~~
+
+    Universal Message Module
+"""
+
 from .bundle import BytesMap
 from .bundle import EncryptedBundle, UserEncryptedBundle
 

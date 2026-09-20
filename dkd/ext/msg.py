@@ -55,7 +55,7 @@ class MessageHandler(ABC):
 
     @abstractmethod
     def get_content_type(self, content: StrMap, default: Optional[str] = None) -> Optional[str]:
-        """ Extract the content type from a raw content map.
+        """ Extracts the content type from a raw content map.
 
         Retrieves the message type identifier (e.g., "01" for text, "88" for
         command) from a raw content map with a fallback default value if the
@@ -63,7 +63,7 @@ class MessageHandler(ABC):
 
         :param content: is the raw content map containing the type metadata.
         :param default: is the fallback value if the type is not found.
-        :return: the extracted content type (or *default* if not present).
+        :return: the extracted content type (or `default` if not present).
         """
         raise NotImplementedError(
             f'Not implemented: {type(self).__module__}.{type(self).__name__}.get_content_type()'
@@ -71,7 +71,7 @@ class MessageHandler(ABC):
 
     @abstractmethod
     def is_broadcast(self, message: Message) -> bool:
-        """ Check whether this is a broadcast message.
+        """ Checks whether this is a broadcast message.
 
         1. If receiver is broadcast, return true
         2. If group exists and is broadcast, return true too
