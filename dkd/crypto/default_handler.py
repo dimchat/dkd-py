@@ -44,13 +44,46 @@ from .user_bundle import UserEncryptedBundle
 class DefaultBundleHandler(EncryptedBundleHandler):
     """ Default encoder/decoder for EncryptedBundle. """
 
+    # noinspection PyMethodMayBeStatic
+    def _encode_bundle(self, bundle: EncryptedBundle, receiver: ID, terminal: str) -> StrMap:
+        """ Encode key data for the exact terminal of the receiver.
+
+        Gets the key data for `terminal` from `bundle`, encodes it, and inserts
+        the encoded data to the keys with the target (ID with terminal).
+
+        :param bundle:   is the encrypted key data with targets (ID terminals).
+        :param receiver: is the user ID (with terminal).
+        :param terminal: is the exact terminal to encode.
+        :return: encoded key data with the target (ID + terminal).
+        """
+        encoded_keys: MutableMapping[str, str] = {}
+        # get key data for terminal
+        assert terminal is not None and len(terminal) > 0, f'terminal should not empty here'
+        data = bundle.get(terminal)
+        if data is not None and len(data) > 0:
+            ted = TransportableData.create(data=data)
+            if ted is not None and not ted.is_empty:
+                assert terminal == receiver.terminal, f'terminal error: {terminal}, {receiver}'
+                target = str(receiver.with_terminal(terminal=terminal))
+                encoded_keys[target] = ted.serialize()
+            else:
+                assert False, f'key data error: {receiver} ({terminal}): {bundle}'
+        else:
+            assert False, f'key data not found: {receiver} ({terminal}): {bundle}'
+        # OK
+        return encoded_keys
+
     # Override
     def encode_bundle(self, bundle: EncryptedBundle, receiver: ID) -> StrMap:
+        terminal = receiver.terminal
+        if terminal is not None and len(terminal) > 0:
+            # encode for the exact terminal
+            return self._encode_bundle(bundle=bundle, receiver=receiver, terminal=terminal)
+        # encode for all terminals
         encoded_keys: MutableMapping[str, str] = {}
         #
         #  0. ID string without terminal
         #
-        assert receiver.terminal is None, f'ID should not contain terminal here: {receiver}'
         identifier = str(receiver.without_terminal())
         info = bundle.to_map()
         for key, value in info.items():
